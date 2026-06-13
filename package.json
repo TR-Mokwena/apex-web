@@ -1,0 +1,24 @@
+{
+  "name": "apex-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Apex v2 web client — project & contribution tracker by Eclipse Softworks",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "lucide-react": "^0.525.0",
+    "next": "^15.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.13",
+    "eslint": "^9",
+    "eslint-config-next": "^15.5.4",
+    "tailwindcss": "^4.1.13"
+  }
+}
