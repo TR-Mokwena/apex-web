@@ -63,13 +63,17 @@ export default function MilestonesPage() {
       </div>
 
       {/* timeline */}
-      <div className="relative pl-[38px] before:content-[''] before:absolute before:left-[14px] before:top-1.5 before:bottom-3.5 before:w-0.5 before:bg-slate-200">
+      <div className="relative">
+        {/* continuous line, centered in the 30px node gutter (center = 15px) */}
+        <span aria-hidden className="absolute left-[14px] top-4 bottom-4 w-0.5 bg-slate-200" />
         {MILESTONES.map((m) => {
           const s = STATUS[m.st];
           return (
-            <div key={m.t} className="relative mb-4">
-              <span className={cn("absolute -left-[31px] top-5 grid place-items-center w-[30px] h-[30px] rounded-full border-2 z-10", s.node)}><Icon name={s.icon} size={14} /></span>
-              <div className="card !shadow-card overflow-hidden cursor-pointer transition-colors hover:border-[#D6DCEA]">
+            <div key={m.t} className="relative flex gap-4 mb-4">
+              <div className="flex-none w-[30px] flex items-center justify-center">
+                <span className={cn("relative z-10 grid place-items-center w-[30px] h-[30px] rounded-full border-2", s.node)}><Icon name={s.icon} size={14} /></span>
+              </div>
+              <div className="flex-1 min-w-0 card !shadow-card overflow-hidden cursor-pointer transition-colors hover:border-[#D6DCEA]">
                 <div className="flex items-start gap-3.5 px-[18px] pt-4 pb-3.5">
                   <div className="flex-1 min-w-0">
                     <div className="text-[15px] font-semibold tracking-[-0.01em]">{m.t}</div>
