@@ -4,143 +4,204 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import Icon from "@/components/Icon";
 import { cn } from "@/lib/cn";
 
-const PALETTE = {
-  Triggers: [
-    { label: "Schedule", icon: "Clock", ib: "#EEF0FE", icol: "#4F46E5" },
-    { label: "Event", icon: "Radio", ib: "#EFF8FE", icol: "#0EA5E9" },
-    { label: "Condition", icon: "GitFork", ib: "#FEF4E5", icol: "#F59E0B" },
-  ],
-  Actions: [
-    { label: "Send Email", icon: "Mail", ib: "#EEF0FE", icol: "#4F46E5" },
-    { label: "Send Notification", icon: "Bell", ib: "#F3EEFE", icol: "#8B5CF6" },
-    { label: "Create Task", icon: "SquarePlus", ib: "#E7F8F0", icol: "#16A34A" },
-    { label: "Update Task", icon: "SquarePen", ib: "#FEF4E5", icol: "#F59E0B" },
-    { label: "Webhook", icon: "Webhook", ib: "#FDECEC", icol: "#EF4444" },
-  ],
+/* ─── node type registry ──────────────────────────────────────────────────── */
+const NODE_TYPES = {
+  schedule: { title: "Schedule", group: "Triggers", icon: "Clock", grad: "linear-gradient(135deg,#6366F1,#818CF8)", pi: "#EEF0FE", pc: "#4F46E5", bIcon: "Repeat", hasIn: false, fields: [{ key: "days", label: "Run every (days)", type: "number" }], body: (c) => `Every ${c.days || 7} days` },
+  event: { title: "Event", group: "Triggers", icon: "Radio", grad: "linear-gradient(135deg,#0EA5E9,#38BDF8)", pi: "#EFF8FE", pc: "#0EA5E9", bIcon: "Zap", hasIn: false, fields: [{ key: "event", label: "Event name" }], body: (c) => c.event || "On event" },
+  condition: { title: "Condition", group: "Triggers", icon: "GitFork", grad: "linear-gradient(135deg,#F59E0B,#F97316)", pi: "#FEF4E5", pc: "#F59E0B", bIcon: "CircleSlash", branches: true, fields: [{ key: "expr", label: "Condition" }], body: (c) => c.expr || "If…" },
+  email: { title: "Send Email", group: "Actions", icon: "Mail", grad: "linear-gradient(135deg,#6366F1,#8B5CF6)", pi: "#EEF0FE", pc: "#4F46E5", bIcon: "UserRound", fields: [{ key: "to", label: "Recipient" }, { key: "subject", label: "Subject" }], body: (c) => (c.to ? `To ${c.to}` : "Send email") },
+  notify: { title: "Send Notification", group: "Actions", icon: "Bell", grad: "linear-gradient(135deg,#8B5CF6,#A78BFA)", pi: "#F3EEFE", pc: "#8B5CF6", bIcon: "Bell", fields: [{ key: "msg", label: "Message" }], body: (c) => c.msg || "Send notification" },
+  createTask: { title: "Create Task", group: "Actions", icon: "SquarePlus", grad: "linear-gradient(135deg,#10B981,#22C55E)", pi: "#E7F8F0", pc: "#16A34A", bIcon: "ListTodo", fields: [{ key: "task", label: "Task title" }, { key: "assignee", label: "Assignee" }], body: (c) => c.task || "Create task" },
+  updateTask: { title: "Update Task", group: "Actions", icon: "SquarePen", grad: "linear-gradient(135deg,#F59E0B,#FBBF24)", pi: "#FEF4E5", pc: "#F59E0B", bIcon: "SquarePen", fields: [{ key: "task", label: "Task" }, { key: "status", label: "New status" }], body: (c) => c.task || "Update task" },
+  webhook: { title: "Webhook", group: "Actions", icon: "Webhook", grad: "linear-gradient(135deg,#EF4444,#F87171)", pi: "#FDECEC", pc: "#EF4444", bIcon: "Webhook", fields: [{ key: "url", label: "URL" }], body: (c) => c.url || "POST webhook" },
+  end: { title: "End", group: "Flow", icon: "Square", grad: "#94A3B8", pi: "#F1F5F9", pc: "#64748B", bIcon: null, hasOut: false, fields: [], body: () => "" },
 };
+const PALETTE_GROUPS = ["Triggers", "Actions", "Flow"];
 
-// static node meta; positions live in a ref so drag stays cheap
-const META = [
-  { w: 188, h: 86, start: true, title: "Schedule", grad: "linear-gradient(135deg,#6366F1,#818CF8)", icon: "Clock", bIcon: "Repeat", bText: "Every 7 days" },
-  { w: 188, h: 86, title: "Condition", grad: "linear-gradient(135deg,#F59E0B,#F97316)", icon: "GitFork", bIcon: "CircleSlash", bText: "No activity in 7 days" },
-  { w: 188, h: 86, title: "Create Task", grad: "linear-gradient(135deg,#10B981,#22C55E)", icon: "SquarePlus", bIcon: "ListTodo", bText: "Follow-up task" },
-  { w: 188, h: 86, title: "Send Email", grad: "linear-gradient(135deg,#6366F1,#8B5CF6)", icon: "Mail", bIcon: "UserRound", bText: "Notify Manager" },
-  { w: 120, h: 58, end: true, title: "End", icon: "Square", endBg: "#94A3B8" },
-];
-const INIT_POS = [{ x: 60, y: 150 }, { x: 330, y: 150 }, { x: 600, y: 60 }, { x: 870, y: 60 }, { x: 640, y: 268 }];
-const CONNS = [[0, 1, "#C7CEFB"], [1, 2, "#86EFAC"], [1, 4, "#CBD5E1"], [2, 3, "#C7CEFB"]];
+const DEFAULT = {
+  nodes: [
+    { id: "n1", type: "schedule", x: 60, y: 150, config: { days: 7 } },
+    { id: "n2", type: "condition", x: 330, y: 150, config: { expr: "No activity in 7 days" } },
+    { id: "n3", type: "createTask", x: 600, y: 60, config: { task: "Follow-up task" } },
+    { id: "n4", type: "email", x: 870, y: 60, config: { to: "Manager" } },
+    { id: "n5", type: "end", x: 640, y: 268, config: {} },
+  ],
+  conns: [{ id: "e1", from: "n1", to: "n2" }, { id: "e2", from: "n2", to: "n3" }, { id: "e3", from: "n2", to: "n5" }, { id: "e4", from: "n3", to: "n4" }],
+};
+const STORAGE = "apex-automation-v1";
 
+const sizeOf = (type) => ({ w: type === "end" ? 120 : 188, h: NODE_TYPES[type].bIcon ? 86 : 54 });
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-const outPt = (n) => [n.x + n.w, n.y + n.h / 2];
-const inPt = (n) => [n.x, n.y + n.h / 2];
 const curve = (a, b) => { const dx = Math.max(40, Math.abs(b[0] - a[0]) * 0.5); return `M ${a[0]} ${a[1]} C ${a[0] + dx} ${a[1]}, ${b[0] - dx} ${b[1]}, ${b[0]} ${b[1]}`; };
+const uid = () => Math.random().toString(36).slice(2, 9);
 
 export default function AutomationPage() {
-  const pos = useRef(INIT_POS.map((p) => ({ ...p })));
-  const view = useRef({ tx: 0, ty: 0, scale: 1 });
+  const [nodes, setNodes] = useState(DEFAULT.nodes);
+  const [conns, setConns] = useState(DEFAULT.conns);
+  const [sel, setSel] = useState(null);
+  const [view, setView] = useState({ tx: 0, ty: 0, scale: 1 });
+  const [connecting, setConnecting] = useState(null); // {fromId, to:[x,y]}
+  const [running, setRunning] = useState(null); // node id currently "executing"
+  const [toast, setToast] = useState("");
+  const [saved, setSaved] = useState(false);
+
   const canvasRef = useRef(null);
+  const viewRef = useRef(view);
   const drag = useRef(null);
   const pan = useRef(null);
-  const [, force] = useState(0);
-  const [sel, setSel] = useState(-1);
-  const rerender = useCallback(() => force((n) => n + 1), []);
+  const hist = useRef({ past: [], future: [] });
+  const [, bump] = useState(0);
+  useEffect(() => { viewRef.current = view; }, [view]);
 
-  const rect = (i) => ({ x: pos.current[i].x, y: pos.current[i].y, w: META[i].w, h: META[i].h });
-  const bounds = () => {
+  const node = (id) => nodes.find((n) => n.id === id);
+  const outPt = (n) => { const s = sizeOf(n.type); return [n.x + s.w, n.y + s.h / 2]; };
+  const inPt = (n) => { const s = sizeOf(n.type); return [n.x, n.y + s.h / 2]; };
+
+  /* history */
+  const snapshot = useCallback(() => { hist.current.past.push({ nodes: structuredClone(nodes), conns: structuredClone(conns) }); hist.current.future = []; bump((n) => n + 1); }, [nodes, conns]);
+  const undo = () => { const h = hist.current; if (!h.past.length) return; h.future.push({ nodes, conns }); const p = h.past.pop(); setNodes(p.nodes); setConns(p.conns); setSel(null); bump((n) => n + 1); };
+  const redo = () => { const h = hist.current; if (!h.future.length) return; h.past.push({ nodes, conns }); const f = h.future.pop(); setNodes(f.nodes); setConns(f.conns); setSel(null); bump((n) => n + 1); };
+
+  /* load / save */
+  useEffect(() => {
+    try { const raw = localStorage.getItem(STORAGE); if (raw) { const d = JSON.parse(raw); if (d.nodes) { setNodes(d.nodes); setConns(d.conns || []); } } } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const save = () => { localStorage.setItem(STORAGE, JSON.stringify({ nodes, conns })); setSaved(true); setTimeout(() => setSaved(false), 1400); };
+  const reset = () => { snapshot(); setNodes(structuredClone(DEFAULT.nodes)); setConns(structuredClone(DEFAULT.conns)); setSel(null); };
+
+  /* viewport */
+  const bounds = useCallback(() => {
+    if (!nodes.length) return { x0: 0, y0: 0, w: 400, h: 300 };
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-    META.forEach((_, i) => { const r = rect(i); x0 = Math.min(x0, r.x); y0 = Math.min(y0, r.y); x1 = Math.max(x1, r.x + r.w); y1 = Math.max(y1, r.y + r.h); });
+    nodes.forEach((n) => { const s = sizeOf(n.type); x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x + s.w); y1 = Math.max(y1, n.y + s.h); });
     return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0 };
-  };
-
+  }, [nodes]);
   const fit = useCallback(() => {
     const c = canvasRef.current; if (!c) return;
     const cw = c.clientWidth, ch = c.clientHeight, b = bounds(), pad = 44;
     const scale = clamp(Math.min((cw - pad * 2) / b.w, (ch - pad * 2) / b.h, 1.25), 0.4, 1.25);
-    view.current = { scale, tx: (cw - b.w * scale) / 2 - b.x0 * scale, ty: (ch - b.h * scale) / 2 - b.y0 * scale };
-    rerender();
-  }, [rerender]);
-
-  const zoomBy = useCallback((d) => {
+    setView({ scale, tx: (cw - b.w * scale) / 2 - b.x0 * scale, ty: (ch - b.h * scale) / 2 - b.y0 * scale });
+  }, [bounds]);
+  const zoomBy = (d) => {
     const c = canvasRef.current; if (!c) return;
-    const cx = c.clientWidth / 2, cy = c.clientHeight / 2, v = view.current;
-    const ns = clamp(v.scale + d, 0.4, 1.6);
-    view.current = { scale: ns, tx: cx - (cx - v.tx) * (ns / v.scale), ty: cy - (cy - v.ty) * (ns / v.scale) };
-    rerender();
-  }, [rerender]);
+    const cx = c.clientWidth / 2, cy = c.clientHeight / 2;
+    setView((v) => { const ns = clamp(v.scale + d, 0.4, 1.6); return { scale: ns, tx: cx - (cx - v.tx) * (ns / v.scale), ty: cy - (cy - v.ty) * (ns / v.scale) }; });
+  };
+  const toStage = (cx, cy) => { const r = canvasRef.current.getBoundingClientRect(), v = viewRef.current; return [(cx - r.left - v.tx) / v.scale, (cy - r.top - v.ty) / v.scale]; };
 
   useEffect(() => {
     const onMove = (e) => {
       if (drag.current) {
-        const { i, sx, sy, ox, oy } = drag.current, s = view.current.scale;
-        pos.current[i] = { x: ox + (e.clientX - sx) / s, y: oy + (e.clientY - sy) / s };
-        rerender();
+        if (!drag.current.moved) { drag.current.moved = true; snapshot(); }
+        const { id, sx, sy, ox, oy } = drag.current, s = viewRef.current.scale;
+        setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, x: ox + (e.clientX - sx) / s, y: oy + (e.clientY - sy) / s } : n)));
       } else if (pan.current) {
-        const p = pan.current;
-        view.current = { ...view.current, tx: p.tx + (e.clientX - p.sx), ty: p.ty + (e.clientY - p.sy) };
-        rerender();
+        const p = pan.current; setView((v) => ({ ...v, tx: p.tx + (e.clientX - p.sx), ty: p.ty + (e.clientY - p.sy) }));
+      } else if (connecting) {
+        setConnecting((c) => ({ ...c, to: toStage(e.clientX, e.clientY) }));
       }
     };
-    const onUp = () => { drag.current = null; pan.current = null; rerender(); };
+    const onUp = (e) => {
+      if (connecting) {
+        const portEl = e.target.closest?.("[data-portin]");
+        const toId = portEl?.getAttribute("data-portin");
+        if (toId && toId !== connecting.fromId) {
+          snapshot();
+          setConns((cs) => (cs.some((x) => x.from === connecting.fromId && x.to === toId) ? cs : [...cs, { id: uid(), from: connecting.fromId, to: toId }]));
+        }
+        setConnecting(null);
+      }
+      drag.current = null; pan.current = null;
+    };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
+    return () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+  }, [connecting, snapshot]);
+
+  useEffect(() => {
     const t = requestAnimationFrame(fit);
     let rt; const onResize = () => { clearTimeout(rt); rt = setTimeout(fit, 120); };
     window.addEventListener("resize", onResize);
-    return () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); window.removeEventListener("resize", onResize); cancelAnimationFrame(t); };
-  }, [fit, rerender]);
+    const onKey = (e) => {
+      if ((e.key === "Delete" || e.key === "Backspace") && sel && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "")) { e.preventDefault(); deleteNode(sel); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => { cancelAnimationFrame(t); window.removeEventListener("resize", onResize); window.removeEventListener("keydown", onKey); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sel, fit]);
 
-  const onNodeDown = (e, i) => {
-    if (e.target.closest("[data-nodemenu]")) return;
-    drag.current = { i, sx: e.clientX, sy: e.clientY, ox: pos.current[i].x, oy: pos.current[i].y };
-    setSel(i); e.stopPropagation(); e.preventDefault();
+  /* mutations */
+  const addNode = (type, x, y) => { snapshot(); const s = sizeOf(type); const id = uid(); setNodes((ns) => [...ns, { id, type, x: x - s.w / 2, y: y - s.h / 2, config: {} }]); setSel(id); };
+  const deleteNode = (id) => { snapshot(); setNodes((ns) => ns.filter((n) => n.id !== id)); setConns((cs) => cs.filter((c) => c.from !== id && c.to !== id)); setSel(null); };
+  const deleteConn = (id) => { snapshot(); setConns((cs) => cs.filter((c) => c.id !== id)); };
+  const updateNode = (id, patch) => setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, ...patch } : n)));
+  const updateConfig = (id, key, val) => setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, config: { ...n.config, [key]: val } } : n)));
+
+  /* test run — walk from triggers along connections */
+  const testRun = () => {
+    if (running) return;
+    const order = [];
+    const seen = new Set();
+    const walk = (id) => { if (seen.has(id)) return; seen.add(id); order.push(id); conns.filter((c) => c.from === id).forEach((c) => walk(c.to)); };
+    nodes.filter((n) => NODE_TYPES[n.type].hasIn === false).forEach((n) => walk(n.id));
+    if (!order.length) { setToast("Add a trigger node to run"); setTimeout(() => setToast(""), 1800); return; }
+    let i = 0;
+    const tick = () => {
+      if (i >= order.length) { setRunning(null); setToast("Test run complete ✓"); setTimeout(() => setToast(""), 1800); return; }
+      setRunning(order[i]); i++; setTimeout(tick, 480);
+    };
+    tick();
   };
-  const onCanvasDown = (e) => {
-    if (e.target.closest("[data-node]") || e.target.closest("[data-ui]")) return;
-    pan.current = { sx: e.clientX, sy: e.clientY, tx: view.current.tx, ty: view.current.ty };
-    setSel(-1);
-  };
 
-  const v = view.current;
-  const wires = CONNS.map(([f, t, c]) => ({ d: curve(outPt(rect(f)), inPt(rect(t))), end: inPt(rect(t)), c }));
-  const labels = [
-    { ...mid(outPt(rect(1)), inPt(rect(2))), text: "true", cls: "bg-emerald-500" },
-    { ...mid(outPt(rect(1)), inPt(rect(4))), text: "false", cls: "bg-slate-400" },
-  ];
+  /* canvas events */
+  const onNodeDown = (e, id) => { if (e.target.closest("[data-port]") || e.target.closest("[data-nodemenu]")) return; drag.current = { id, sx: e.clientX, sy: e.clientY, ox: node(id).x, oy: node(id).y, moved: false }; setSel(id); e.stopPropagation(); e.preventDefault(); };
+  const onCanvasDown = (e) => { if (e.target.closest("[data-node]") || e.target.closest("[data-ui]")) return; pan.current = { sx: e.clientX, sy: e.clientY, tx: view.tx, ty: view.ty }; setSel(null); };
+  const onPortDown = (e, id) => { e.stopPropagation(); e.preventDefault(); setConnecting({ fromId: id, to: outPt(node(id)) }); };
 
-  // minimap geometry
-  const c = canvasRef.current;
-  const b = bounds(), mw = 180, mh = 108, mpad = 8;
-  const bw = Math.max(b.w, 200), bh = Math.max(b.h, 150);
-  const ms = Math.min((mw - mpad * 2) / bw, (mh - mpad * 2) / bh);
-  const ox = (mw - bw * ms) / 2, oy = (mh - bh * ms) / 2;
-  const vx = c ? (-v.tx / v.scale - b.x0) * ms + ox : 0;
-  const vy = c ? (-v.ty / v.scale - b.y0) * ms + oy : 0;
-  const vw = c ? (c.clientWidth / v.scale) * ms : 0;
-  const vh = c ? (c.clientHeight / v.scale) * ms : 0;
+  /* derived wires + branch labels */
+  const condOut = {}; // count outputs per condition node for true/false labels
+  const wires = conns.map((c) => {
+    const fn = node(c.from), tn = node(c.to);
+    if (!fn || !tn) return null;
+    const a = outPt(fn), b = inPt(tn);
+    let color = "#C7CEFB", label = null;
+    if (NODE_TYPES[fn.type].branches) { const k = condOut[c.from] = (condOut[c.from] || 0) + 1; if (k === 1) { color = "#86EFAC"; label = "true"; } else { color = "#CBD5E1"; label = "false"; } }
+    return { id: c.id, d: curve(a, b), end: b, color, label, mid: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] };
+  }).filter(Boolean);
+
+  const selNode = sel ? node(sel) : null;
+  const b = bounds();
+  const c = canvasRef.current, mw = 180, mh = 108, mp = 8;
+  const bw = Math.max(b.w, 200), bh = Math.max(b.h, 150), ms = Math.min((mw - mp * 2) / bw, (mh - mp * 2) / bh);
+  const mox = (mw - bw * ms) / 2, moy = (mh - bh * ms) / 2;
 
   return (
     <div className="-mx-4 md:-mx-7 -my-6 flex flex-col h-[calc(100vh-65px)]">
-      {/* workflow header */}
+      {/* header */}
       <div className="bg-white border-b border-line px-5 py-3.5 flex items-center gap-3.5 flex-none flex-wrap">
         <span className="text-[12.5px] text-ink-3 font-medium">Workflow:</span>
         <span className="text-base font-bold tracking-[-0.01em] flex items-center gap-1.5">Inactive Contributor Follow-up <Icon name="ChevronDown" size={15} className="text-ink-3" /></span>
         <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-[11.5px] font-semibold px-2.5 py-1 rounded-full"><span className="w-[7px] h-[7px] rounded-full bg-emerald-500" />Active</span>
         <div className="flex-1" />
-        <button className="grid place-items-center w-9 h-9 rounded-[9px] border border-slate-200 bg-white"><Icon name="Undo2" size={15} className="text-ink-2" /></button>
-        <button className="grid place-items-center w-9 h-9 rounded-[9px] border border-slate-200 bg-white"><Icon name="Redo2" size={15} className="text-ink-2" /></button>
-        <button className="flex items-center gap-1.5 h-9 px-3.5 rounded-[9px] border border-slate-200 bg-white text-[13px] font-medium"><Icon name="Save" size={15} className="text-ink-2" />Save</button>
-        <button className="flex items-center gap-1.5 h-9 px-3.5 rounded-[9px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_rgba(99,102,241,0.8)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name="Play" size={15} />Test Run</button>
+        <button onClick={undo} disabled={!hist.current.past.length} title="Undo" className="grid place-items-center w-9 h-9 rounded-[9px] border border-slate-200 bg-white disabled:opacity-40"><Icon name="Undo2" size={15} className="text-ink-2" /></button>
+        <button onClick={redo} disabled={!hist.current.future.length} title="Redo" className="grid place-items-center w-9 h-9 rounded-[9px] border border-slate-200 bg-white disabled:opacity-40"><Icon name="Redo2" size={15} className="text-ink-2" /></button>
+        <button onClick={reset} title="Reset to default" className="grid place-items-center w-9 h-9 rounded-[9px] border border-slate-200 bg-white"><Icon name="RotateCcw" size={15} className="text-ink-2" /></button>
+        <button onClick={save} className="flex items-center gap-1.5 h-9 px-3.5 rounded-[9px] border border-slate-200 bg-white text-[13px] font-medium"><Icon name={saved ? "Check" : "Save"} size={15} className={saved ? "text-emerald-500" : "text-ink-2"} />{saved ? "Saved" : "Save"}</button>
+        <button onClick={testRun} className="flex items-center gap-1.5 h-9 px-3.5 rounded-[9px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_rgba(99,102,241,0.8)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name={running ? "Loader" : "Play"} size={15} className={running ? "animate-spin" : ""} />Test Run</button>
       </div>
 
       <div className="flex-1 min-h-0 flex">
         {/* palette */}
         <div className="hidden md:block w-[208px] flex-none bg-white border-r border-line p-[16px_14px] overflow-y-auto">
-          {Object.entries(PALETTE).map(([group, items]) => (
+          <div className="text-[10.5px] font-bold uppercase tracking-wider text-ink-3 mx-1 mb-2.5">Drag onto canvas</div>
+          {PALETTE_GROUPS.map((group) => (
             <div key={group}>
-              <div className="flex items-center justify-between text-[10.5px] font-bold uppercase tracking-wider text-ink-3 mx-1 mb-2.5 mt-5 first:mt-1.5">{group}{group === "Triggers" && <Icon name="Zap" size={14} />}</div>
-              {items.map((it) => (
-                <div key={it.label} className="flex items-center gap-3 p-[10px_11px] border border-line rounded-[11px] mb-2 cursor-grab active:scale-[0.98] text-[13px] font-medium bg-white hover:border-[#D6DCEA] hover:shadow-card">
-                  <span className="grid place-items-center w-[30px] h-[30px] rounded-lg flex-none" style={{ background: it.ib }}><Icon name={it.icon} size={16} style={{ color: it.icol }} /></span>{it.label}
+              <div className="flex items-center justify-between text-[10.5px] font-bold uppercase tracking-wider text-ink-3 mx-1 mb-2.5 mt-5">{group}{group === "Triggers" && <Icon name="Zap" size={14} />}</div>
+              {Object.entries(NODE_TYPES).filter(([, t]) => t.group === group).map(([type, t]) => (
+                <div key={type} draggable onDragStart={(e) => e.dataTransfer.setData("type", type)}
+                  className="flex items-center gap-3 p-[10px_11px] border border-line rounded-[11px] mb-2 cursor-grab active:scale-[0.98] text-[13px] font-medium bg-white hover:border-[#D6DCEA] hover:shadow-card">
+                  <span className="grid place-items-center w-[30px] h-[30px] rounded-lg flex-none" style={{ background: t.pi }}><Icon name={t.icon} size={16} style={{ color: t.pc }} /></span>{t.title}
                 </div>
               ))}
             </div>
@@ -152,52 +213,98 @@ export default function AutomationPage() {
           ref={canvasRef}
           onMouseDown={onCanvasDown}
           onWheel={(e) => { e.preventDefault(); zoomBy(e.deltaY < 0 ? 0.08 : -0.08); }}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => { e.preventDefault(); const type = e.dataTransfer.getData("type"); if (NODE_TYPES[type]) { const [x, y] = toStage(e.clientX, e.clientY); addNode(type, x, y); } }}
           className={cn("flex-1 min-w-0 relative overflow-hidden select-none", pan.current ? "cursor-grabbing" : "cursor-grab")}
           style={{ backgroundColor: "#FBFCFE", backgroundImage: "radial-gradient(circle, #DCE1EC 1.2px, transparent 1.2px)", backgroundSize: "22px 22px" }}
         >
-          <div className="absolute inset-0 origin-top-left" style={{ transform: `translate(${v.tx}px,${v.ty}px) scale(${v.scale})` }}>
-            <svg className="absolute inset-0 overflow-visible pointer-events-none" width="1" height="1">
-              {wires.map((w, i) => (
-                <g key={i}><path d={w.d} fill="none" stroke={w.c} strokeWidth="2.5" /><circle cx={w.end[0]} cy={w.end[1]} r="3.5" fill={w.c} /></g>
+          <div className="absolute inset-0 origin-top-left" style={{ transform: `translate(${view.tx}px,${view.ty}px) scale(${view.scale})` }}>
+            <svg className="absolute inset-0 overflow-visible" width="1" height="1">
+              {wires.map((w) => (
+                <g key={w.id} className="group">
+                  <path d={w.d} fill="none" stroke="transparent" strokeWidth="16" className="cursor-pointer pointer-events-auto" onClick={() => deleteConn(w.id)}><title>Click to remove</title></path>
+                  <path d={w.d} fill="none" stroke={w.color} strokeWidth="2.5" className="pointer-events-none group-hover:stroke-red-400" />
+                  <circle cx={w.end[0]} cy={w.end[1]} r="3.5" fill={w.color} className="pointer-events-none" />
+                </g>
               ))}
+              {connecting && (() => { const fn = node(connecting.fromId); return fn && connecting.to ? <path d={curve(outPt(fn), connecting.to)} fill="none" stroke="#6366F1" strokeWidth="2.5" strokeDasharray="5 5" className="pointer-events-none" /> : null; })()}
             </svg>
-            {labels.map((l, i) => (
-              <span key={i} className={`absolute text-[11px] font-semibold text-white px-2.5 py-0.5 rounded-[7px] z-[3] ${l.cls}`} style={{ left: l.x - 16, top: l.y - 11 }}>{l.text}</span>
+            {wires.filter((w) => w.label).map((w) => (
+              <span key={w.id} className={cn("absolute text-[11px] font-semibold text-white px-2.5 py-0.5 rounded-[7px] z-[3] pointer-events-none", w.label === "true" ? "bg-emerald-500" : "bg-slate-400")} style={{ left: w.mid[0] - 16, top: w.mid[1] - 11 }}>{w.label}</span>
             ))}
-            {META.map((n, i) => (
-              <div key={i} data-node onMouseDown={(e) => onNodeDown(e, i)}
-                className={cn("absolute bg-white border rounded-[14px] overflow-hidden cursor-grab active:cursor-grabbing", sel === i ? "border-[1.5px] border-brand shadow-[0_0_0_3px_rgba(99,102,241,0.13),0_10px_26px_-12px_rgba(16,24,40,0.22)]" : "border-line shadow-[0_1px_2px_rgba(16,24,40,0.06),0_10px_26px_-12px_rgba(16,24,40,0.22)]")}
-                style={{ left: pos.current[i].x, top: pos.current[i].y, width: n.w }}>
-                <div className="flex items-center gap-2.5 p-[11px_12px]">
-                  <span className="grid place-items-center w-[30px] h-[30px] rounded-lg flex-none" style={{ background: n.end ? n.endBg : n.grad }}><Icon name={n.icon} size={16} className="text-white" /></span>
-                  <span className="text-[13px] font-semibold flex-1">{n.title}</span>
-                  {!n.end && <span data-nodemenu className="text-ink-3 cursor-pointer"><Icon name="EllipsisVertical" size={14} /></span>}
+            {nodes.map((n) => {
+              const t = NODE_TYPES[n.type], s = sizeOf(n.type), isSel = sel === n.id, isRun = running === n.id;
+              return (
+                <div key={n.id} data-node onMouseDown={(e) => onNodeDown(e, n.id)}
+                  className={cn("absolute bg-white border rounded-[14px] cursor-grab active:cursor-grabbing transition-shadow",
+                    isRun ? "border-[1.5px] border-emerald-500 shadow-[0_0_0_3px_rgba(34,197,94,0.18)]" : isSel ? "border-[1.5px] border-brand shadow-[0_0_0_3px_rgba(99,102,241,0.13),0_10px_26px_-12px_rgba(16,24,40,0.22)]" : "border-line shadow-[0_1px_2px_rgba(16,24,40,0.06),0_10px_26px_-12px_rgba(16,24,40,0.22)]")}
+                  style={{ left: n.x, top: n.y, width: s.w }}>
+                  <div className="flex items-center gap-2.5 p-[11px_12px]">
+                    <span className="grid place-items-center w-[30px] h-[30px] rounded-lg flex-none" style={{ background: t.grad }}><Icon name={t.icon} size={16} className="text-white" /></span>
+                    <span className="text-[13px] font-semibold flex-1 truncate">{t.title}</span>
+                    {n.type !== "end" && <button data-nodemenu onClick={() => deleteNode(n.id)} className="text-ink-3 hover:text-red-500 cursor-pointer"><Icon name="Trash2" size={13} /></button>}
+                  </div>
+                  {t.bIcon && <div className="flex items-center gap-2 p-[9px_12px_11px] border-t border-line"><Icon name={t.bIcon} size={13} className="text-ink-3" /><span className="text-xs text-ink-2 font-medium truncate">{t.body(n.config)}</span></div>}
+                  {t.hasIn !== false && <span data-portin={n.id} className="absolute w-[13px] h-[13px] rounded-full bg-white border-2 border-brand top-1/2 -translate-y-1/2 -left-[7px] hover:scale-125 transition-transform" />}
+                  {t.hasOut !== false && <span data-port onMouseDown={(e) => onPortDown(e, n.id)} title="Drag to connect" className="absolute w-[13px] h-[13px] rounded-full bg-white border-2 border-brand top-1/2 -translate-y-1/2 -right-[7px] cursor-crosshair hover:scale-125 hover:bg-brand transition-transform" />}
                 </div>
-                {!n.end && <div className="flex items-center gap-2 p-[9px_12px_11px] border-t border-line"><Icon name={n.bIcon} size={13} className="text-ink-3" /><span className="text-xs text-ink-2 font-medium">{n.bText}</span></div>}
-                {!n.start && <span className="absolute w-[11px] h-[11px] rounded-full bg-white border-2 border-brand top-1/2 -translate-y-1/2 -left-1.5" />}
-                {!n.end && <span className="absolute w-[11px] h-[11px] rounded-full bg-white border-2 border-brand top-1/2 -translate-y-1/2 -right-1.5" />}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          {/* zoom controls */}
+          {/* empty hint */}
+          {!nodes.length && <div className="absolute inset-0 grid place-items-center text-ink-3 text-sm pointer-events-none">Drag a trigger from the palette to start</div>}
+
+          {/* zoom */}
           <div data-ui className="absolute left-[18px] bottom-[18px] flex items-center gap-1.5 bg-white border border-slate-200 rounded-[11px] p-1.5 shadow-card z-[8]">
-            <button onClick={() => zoomBy(-0.1)} className="grid place-items-center w-8 h-8 rounded-lg cursor-pointer text-ink-2 hover:bg-bg"><Icon name="Minus" size={16} /></button>
-            <span className="text-[12.5px] font-semibold px-1.5 tabular-nums">{Math.round(v.scale * 100)}%</span>
-            <button onClick={() => zoomBy(0.1)} className="grid place-items-center w-8 h-8 rounded-lg cursor-pointer text-ink-2 hover:bg-bg"><Icon name="Plus" size={16} /></button>
+            <button onClick={() => zoomBy(-0.1)} className="grid place-items-center w-8 h-8 rounded-lg text-ink-2 hover:bg-bg"><Icon name="Minus" size={16} /></button>
+            <span className="text-[12.5px] font-semibold px-1.5 tabular-nums">{Math.round(view.scale * 100)}%</span>
+            <button onClick={() => zoomBy(0.1)} className="grid place-items-center w-8 h-8 rounded-lg text-ink-2 hover:bg-bg"><Icon name="Plus" size={16} /></button>
             <span className="w-px h-5 bg-slate-200" />
-            <button onClick={fit} className="grid place-items-center w-8 h-8 rounded-lg cursor-pointer text-ink-2 hover:bg-bg"><Icon name="Maximize" size={16} /></button>
+            <button onClick={fit} title="Fit" className="grid place-items-center w-8 h-8 rounded-lg text-ink-2 hover:bg-bg"><Icon name="Maximize" size={16} /></button>
           </div>
 
           {/* minimap */}
           <div data-ui className="absolute right-[18px] bottom-[18px] w-[180px] h-[108px] bg-white border border-slate-200 rounded-[11px] shadow-card z-[8] overflow-hidden">
-            {META.map((n, i) => { const r = rect(i); return <span key={i} className="absolute rounded-[3px] bg-[#C7CEFB]" style={{ left: (r.x - b.x0) * ms + ox, top: (r.y - b.y0) * ms + oy, width: r.w * ms, height: r.h * ms }} />; })}
-            <span className="absolute border-[1.5px] border-brand rounded bg-brand/10" style={{ left: Math.max(0, vx), top: Math.max(0, vy), width: vw, height: vh }} />
+            {nodes.map((n) => { const s = sizeOf(n.type); return <span key={n.id} className="absolute rounded-[3px] bg-[#C7CEFB]" style={{ left: (n.x - b.x0) * ms + mox, top: (n.y - b.y0) * ms + moy, width: s.w * ms, height: s.h * ms }} />; })}
+            {c && <span className="absolute border-[1.5px] border-brand rounded bg-brand/10" style={{ left: Math.max(0, (-view.tx / view.scale - b.x0) * ms + mox), top: Math.max(0, (-view.ty / view.scale - b.y0) * ms + moy), width: (c.clientWidth / view.scale) * ms, height: (c.clientHeight / view.scale) * ms }} />}
           </div>
+
+          {toast && <div data-ui className="absolute left-1/2 -translate-x-1/2 bottom-[18px] bg-ink text-white text-[12.5px] font-medium px-4 py-2 rounded-[10px] shadow-pop z-[9]">{toast}</div>}
         </div>
+
+        {/* inspector */}
+        {selNode && (
+          <div className="hidden lg:flex w-[280px] flex-none bg-white border-l border-line flex-col">
+            <div className="flex items-center justify-between p-[16px_18px] border-b border-line">
+              <div className="flex items-center gap-2.5">
+                <span className="grid place-items-center w-8 h-8 rounded-lg flex-none" style={{ background: NODE_TYPES[selNode.type].grad }}><Icon name={NODE_TYPES[selNode.type].icon} size={16} className="text-white" /></span>
+                <b className="text-[14px] font-semibold">{NODE_TYPES[selNode.type].title}</b>
+              </div>
+              <button onClick={() => setSel(null)} className="text-ink-3 grid place-items-center"><Icon name="X" size={17} /></button>
+            </div>
+            <div className="p-[18px] flex flex-col gap-4 overflow-y-auto">
+              {NODE_TYPES[selNode.type].fields.length === 0 && <div className="text-[12.5px] text-ink-3">This node has no configuration.</div>}
+              {NODE_TYPES[selNode.type].fields.map((f) => (
+                <label key={f.key} className="flex flex-col gap-1.5">
+                  <span className="text-[12.5px] font-medium text-ink-2">{f.label}</span>
+                  <input
+                    type={f.type === "number" ? "number" : "text"}
+                    value={selNode.config[f.key] ?? ""}
+                    onFocus={snapshot}
+                    onChange={(e) => updateConfig(selNode.id, f.key, f.type === "number" ? Number(e.target.value) : e.target.value)}
+                    className="h-10 border border-slate-200 rounded-[10px] px-3 text-sm outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-soft)]"
+                  />
+                </label>
+              ))}
+              <div className="pt-2 border-t border-line">
+                <button onClick={() => deleteNode(selNode.id)} className="w-full h-10 rounded-[10px] bg-red-50 text-red-500 text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-red-100"><Icon name="Trash2" size={15} />Delete node</button>
+              </div>
+              <p className="text-[11.5px] text-ink-3 leading-relaxed">Drag a node's right dot onto another node's left dot to connect them. Click a wire to remove it. Press Delete to remove the selected node.</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
-function mid(a, b) { return { x: (a[0] + b[0]) / 2, y: (a[1] + b[1]) / 2 }; }
