@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef } from "react";
 import Icon from "@/components/Icon";
 import { Button, Tabs, Avatar, Donut, LegendRow } from "@/components/ui";
 import { cn } from "@/lib/cn";
@@ -78,6 +79,37 @@ function Toolbar() {
 }
 
 export default function ProjectsPage() {
+  const [columns, setColumns] = useState(COLUMNS);
+  const drag = useRef(null); // { col, id }
+  const [over, setOver] = useState(null); // { col, index }
+  const [dragId, setDragId] = useState(null);
+
+  const onDragStart = (col, id) => (e) => { drag.current = { col, id }; setDragId(id); e.dataTransfer.effectAllowed = "move"; };
+  const onDragEnd = () => { drag.current = null; setOver(null); setDragId(null); };
+  const onCardOver = (col, index) => (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const r = e.currentTarget.getBoundingClientRect();
+    setOver({ col, index: e.clientY > r.top + r.height / 2 ? index + 1 : index });
+  };
+  const onColOver = (col, count) => (e) => { e.preventDefault(); setOver({ col, index: count }); };
+  const onDrop = () => {
+    const d = drag.current;
+    if (!d || !over) return onDragEnd();
+    setColumns((cols) => {
+      const next = cols.map((c) => ({ ...c, cards: [...c.cards] }));
+      const idx = next[d.col].cards.findIndex((c) => c.id === d.id);
+      if (idx < 0) return cols;
+      const [card] = next[d.col].cards.splice(idx, 1);
+      let insert = over.index;
+      if (d.col === over.col && idx < over.index) insert--;
+      next[over.col].cards.splice(insert, 0, card);
+      return next;
+    });
+    onDragEnd();
+  };
+
+  const Indicator = () => <div className="h-[3px] bg-brand rounded-full mx-1 my-0.5" />;
+
   return (
     <div className="flex flex-col gap-4">
       {/* project header */}
@@ -109,34 +141,52 @@ export default function ProjectsPage() {
           <Toolbar />
           <div className="overflow-x-auto pb-3">
             <div className="flex gap-3.5 items-start min-w-max">
-              {COLUMNS.map((col) => (
+              {columns.map((col, ci) => (
                 <div key={col.name} className="w-[248px] flex-none">
                   <div className="flex items-center justify-between px-3.5 py-2.5 bg-white border border-line rounded-t-[11px]" style={{ borderTop: `3px solid ${col.color}` }}>
                     <div className="flex items-center gap-2 text-[13.5px] font-semibold">
                       <span className="w-[9px] h-[9px] rounded-full" style={{ background: col.color }} />{col.name}
-                      <span className="text-xs font-semibold text-ink-3 bg-bg rounded-[7px] px-2 py-0.5">{col.count}</span>
+                      <span className="text-xs font-semibold text-ink-3 bg-bg rounded-[7px] px-2 py-0.5">{col.cards.length}</span>
                     </div>
                     <button className="text-ink-3 grid place-items-center"><Icon name="Plus" size={15} /></button>
                   </div>
-                  <div className="bg-[#fbfcfe] border border-line border-t-0 rounded-b-[11px] p-2.5 flex flex-col gap-2.5 min-h-[120px]">
-                    {col.cards.map((c) => (
-                      <div key={c.id} className={cn("bg-white border rounded-[11px] p-3 cursor-pointer shadow-card transition-colors hover:border-[#D6DCEA]", c.sel ? "border-[1.5px] border-brand shadow-[0_0_0_3px_rgba(99,102,241,0.12)]" : "border-line")}>
-                        <div className="flex items-center justify-between mb-2.5">
-                          <span className="text-[11px] font-semibold text-ink-3 font-mono">{c.id}</span>
-                          {c.done
-                            ? <span className="grid place-items-center w-5 h-5 rounded-full bg-emerald-500 text-white"><Icon name="Check" size={12} strokeWidth={3} /></span>
-                            : <Icon name="Menu" size={14} className="text-ink-3" />}
-                        </div>
-                        <div className="text-[13.5px] font-semibold leading-[1.35] mb-2.5">{c.t}</div>
-                        <Tag tag={c.tag} />
-                        <div className="flex items-center justify-between mt-2.5">
-                          {c.sub
-                            ? <span className="flex items-center gap-1.5 text-[11.5px] text-ink-2 font-medium"><Icon name="ListChecks" size={13} className="text-ink-3" />{c.sub}</span>
-                            : <span />}
-                          {!c.done && <Avatar name={INITIALS[c.a]} color={GRAD[c.a % GRAD.length]} size={24} style={{ fontSize: 10 }} />}
+                  <div
+                    onDragOver={onColOver(ci, col.cards.length)}
+                    onDrop={onDrop}
+                    className={cn("bg-[#fbfcfe] border border-line border-t-0 rounded-b-[11px] p-2.5 flex flex-col min-h-[120px] transition-colors", over?.col === ci && "bg-brand-soft/40")}
+                  >
+                    {col.cards.map((c, j) => (
+                      <div key={c.id}>
+                        {over?.col === ci && over.index === j && <Indicator />}
+                        <div
+                          draggable
+                          onDragStart={onDragStart(ci, c.id)}
+                          onDragEnd={onDragEnd}
+                          onDragOver={onCardOver(ci, j)}
+                          className={cn(
+                            "bg-white border rounded-[11px] p-3 mb-2.5 cursor-grab active:cursor-grabbing shadow-card transition-[border-color,opacity] hover:border-[#D6DCEA]",
+                            c.sel ? "border-[1.5px] border-brand shadow-[0_0_0_3px_rgba(99,102,241,0.12)]" : "border-line",
+                            dragId === c.id && "opacity-40",
+                          )}
+                        >
+                          <div className="flex items-center justify-between mb-2.5">
+                            <span className="text-[11px] font-semibold text-ink-3 font-mono">{c.id}</span>
+                            {c.done
+                              ? <span className="grid place-items-center w-5 h-5 rounded-full bg-emerald-500 text-white"><Icon name="Check" size={12} strokeWidth={3} /></span>
+                              : <Icon name="GripVertical" size={14} className="text-ink-3" />}
+                          </div>
+                          <div className="text-[13.5px] font-semibold leading-[1.35] mb-2.5">{c.t}</div>
+                          <Tag tag={c.tag} />
+                          <div className="flex items-center justify-between mt-2.5">
+                            {c.sub
+                              ? <span className="flex items-center gap-1.5 text-[11.5px] text-ink-2 font-medium"><Icon name="ListChecks" size={13} className="text-ink-3" />{c.sub}</span>
+                              : <span />}
+                            {!c.done && <Avatar name={INITIALS[c.a]} color={GRAD[c.a % GRAD.length]} size={24} style={{ fontSize: 10 }} />}
+                          </div>
                         </div>
                       </div>
                     ))}
+                    {over?.col === ci && over.index === col.cards.length && <Indicator />}
                     {col.add && <button className="flex items-center gap-1.5 px-1.5 py-2.5 text-[12.5px] text-ink-3 font-medium"><Icon name="Plus" size={14} />Add task</button>}
                   </div>
                 </div>

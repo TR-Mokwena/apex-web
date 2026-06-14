@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Icon from "@/components/Icon";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/cn";
@@ -52,11 +52,12 @@ const GROUPS = [
   ]},
 ];
 
-function TaskRow({ task, groupDone }) {
-  const [done, setDone] = useState(groupDone);
+function TaskRow({ task, onToggle, dragging, dragProps }) {
+  const done = task.done;
   return (
-    <div className={cn("flex items-center gap-3 px-[18px] py-3 border-b border-line last:border-b-0 hover:bg-[#FBFCFE] transition-colors", done && "[&_.tt]:line-through [&_.tt]:text-ink-3")}>
-      <button onClick={() => setDone((d) => !d)} className={cn("grid place-items-center w-[18px] h-[18px] rounded-[5px] border-[1.5px] flex-none", done ? "bg-emerald-500 border-emerald-500" : "border-slate-300")}>
+    <div {...dragProps} className={cn("group flex items-center gap-2 px-[18px] py-3 border-b border-line last:border-b-0 hover:bg-[#FBFCFE] transition-[opacity,background] cursor-grab active:cursor-grabbing", dragging && "opacity-40", done && "[&_.tt]:line-through [&_.tt]:text-ink-3")}>
+      <Icon name="GripVertical" size={14} className="text-ink-3 opacity-0 group-hover:opacity-100 transition-opacity flex-none -ml-1.5" />
+      <button onClick={(e) => { e.stopPropagation(); onToggle(); }} className={cn("grid place-items-center w-[18px] h-[18px] rounded-[5px] border-[1.5px] flex-none", done ? "bg-emerald-500 border-emerald-500" : "border-slate-300")}>
         <Icon name="Check" size={11} strokeWidth={3} className={cn("text-white", done ? "opacity-100" : "opacity-0")} />
       </button>
       <span className="w-[3px] h-[18px] rounded-[2px] flex-none" style={{ background: PRI_COLOR[task.pri] }} title={task.pri} />
@@ -74,23 +75,41 @@ function TaskRow({ task, groupDone }) {
   );
 }
 
-function TaskGroup({ group }) {
-  const [open, setOpen] = useState(true);
-  return (
-    <div className="card !shadow-card overflow-hidden mb-3.5" style={{ borderRadius: 16 }}>
-      <button onClick={() => setOpen((o) => !o)} className="w-full flex items-center gap-2.5 px-[18px] py-3 border-b border-line text-left">
-        <span className="w-[9px] h-[9px] rounded-full flex-none" style={{ background: group.color }} />
-        <b className="text-[13.5px] font-semibold">{group.name}</b>
-        <span className="text-[11.5px] font-semibold text-ink-3 bg-bg rounded-full px-2 py-px">{group.tasks.length}</span>
-        <Icon name="ChevronDown" size={16} className={cn("ml-auto text-ink-3 transition-transform", !open && "-rotate-90")} />
-      </button>
-      {open && <div>{group.tasks.map((t) => <TaskRow key={t.id} task={t} groupDone={group.done} />)}</div>}
-    </div>
-  );
-}
+const initGroups = () => GROUPS.map((g) => ({ ...g, tasks: g.tasks.map((t) => ({ ...t, done: !!g.done })) }));
 
 export default function TasksPage() {
   const [filter, setFilter] = useState("All");
+  const [groups, setGroups] = useState(initGroups);
+  const [openGroups, setOpenGroups] = useState(() => new Set(GROUPS.map((g) => g.name)));
+  const drag = useRef(null);
+  const [over, setOver] = useState(null);
+  const [dragId, setDragId] = useState(null);
+
+  const toggleOpen = (name) => setOpenGroups((s) => { const n = new Set(s); n.has(name) ? n.delete(name) : n.add(name); return n; });
+  const toggleDone = (gi, id) => setGroups((gs) => gs.map((g, i) => (i === gi ? { ...g, tasks: g.tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) } : g)));
+
+  const onDragStart = (gi, id) => (e) => { drag.current = { gi, id }; setDragId(id); e.dataTransfer.effectAllowed = "move"; };
+  const onDragEnd = () => { drag.current = null; setOver(null); setDragId(null); };
+  const onRowOver = (gi, index) => (e) => { e.preventDefault(); e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); setOver({ gi, index: e.clientY > r.top + r.height / 2 ? index + 1 : index }); };
+  const onGroupOver = (gi, count) => (e) => { e.preventDefault(); setOver({ gi, index: count }); };
+  const onDrop = () => {
+    const d = drag.current;
+    if (!d || !over) return onDragEnd();
+    setGroups((gs) => {
+      const next = gs.map((g) => ({ ...g, tasks: [...g.tasks] }));
+      const idx = next[d.gi].tasks.findIndex((t) => t.id === d.id);
+      if (idx < 0) return gs;
+      const [task] = next[d.gi].tasks.splice(idx, 1);
+      let insert = over.index;
+      if (d.gi === over.gi && idx < insert) insert--;
+      task.done = !!next[over.gi].done;
+      next[over.gi].tasks.splice(insert, 0, task);
+      return next;
+    });
+    onDragEnd();
+  };
+  const Indicator = () => <div className="h-[3px] bg-brand rounded-full mx-[18px] my-px" />;
+
   return (
     <>
       <div className="flex items-start justify-between gap-6 mb-[18px] flex-wrap">
@@ -126,7 +145,33 @@ export default function TasksPage() {
         <button className="flex items-center gap-1.5 h-[38px] px-3 rounded-[10px] bg-white border border-slate-200 text-[12.5px] font-medium text-ink-2 shadow-card"><Icon name="Layers" size={14} className="text-ink-3" />Group: Status<Icon name="ChevronDown" size={13} className="text-ink-3" /></button>
       </div>
 
-      <div>{GROUPS.map((g) => <TaskGroup key={g.name} group={g} />)}</div>
+      <div>
+        {groups.map((g, gi) => {
+          const open = openGroups.has(g.name);
+          return (
+            <div key={g.name} className="card !shadow-card overflow-hidden mb-3.5" style={{ borderRadius: 16 }}>
+              <button onClick={() => toggleOpen(g.name)} className="w-full flex items-center gap-2.5 px-[18px] py-3 border-b border-line text-left">
+                <span className="w-[9px] h-[9px] rounded-full flex-none" style={{ background: g.color }} />
+                <b className="text-[13.5px] font-semibold">{g.name}</b>
+                <span className="text-[11.5px] font-semibold text-ink-3 bg-bg rounded-full px-2 py-px">{g.tasks.length}</span>
+                <Icon name="ChevronDown" size={16} className={cn("ml-auto text-ink-3 transition-transform", !open && "-rotate-90")} />
+              </button>
+              {open && (
+                <div onDragOver={onGroupOver(gi, g.tasks.length)} onDrop={onDrop} className={cn("transition-colors", over?.gi === gi && "bg-brand-soft/30")}>
+                  {g.tasks.map((t, j) => (
+                    <div key={t.id}>
+                      {over?.gi === gi && over.index === j && <Indicator />}
+                      <TaskRow task={t} dragging={dragId === t.id} onToggle={() => toggleDone(gi, t.id)} dragProps={{ draggable: true, onDragStart: onDragStart(gi, t.id), onDragEnd, onDragOver: onRowOver(gi, j) }} />
+                    </div>
+                  ))}
+                  {over?.gi === gi && over.index === g.tasks.length && <Indicator />}
+                  {g.tasks.length === 0 && <div className="px-[18px] py-5 text-[12.5px] text-ink-3 text-center">Drop tasks here</div>}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </>
   );
 }
