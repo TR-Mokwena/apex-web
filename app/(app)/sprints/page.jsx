@@ -128,7 +128,11 @@ export default function SprintsPage() {
             {VELOCITY.map((d) => (
               <div key={d.l} className="flex-1 flex flex-col items-center gap-2">
                 <div className="flex-1 flex items-end w-full justify-center">
-                  <div className="w-4 rounded-t-[5px]" style={{ height: (d.v / MAX_V) * 120, background: d.partial ? "linear-gradient(180deg,#A5B4FC,#818CF8)" : "linear-gradient(180deg,#6366F1,#818CF8)" }} />
+                  <div className="group relative w-4 rounded-t-[5px] cursor-pointer transition-[filter] hover:brightness-110" style={{ height: (d.v / MAX_V) * 120, background: d.partial ? "linear-gradient(180deg,#A5B4FC,#818CF8)" : "linear-gradient(180deg,#6366F1,#818CF8)" }}>
+                    <span className="pointer-events-none absolute left-1/2 -top-2 -translate-x-1/2 -translate-y-full px-2 py-1 rounded-lg bg-ink text-white text-[11px] font-semibold whitespace-nowrap shadow-pop opacity-0 group-hover:opacity-100 transition-opacity">
+                      {d.v} pts{d.partial ? " · in progress" : ""}
+                    </span>
+                  </div>
                 </div>
                 <div className="text-[11px] text-ink-3">{d.l}</div>
               </div>
