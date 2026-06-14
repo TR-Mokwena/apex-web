@@ -1,6 +1,8 @@
 "use client";
 
+import { useRef, useState, useEffect, useCallback } from "react";
 import Icon from "@/components/Icon";
+import { cn } from "@/lib/cn";
 
 const PALETTE = {
   Triggers: [
@@ -17,25 +19,104 @@ const PALETTE = {
   ],
 };
 
-const NODES = [
-  { x: 60, y: 150, w: 188, h: 86, start: true, title: "Schedule", grad: "linear-gradient(135deg,#6366F1,#818CF8)", icon: "Clock", bIcon: "Repeat", bText: "Every 7 days" },
-  { x: 330, y: 150, w: 188, h: 86, title: "Condition", grad: "linear-gradient(135deg,#F59E0B,#F97316)", icon: "GitFork", bIcon: "CircleSlash", bText: "No activity in 7 days" },
-  { x: 600, y: 60, w: 188, h: 86, title: "Create Task", grad: "linear-gradient(135deg,#10B981,#22C55E)", icon: "SquarePlus", bIcon: "ListTodo", bText: "Follow-up task" },
-  { x: 870, y: 60, w: 188, h: 86, title: "Send Email", grad: "linear-gradient(135deg,#6366F1,#8B5CF6)", icon: "Mail", bIcon: "UserRound", bText: "Notify Manager" },
-  { x: 640, y: 268, w: 120, h: 58, end: true, title: "End", icon: "Square", endBg: "#94A3B8" },
+// static node meta; positions live in a ref so drag stays cheap
+const META = [
+  { w: 188, h: 86, start: true, title: "Schedule", grad: "linear-gradient(135deg,#6366F1,#818CF8)", icon: "Clock", bIcon: "Repeat", bText: "Every 7 days" },
+  { w: 188, h: 86, title: "Condition", grad: "linear-gradient(135deg,#F59E0B,#F97316)", icon: "GitFork", bIcon: "CircleSlash", bText: "No activity in 7 days" },
+  { w: 188, h: 86, title: "Create Task", grad: "linear-gradient(135deg,#10B981,#22C55E)", icon: "SquarePlus", bIcon: "ListTodo", bText: "Follow-up task" },
+  { w: 188, h: 86, title: "Send Email", grad: "linear-gradient(135deg,#6366F1,#8B5CF6)", icon: "Mail", bIcon: "UserRound", bText: "Notify Manager" },
+  { w: 120, h: 58, end: true, title: "End", icon: "Square", endBg: "#94A3B8" },
 ];
+const INIT_POS = [{ x: 60, y: 150 }, { x: 330, y: 150 }, { x: 600, y: 60 }, { x: 870, y: 60 }, { x: 640, y: 268 }];
 const CONNS = [[0, 1, "#C7CEFB"], [1, 2, "#86EFAC"], [1, 4, "#CBD5E1"], [2, 3, "#C7CEFB"]];
 
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const outPt = (n) => [n.x + n.w, n.y + n.h / 2];
 const inPt = (n) => [n.x, n.y + n.h / 2];
 const curve = (a, b) => { const dx = Math.max(40, Math.abs(b[0] - a[0]) * 0.5); return `M ${a[0]} ${a[1]} C ${a[0] + dx} ${a[1]}, ${b[0] - dx} ${b[1]}, ${b[0]} ${b[1]}`; };
 
 export default function AutomationPage() {
-  const wires = CONNS.map(([f, t, c]) => ({ d: curve(outPt(NODES[f]), inPt(NODES[t])), end: inPt(NODES[t]), c }));
+  const pos = useRef(INIT_POS.map((p) => ({ ...p })));
+  const view = useRef({ tx: 0, ty: 0, scale: 1 });
+  const canvasRef = useRef(null);
+  const drag = useRef(null);
+  const pan = useRef(null);
+  const [, force] = useState(0);
+  const [sel, setSel] = useState(-1);
+  const rerender = useCallback(() => force((n) => n + 1), []);
+
+  const rect = (i) => ({ x: pos.current[i].x, y: pos.current[i].y, w: META[i].w, h: META[i].h });
+  const bounds = () => {
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    META.forEach((_, i) => { const r = rect(i); x0 = Math.min(x0, r.x); y0 = Math.min(y0, r.y); x1 = Math.max(x1, r.x + r.w); y1 = Math.max(y1, r.y + r.h); });
+    return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0 };
+  };
+
+  const fit = useCallback(() => {
+    const c = canvasRef.current; if (!c) return;
+    const cw = c.clientWidth, ch = c.clientHeight, b = bounds(), pad = 44;
+    const scale = clamp(Math.min((cw - pad * 2) / b.w, (ch - pad * 2) / b.h, 1.25), 0.4, 1.25);
+    view.current = { scale, tx: (cw - b.w * scale) / 2 - b.x0 * scale, ty: (ch - b.h * scale) / 2 - b.y0 * scale };
+    rerender();
+  }, [rerender]);
+
+  const zoomBy = useCallback((d) => {
+    const c = canvasRef.current; if (!c) return;
+    const cx = c.clientWidth / 2, cy = c.clientHeight / 2, v = view.current;
+    const ns = clamp(v.scale + d, 0.4, 1.6);
+    view.current = { scale: ns, tx: cx - (cx - v.tx) * (ns / v.scale), ty: cy - (cy - v.ty) * (ns / v.scale) };
+    rerender();
+  }, [rerender]);
+
+  useEffect(() => {
+    const onMove = (e) => {
+      if (drag.current) {
+        const { i, sx, sy, ox, oy } = drag.current, s = view.current.scale;
+        pos.current[i] = { x: ox + (e.clientX - sx) / s, y: oy + (e.clientY - sy) / s };
+        rerender();
+      } else if (pan.current) {
+        const p = pan.current;
+        view.current = { ...view.current, tx: p.tx + (e.clientX - p.sx), ty: p.ty + (e.clientY - p.sy) };
+        rerender();
+      }
+    };
+    const onUp = () => { drag.current = null; pan.current = null; rerender(); };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    const t = requestAnimationFrame(fit);
+    let rt; const onResize = () => { clearTimeout(rt); rt = setTimeout(fit, 120); };
+    window.addEventListener("resize", onResize);
+    return () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); window.removeEventListener("resize", onResize); cancelAnimationFrame(t); };
+  }, [fit, rerender]);
+
+  const onNodeDown = (e, i) => {
+    if (e.target.closest("[data-nodemenu]")) return;
+    drag.current = { i, sx: e.clientX, sy: e.clientY, ox: pos.current[i].x, oy: pos.current[i].y };
+    setSel(i); e.stopPropagation(); e.preventDefault();
+  };
+  const onCanvasDown = (e) => {
+    if (e.target.closest("[data-node]") || e.target.closest("[data-ui]")) return;
+    pan.current = { sx: e.clientX, sy: e.clientY, tx: view.current.tx, ty: view.current.ty };
+    setSel(-1);
+  };
+
+  const v = view.current;
+  const wires = CONNS.map(([f, t, c]) => ({ d: curve(outPt(rect(f)), inPt(rect(t))), end: inPt(rect(t)), c }));
   const labels = [
-    { ...mid(outPt(NODES[1]), inPt(NODES[2])), text: "true", cls: "bg-emerald-500" },
-    { ...mid(outPt(NODES[1]), inPt(NODES[4])), text: "false", cls: "bg-slate-400" },
+    { ...mid(outPt(rect(1)), inPt(rect(2))), text: "true", cls: "bg-emerald-500" },
+    { ...mid(outPt(rect(1)), inPt(rect(4))), text: "false", cls: "bg-slate-400" },
   ];
+
+  // minimap geometry
+  const c = canvasRef.current;
+  const b = bounds(), mw = 180, mh = 108, mpad = 8;
+  const bw = Math.max(b.w, 200), bh = Math.max(b.h, 150);
+  const ms = Math.min((mw - mpad * 2) / bw, (mh - mpad * 2) / bh);
+  const ox = (mw - bw * ms) / 2, oy = (mh - bh * ms) / 2;
+  const vx = c ? (-v.tx / v.scale - b.x0) * ms + ox : 0;
+  const vy = c ? (-v.ty / v.scale - b.y0) * ms + oy : 0;
+  const vw = c ? (c.clientWidth / v.scale) * ms : 0;
+  const vh = c ? (c.clientHeight / v.scale) * ms : 0;
 
   return (
     <div className="-mx-4 md:-mx-7 -my-6 flex flex-col h-[calc(100vh-65px)]">
@@ -58,7 +139,7 @@ export default function AutomationPage() {
             <div key={group}>
               <div className="flex items-center justify-between text-[10.5px] font-bold uppercase tracking-wider text-ink-3 mx-1 mb-2.5 mt-5 first:mt-1.5">{group}{group === "Triggers" && <Icon name="Zap" size={14} />}</div>
               {items.map((it) => (
-                <div key={it.label} className="flex items-center gap-3 p-[10px_11px] border border-line rounded-[11px] mb-2 cursor-grab text-[13px] font-medium bg-white hover:border-[#D6DCEA] hover:shadow-card">
+                <div key={it.label} className="flex items-center gap-3 p-[10px_11px] border border-line rounded-[11px] mb-2 cursor-grab active:scale-[0.98] text-[13px] font-medium bg-white hover:border-[#D6DCEA] hover:shadow-card">
                   <span className="grid place-items-center w-[30px] h-[30px] rounded-lg flex-none" style={{ background: it.ib }}><Icon name={it.icon} size={16} style={{ color: it.icol }} /></span>{it.label}
                 </div>
               ))}
@@ -67,9 +148,15 @@ export default function AutomationPage() {
         </div>
 
         {/* canvas */}
-        <div className="flex-1 min-w-0 relative overflow-auto" style={{ backgroundColor: "#FBFCFE", backgroundImage: "radial-gradient(circle, #DCE1EC 1.2px, transparent 1.2px)", backgroundSize: "22px 22px" }}>
-          <div className="relative" style={{ width: 1100, height: 380 }}>
-            <svg className="absolute inset-0 overflow-visible pointer-events-none" width="1100" height="380">
+        <div
+          ref={canvasRef}
+          onMouseDown={onCanvasDown}
+          onWheel={(e) => { e.preventDefault(); zoomBy(e.deltaY < 0 ? 0.08 : -0.08); }}
+          className={cn("flex-1 min-w-0 relative overflow-hidden select-none", pan.current ? "cursor-grabbing" : "cursor-grab")}
+          style={{ backgroundColor: "#FBFCFE", backgroundImage: "radial-gradient(circle, #DCE1EC 1.2px, transparent 1.2px)", backgroundSize: "22px 22px" }}
+        >
+          <div className="absolute inset-0 origin-top-left" style={{ transform: `translate(${v.tx}px,${v.ty}px) scale(${v.scale})` }}>
+            <svg className="absolute inset-0 overflow-visible pointer-events-none" width="1" height="1">
               {wires.map((w, i) => (
                 <g key={i}><path d={w.d} fill="none" stroke={w.c} strokeWidth="2.5" /><circle cx={w.end[0]} cy={w.end[1]} r="3.5" fill={w.c} /></g>
               ))}
@@ -77,12 +164,14 @@ export default function AutomationPage() {
             {labels.map((l, i) => (
               <span key={i} className={`absolute text-[11px] font-semibold text-white px-2.5 py-0.5 rounded-[7px] z-[3] ${l.cls}`} style={{ left: l.x - 16, top: l.y - 11 }}>{l.text}</span>
             ))}
-            {NODES.map((n, i) => (
-              <div key={i} className="absolute bg-white border border-line rounded-[14px] overflow-hidden shadow-[0_1px_2px_rgba(16,24,40,0.06),0_10px_26px_-12px_rgba(16,24,40,0.22)]" style={{ left: n.x, top: n.y, width: n.w }}>
+            {META.map((n, i) => (
+              <div key={i} data-node onMouseDown={(e) => onNodeDown(e, i)}
+                className={cn("absolute bg-white border rounded-[14px] overflow-hidden cursor-grab active:cursor-grabbing", sel === i ? "border-[1.5px] border-brand shadow-[0_0_0_3px_rgba(99,102,241,0.13),0_10px_26px_-12px_rgba(16,24,40,0.22)]" : "border-line shadow-[0_1px_2px_rgba(16,24,40,0.06),0_10px_26px_-12px_rgba(16,24,40,0.22)]")}
+                style={{ left: pos.current[i].x, top: pos.current[i].y, width: n.w }}>
                 <div className="flex items-center gap-2.5 p-[11px_12px]">
                   <span className="grid place-items-center w-[30px] h-[30px] rounded-lg flex-none" style={{ background: n.end ? n.endBg : n.grad }}><Icon name={n.icon} size={16} className="text-white" /></span>
                   <span className="text-[13px] font-semibold flex-1">{n.title}</span>
-                  {!n.end && <Icon name="EllipsisVertical" size={14} className="text-ink-3" />}
+                  {!n.end && <span data-nodemenu className="text-ink-3 cursor-pointer"><Icon name="EllipsisVertical" size={14} /></span>}
                 </div>
                 {!n.end && <div className="flex items-center gap-2 p-[9px_12px_11px] border-t border-line"><Icon name={n.bIcon} size={13} className="text-ink-3" /><span className="text-xs text-ink-2 font-medium">{n.bText}</span></div>}
                 {!n.start && <span className="absolute w-[11px] h-[11px] rounded-full bg-white border-2 border-brand top-1/2 -translate-y-1/2 -left-1.5" />}
@@ -91,13 +180,19 @@ export default function AutomationPage() {
             ))}
           </div>
 
-          {/* zoom controls (decorative) */}
-          <div className="absolute left-[18px] bottom-[18px] flex items-center gap-1.5 bg-white border border-slate-200 rounded-[11px] p-1.5 shadow-card z-[8]">
-            <span className="grid place-items-center w-8 h-8 rounded-lg cursor-pointer text-ink-2 hover:bg-bg"><Icon name="Minus" size={16} /></span>
-            <span className="text-[12.5px] font-semibold px-1.5 tabular-nums">100%</span>
-            <span className="grid place-items-center w-8 h-8 rounded-lg cursor-pointer text-ink-2 hover:bg-bg"><Icon name="Plus" size={16} /></span>
+          {/* zoom controls */}
+          <div data-ui className="absolute left-[18px] bottom-[18px] flex items-center gap-1.5 bg-white border border-slate-200 rounded-[11px] p-1.5 shadow-card z-[8]">
+            <button onClick={() => zoomBy(-0.1)} className="grid place-items-center w-8 h-8 rounded-lg cursor-pointer text-ink-2 hover:bg-bg"><Icon name="Minus" size={16} /></button>
+            <span className="text-[12.5px] font-semibold px-1.5 tabular-nums">{Math.round(v.scale * 100)}%</span>
+            <button onClick={() => zoomBy(0.1)} className="grid place-items-center w-8 h-8 rounded-lg cursor-pointer text-ink-2 hover:bg-bg"><Icon name="Plus" size={16} /></button>
             <span className="w-px h-5 bg-slate-200" />
-            <span className="grid place-items-center w-8 h-8 rounded-lg cursor-pointer text-ink-2 hover:bg-bg"><Icon name="Maximize" size={16} /></span>
+            <button onClick={fit} className="grid place-items-center w-8 h-8 rounded-lg cursor-pointer text-ink-2 hover:bg-bg"><Icon name="Maximize" size={16} /></button>
+          </div>
+
+          {/* minimap */}
+          <div data-ui className="absolute right-[18px] bottom-[18px] w-[180px] h-[108px] bg-white border border-slate-200 rounded-[11px] shadow-card z-[8] overflow-hidden">
+            {META.map((n, i) => { const r = rect(i); return <span key={i} className="absolute rounded-[3px] bg-[#C7CEFB]" style={{ left: (r.x - b.x0) * ms + ox, top: (r.y - b.y0) * ms + oy, width: r.w * ms, height: r.h * ms }} />; })}
+            <span className="absolute border-[1.5px] border-brand rounded bg-brand/10" style={{ left: Math.max(0, vx), top: Math.max(0, vy), width: vw, height: vh }} />
           </div>
         </div>
       </div>
