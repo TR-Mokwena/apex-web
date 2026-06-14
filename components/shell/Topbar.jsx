@@ -1,17 +1,21 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
 import { cn } from "@/lib/cn";
+import { Dropdown, MenuItem, MenuLabel } from "@/components/ui";
+import { QUICK_CREATE } from "@/lib/nav";
 
-function IconButton({ icon, badge, primary, href, label }) {
+const ORGS = ["Eclipse Softworks", "Nova Labs", "Acme Collective"];
+
+function IconButton({ icon, badge, primary, href, label, onClick }) {
   const router = useRouter();
   return (
     <button
       type="button"
       aria-label={label}
-      onClick={href ? () => router.push(href) : undefined}
+      onClick={onClick || (href ? () => router.push(href) : undefined)}
       className={cn(
         "relative grid place-items-center w-10 h-10 rounded-field card cursor-pointer transition-transform hover:-translate-y-px",
         primary ? "bg-brand border-brand text-white" : "text-slate-600",
@@ -29,6 +33,7 @@ function IconButton({ icon, badge, primary, href, label }) {
 
 export default function Topbar({ onOpenMenu }) {
   const router = useRouter();
+  const [org, setOrg] = useState(ORGS[0]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -64,17 +69,43 @@ export default function Topbar({ onOpenMenu }) {
 
       <div className="flex-1" />
 
-      <IconButton icon="Plus" primary label="Quick create" />
+      {/* quick create */}
+      <Dropdown
+        align="right"
+        width={208}
+        trigger={({ toggle }) => (
+          <button type="button" aria-label="Quick create" onClick={toggle} className="relative grid place-items-center w-10 h-10 rounded-field bg-brand border border-brand text-white cursor-pointer transition-transform hover:-translate-y-px">
+            <Icon name="Plus" size={18} />
+          </button>
+        )}
+      >
+        <MenuLabel>Create new</MenuLabel>
+        {QUICK_CREATE.map((q) => (
+          <MenuItem key={q.label} icon={q.icon} href={q.href}>{q.label}</MenuItem>
+        ))}
+      </Dropdown>
+
       <IconButton icon="Bell" badge={6} href="/notifications" label="Notifications" />
       <IconButton icon="MessageSquare" href="/messages" label="Messages" />
-      <button
-        type="button"
-        className="hidden sm:flex items-center gap-2.5 card rounded-field px-3.5 py-2.5 text-[13px] font-medium cursor-pointer"
+
+      {/* org switcher */}
+      <Dropdown
+        align="right"
+        width={220}
+        className="hidden sm:block"
+        trigger={({ toggle }) => (
+          <button type="button" onClick={toggle} className="flex items-center gap-2.5 card rounded-field px-3.5 py-2.5 text-[13px] font-medium cursor-pointer">
+            <Icon name="Building2" size={16} className="text-brand" />
+            {org}
+            <Icon name="ChevronDown" size={15} className="text-ink-3" />
+          </button>
+        )}
       >
-        <Icon name="Building2" size={16} className="text-brand" />
-        Eclipse Softworks
-        <Icon name="ChevronDown" size={15} className="text-ink-3" />
-      </button>
+        <MenuLabel>Switch organization</MenuLabel>
+        {ORGS.map((o) => (
+          <MenuItem key={o} icon="Building2" onClick={() => setOrg(o)} trailing={o === org ? <Icon name="Check" size={15} className="text-brand" /> : null}>{o}</MenuItem>
+        ))}
+      </Dropdown>
     </header>
   );
 }

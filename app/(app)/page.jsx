@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Icon from "@/components/Icon";
 import {
-  PageHeader, Card, CardLink, Kpi, Avatar, Delta,
+  PageHeader, Card, CardLink, Kpi, Avatar, Delta, Dropdown, MenuItem,
   LineChart, BarPairs, Donut, Gauge, Ring, Sparkline, LegendRow,
 } from "@/components/ui";
 
@@ -28,11 +28,32 @@ const TASKS = [
   { title: "API rate limiting", project: "Platform", status: "To Do", statusTone: "blue", priority: "low" },
   { title: "Database schema", project: "Apex v2.1", status: "To Do", statusTone: "blue", priority: "medium" },
 ];
-const PRODUCTIVITY = [
-  { label: "Completed Tasks", value: "156", delta: "18%", values: [38, 34, 36, 28, 30, 20, 24, 12] },
-  { label: "Commits", value: "342", delta: "16%", values: [34, 36, 28, 30, 22, 26, 16, 14] },
-  { label: "PRs Merged", value: "48", delta: "14%", values: [36, 30, 32, 24, 26, 18, 22, 10] },
-];
+
+// productivity values per period
+const PROD_PERIODS = ["This Week", "Last Week", "This Sprint"];
+const PRODUCTIVITY = {
+  "This Week": [
+    { label: "Completed Tasks", value: "156", delta: "18%", values: [38, 34, 36, 28, 30, 20, 24, 12] },
+    { label: "Commits", value: "342", delta: "16%", values: [34, 36, 28, 30, 22, 26, 16, 14] },
+    { label: "PRs Merged", value: "48", delta: "14%", values: [36, 30, 32, 24, 26, 18, 22, 10] },
+  ],
+  "Last Week": [
+    { label: "Completed Tasks", value: "132", delta: "9%", values: [30, 28, 32, 26, 24, 22, 20, 18] },
+    { label: "Commits", value: "298", delta: "11%", values: [28, 30, 26, 24, 22, 20, 18, 16] },
+    { label: "PRs Merged", value: "41", delta: "7%", values: [30, 28, 26, 24, 22, 20, 18, 16] },
+  ],
+  "This Sprint": [
+    { label: "Completed Tasks", value: "271", delta: "22%", values: [20, 26, 30, 34, 38, 44, 50, 58] },
+    { label: "Commits", value: "604", delta: "19%", values: [24, 30, 34, 40, 46, 52, 58, 64] },
+    { label: "PRs Merged", value: "83", delta: "15%", values: [18, 22, 28, 34, 40, 46, 52, 60] },
+  ],
+};
+const ATT_PERIODS = ["Today", "This Week", "This Month"];
+const ATTENDANCE = {
+  Today: { present: 92, late: 6, absent: 2 },
+  "This Week": { present: 89, late: 8, absent: 3 },
+  "This Month": { present: 91, late: 7, absent: 2 },
+};
 
 const NOTI_TONE = {
   green: "bg-emerald-50 text-emerald-600",
@@ -43,16 +64,25 @@ const NOTI_TONE = {
 const PILL_TONE = { indigo: "bg-brand-soft text-brand", blue: "bg-[#EAF1FF] text-[#3B82F6]" };
 const PRIORITY = { high: ["text-red-500", "bg-red-500", "High"], medium: ["text-amber-500", "bg-amber-500", "Medium"], low: ["text-emerald-500", "bg-emerald-500", "Low"] };
 
-function TaskItem({ task }) {
-  const [done, setDone] = useState(false);
+function PeriodSelect({ value, options, onChange }) {
+  return (
+    <Dropdown align="right" width={150} trigger={({ toggle }) => (
+      <button onClick={toggle} className="flex items-center gap-1.5 border border-slate-200 rounded-[9px] px-2.5 py-1.5 text-xs font-medium text-ink-2 hover:border-[#C7D2FE]">{value}<Icon name="ChevronDown" size={13} className="text-ink-3" /></button>
+    )}>
+      {options.map((o) => <MenuItem key={o} onClick={() => onChange(o)} trailing={o === value ? <Icon name="Check" size={14} className="text-brand" /> : null}>{o}</MenuItem>)}
+    </Dropdown>
+  );
+}
+
+function TaskItem({ task, done, onToggle }) {
   const [tone, dot, label] = PRIORITY[task.priority];
   return (
     <Link href="/tasks" className="flex items-center gap-3 py-[11px] border-t border-[#F1F3F8] first:border-t-0 -mx-2 px-2 rounded-[9px] hover:bg-[#FBFCFE] transition-colors">
       <span
         role="checkbox"
         aria-checked={done}
-        onClick={(e) => { e.preventDefault(); setDone((d) => !d); }}
-        className={cnCheckbox(done)}
+        onClick={(e) => { e.preventDefault(); onToggle(); }}
+        className={`grid place-items-center w-[18px] h-[18px] rounded-[5px] border-[1.5px] flex-none cursor-pointer transition-colors ${done ? "bg-emerald-500 border-emerald-500" : "border-slate-300"}`}
       >
         <Icon name="Check" size={11} strokeWidth={3.2} className={done ? "opacity-100" : "opacity-0"} />
       </span>
@@ -68,15 +98,25 @@ function TaskItem({ task }) {
     </Link>
   );
 }
-function cnCheckbox(done) {
-  return `grid place-items-center w-[18px] h-[18px] rounded-[5px] border-[1.5px] flex-none cursor-pointer transition-colors ${done ? "bg-emerald-500 border-emerald-500" : "border-slate-300"}`;
-}
 
 export default function DashboardPage() {
+  const [greeting, setGreeting] = useState("Welcome back");
+  const [prodPeriod, setProdPeriod] = useState("This Week");
+  const [attPeriod, setAttPeriod] = useState("Today");
+  const [doneTasks, setDoneTasks] = useState(() => new Set());
+
+  useEffect(() => {
+    const h = new Date().getHours();
+    setGreeting(h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening");
+  }, []);
+
+  const toggleTask = (i) => setDoneTasks((s) => { const n = new Set(s); n.has(i) ? n.delete(i) : n.add(i); return n; });
+  const att = ATTENDANCE[attPeriod];
+
   return (
     <>
       <PageHeader
-        title="Good morning, TR! 👋"
+        title={`${greeting}, TR! 👋`}
         subtitle="Here's what's happening across your organization today."
         actions={
           <Link href="/calendar" className="flex items-center gap-2.5 card rounded-field px-3.5 py-2.5 text-[13px] font-medium text-slate-700 cursor-pointer">
@@ -93,7 +133,7 @@ export default function DashboardPage() {
         <Link href="/sprints"><Kpi label="Sprint Progress" value="68%" delta="On Track" deltaTone="ok" visual={<Ring value={68} size={58} />} /></Link>
         <Link href="/contributors"><Kpi label="Team Health" value="Good" valueClass="!text-[26px] !mt-[7px] text-emerald-600" delta="8% from last week" deltaArrow="up" visual={<Sparkline values={[8, 14, 11, 22, 18, 30, 26, 40]} width={92} height={44} color="#10B981" fill dot={false} className="!w-[92px]" />} /></Link>
         <Link href="/ai"><Kpi label="AI Risk Alerts" value="6" valueClass="text-red-500" delta="Needs attention" deltaTone="warn" icon="TriangleAlert" iconTone="red" /></Link>
-        <Link href="/reports"><Kpi label="Attendance Today" value="92%" delta="Present" deltaTone="ok" icon="Users" iconTone="green" /></Link>
+        <Link href="/reports"><Kpi label="Attendance Today" value={`${att.present}%`} delta="Present" deltaTone="ok" icon="Users" iconTone="green" /></Link>
       </div>
 
       <div className="flex flex-col xl:flex-row gap-3.5 items-start">
@@ -166,9 +206,9 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-3.5">
-            <Card title="Productivity Trend">
+            <Card title="Productivity Trend" action={<PeriodSelect value={prodPeriod} options={PROD_PERIODS} onChange={setProdPeriod} />}>
               <div className="grid grid-cols-3 gap-2">
-                {PRODUCTIVITY.map((p) => (
+                {PRODUCTIVITY[prodPeriod].map((p) => (
                   <div key={p.label} className="px-1">
                     <div className="text-xs text-ink-2 font-medium">{p.label}</div>
                     <div className="text-[24px] font-bold text-heading mt-1">{p.value}</div>
@@ -180,13 +220,13 @@ export default function DashboardPage() {
               <CardLink href="/reports" className="mt-3.5">View full analytics</CardLink>
             </Card>
 
-            <Card title="Attendance Overview">
+            <Card title="Attendance Overview" action={<PeriodSelect value={attPeriod} options={ATT_PERIODS} onChange={setAttPeriod} />}>
               <div className="flex items-center gap-[18px]">
-                <Gauge value={92} label="Present" />
+                <Gauge value={att.present} label="Present" />
                 <div className="flex flex-col gap-2.5 flex-1">
-                  <LegendRow color="#22C55E" label="Present" value="92%" className="!py-0" />
-                  <LegendRow color="#F59E0B" label="Late" value="6%" className="!py-0" />
-                  <LegendRow color="#EF4444" label="Absent" value="2%" className="!py-0" />
+                  <LegendRow color="#22C55E" label="Present" value={`${att.present}%`} className="!py-0" />
+                  <LegendRow color="#F59E0B" label="Late" value={`${att.late}%`} className="!py-0" />
+                  <LegendRow color="#EF4444" label="Absent" value={`${att.absent}%`} className="!py-0" />
                 </div>
               </div>
               <CardLink href="/reports" className="mt-2.5">View attendance report</CardLink>
@@ -227,8 +267,9 @@ export default function DashboardPage() {
             ))}
           </Card>
 
-          <Card title="My Tasks" action={<CardLink href="/tasks">View all</CardLink>}>
-            {TASKS.map((t, i) => <TaskItem key={i} task={t} />)}
+          <Card title="My Tasks" action={<span className="text-[12.5px] font-medium text-ink-3">{doneTasks.size} of {TASKS.length} done</span>}>
+            {TASKS.map((t, i) => <TaskItem key={i} task={t} done={doneTasks.has(i)} onToggle={() => toggleTask(i)} />)}
+            <CardLink href="/tasks" className="mt-3">View all tasks</CardLink>
           </Card>
         </div>
       </div>

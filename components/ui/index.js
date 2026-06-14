@@ -2,6 +2,7 @@ export { Card, CardLink } from "./Card";
 export { PageHeader } from "./PageHeader";
 export { Tabs } from "./Tabs";
 export { Switch } from "./Switch";
+export { Dropdown, MenuItem, MenuLabel, MenuSep } from "./Dropdown";
 export { Button } from "./Button";
 export { Pill, Priority, Delta } from "./Badge";
 export { Avatar } from "./Avatar";

@@ -1,13 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import { cn } from "@/lib/cn";
 
+const COLLAPSE_KEY = "apex-sidebar-collapsed";
+
 export default function AppShell({ children }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+
+  // restore persisted collapse state
+  useEffect(() => {
+    if (localStorage.getItem(COLLAPSE_KEY) === "1") setCollapsed(true);
+  }, []);
+
+  const toggleCollapse = () =>
+    setCollapsed((c) => {
+      const next = !c;
+      localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
+      return next;
+    });
 
   return (
     <div className="flex min-h-screen">
@@ -15,7 +29,7 @@ export default function AppShell({ children }) {
         open={drawerOpen}
         collapsed={collapsed}
         onClose={() => setDrawerOpen(false)}
-        onToggleCollapse={() => setCollapsed((c) => !c)}
+        onToggleCollapse={toggleCollapse}
       />
 
       {/* mobile scrim */}

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Icon from "@/components/Icon";
 import { cn } from "@/lib/cn";
 import { NAV, QUICK_CREATE } from "@/lib/nav";
+import { Dropdown, MenuItem, MenuLabel, MenuSep } from "@/components/ui";
 
 function isActive(pathname, href) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -79,26 +80,43 @@ export default function Sidebar({ open, collapsed, onClose, onToggleCollapse }) 
             </span>
           </div>
           {QUICK_CREATE.map((q) => (
-            <button key={q.label} type="button" className="flex items-center gap-2.5 text-[12.5px] text-[#9AA3B8] hover:text-[#E8EBF2] transition-colors py-0.5">
+            <Link key={q.label} href={q.href} onClick={onClose} className="flex items-center gap-2.5 text-[12.5px] text-[#9AA3B8] hover:text-[#E8EBF2] transition-colors py-0.5">
               <Icon name={q.icon} size={15} className="text-[#737E97]" />
               {q.label}
-            </button>
+            </Link>
           ))}
         </div>
       </div>
 
       {/* footer */}
       <div className="flex flex-col gap-3.5">
-        <button type="button" className={cn("flex items-center gap-[11px] p-[9px] rounded-[13px] bg-white/[0.04] border border-white/[0.06] text-left", collapsed && "md:justify-center md:px-0")}>
-          <span className="grid place-items-center w-[38px] h-[38px] rounded-full flex-none text-white font-semibold text-sm bg-gradient-to-br from-brand to-violet-500">
-            TM
-          </span>
-          <span className={cn("flex-1", collapsed && "md:hidden")}>
-            <span className="block text-[13px] font-semibold text-[#F3F5FA]">TR Mokwena</span>
-            <span className="block text-[11px] text-[#8590A8] mt-px">Product Manager</span>
-          </span>
-          <Icon name="ChevronRight" size={16} className={cn("text-[#737E97]", collapsed && "md:hidden")} />
-        </button>
+        <Dropdown
+          placement="top"
+          width={224}
+          trigger={({ toggle }) => (
+            <button type="button" onClick={toggle} className={cn("w-full flex items-center gap-[11px] p-[9px] rounded-[13px] bg-white/[0.04] border border-white/[0.06] text-left hover:bg-white/[0.08] transition-colors", collapsed && "md:justify-center md:px-0")}>
+              <span className="grid place-items-center w-[38px] h-[38px] rounded-full flex-none text-white font-semibold text-sm bg-gradient-to-br from-brand to-violet-500">
+                TM
+              </span>
+              <span className={cn("flex-1 min-w-0", collapsed && "md:hidden")}>
+                <span className="block text-[13px] font-semibold text-[#F3F5FA] truncate">TR Mokwena</span>
+                <span className="block text-[11px] text-[#8590A8] mt-px">Product Manager</span>
+              </span>
+              <Icon name="ChevronsUpDown" size={15} className={cn("text-[#737E97]", collapsed && "md:hidden")} />
+            </button>
+          )}
+        >
+          <div className="px-2.5 py-2">
+            <div className="text-[13px] font-semibold text-ink">TR Mokwena</div>
+            <div className="text-[11.5px] text-ink-3">tshepiso@eclipsesoftworks.com</div>
+          </div>
+          <MenuSep />
+          <MenuItem icon="User" href="/settings" onClick={onClose}>Profile</MenuItem>
+          <MenuItem icon="Settings" href="/settings" onClick={onClose}>Account settings</MenuItem>
+          <MenuItem icon="Bell" href="/notifications" onClick={onClose}>Notifications</MenuItem>
+          <MenuSep />
+          <MenuItem icon="LogOut" href="/onboarding" onClick={onClose} danger>Sign out</MenuItem>
+        </Dropdown>
         <button
           type="button"
           onClick={onToggleCollapse}
