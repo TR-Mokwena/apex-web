@@ -4,10 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
 import { cn } from "@/lib/cn";
-import { Dropdown, MenuItem, MenuLabel } from "@/components/ui";
+import { Dropdown, MenuItem, MenuLabel, MenuSep } from "@/components/ui";
 import { QUICK_CREATE } from "@/lib/nav";
 
-const ORGS = ["Eclipse Softworks", "Nova Labs", "Acme Collective"];
+const ORGS = [
+  { name: "Eclipse Softworks", plan: "Enterprise", grad: "linear-gradient(135deg,#6366F1,#8B5CF6)", initials: "ES" },
+  { name: "Nova Labs", plan: "Pro plan", grad: "linear-gradient(135deg,#0EA5E9,#38BDF8)", initials: "NL" },
+  { name: "Acme Collective", plan: "Free plan", grad: "linear-gradient(135deg,#F59E0B,#FBBF24)", initials: "AC" },
+];
 
 function IconButton({ icon, badge, primary, href, label, onClick }) {
   const router = useRouter();
@@ -91,20 +95,30 @@ export default function Topbar({ onOpenMenu }) {
       {/* org switcher */}
       <Dropdown
         align="right"
-        width={220}
+        width={272}
         className="hidden sm:block"
         trigger={({ toggle }) => (
-          <button type="button" onClick={toggle} className="flex items-center gap-2.5 card rounded-field px-3.5 py-2.5 text-[13px] font-medium cursor-pointer">
-            <Icon name="Building2" size={16} className="text-brand" />
-            {org}
-            <Icon name="ChevronDown" size={15} className="text-ink-3" />
+          <button type="button" onClick={toggle} className="flex items-center gap-2.5 card rounded-field pl-2 pr-3 py-1.5 text-[13px] font-medium cursor-pointer">
+            <span className="grid place-items-center w-[26px] h-[26px] rounded-lg text-white text-[10px] font-bold flex-none" style={{ background: org.grad }}>{org.initials}</span>
+            <span className="max-w-[130px] truncate">{org.name}</span>
+            <Icon name="ChevronsUpDown" size={15} className="text-ink-3" />
           </button>
         )}
       >
-        <MenuLabel>Switch organization</MenuLabel>
+        <MenuLabel>Organizations</MenuLabel>
         {ORGS.map((o) => (
-          <MenuItem key={o} icon="Building2" onClick={() => setOrg(o)} trailing={o === org ? <Icon name="Check" size={15} className="text-brand" /> : null}>{o}</MenuItem>
+          <button key={o.name} type="button" onClick={() => setOrg(o)} className="flex items-center gap-2.5 w-full text-left px-2 py-1.5 rounded-[9px] hover:bg-bg">
+            <span className="grid place-items-center w-9 h-9 rounded-[10px] text-white text-[12px] font-bold flex-none" style={{ background: o.grad }}>{o.initials}</span>
+            <span className="flex-1 min-w-0">
+              <span className="block text-[13px] font-semibold text-ink truncate">{o.name}</span>
+              <span className="block text-[11px] text-ink-3">{o.plan}</span>
+            </span>
+            {o.name === org.name && <Icon name="Check" size={16} className="text-brand flex-none" />}
+          </button>
         ))}
+        <MenuSep />
+        <MenuItem icon="Settings" href="/settings">Organization settings</MenuItem>
+        <MenuItem icon="Plus" onClick={() => {}}>Create organization</MenuItem>
       </Dropdown>
     </header>
   );
