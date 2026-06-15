@@ -6,6 +6,7 @@ import Icon from "@/components/Icon";
 import { Button, Tabs, Donut, LegendRow } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { getProject, BOARD, TAG_STYLE, PAL, INITIALS, STATUS_TONE } from "@/lib/projects";
+import { TimelineView, GanttView, MilestonesView, FilesView, DependenciesView, ReportsView, SettingsView } from "./views";
 
 const TABS = ["Overview", "Board", "List", "Timeline", "Gantt", "Milestones", "Files", "Dependencies", "Reports", "Settings"];
 const LEGEND = [
@@ -136,7 +137,13 @@ export default function ProjectWorkspace({ slug }) {
 
       {tab === "List" && <ListView columns={columns} />}
       {tab === "Overview" && <OverviewView project={project} total={totalCards} segments={segments} columns={columns} />}
-      {!["Board", "List", "Overview"].includes(tab) && <Placeholder tab={tab} />}
+      {tab === "Timeline" && <TimelineView />}
+      {tab === "Gantt" && <GanttView />}
+      {tab === "Milestones" && <MilestonesView />}
+      {tab === "Files" && <FilesView />}
+      {tab === "Dependencies" && <DependenciesView />}
+      {tab === "Reports" && <ReportsView segments={segments} columns={columns} />}
+      {tab === "Settings" && <SettingsView project={project} />}
     </div>
   );
 }
