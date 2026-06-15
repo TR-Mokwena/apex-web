@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/Icon";
 import { Button, Switch } from "@/components/ui";
+import { COUNTRY_LIST, COUNTRIES, getCountry, saveCountry, DEFAULT_COUNTRY } from "@/lib/locale";
 
 const FIELD = "h-10 w-full border border-line rounded-[10px] px-3 text-sm outline-none bg-card focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-soft)]";
 const TIMEZONES = ["(GMT+02:00) Johannesburg", "(GMT+01:00) Lagos", "(GMT+00:00) London", "(GMT-05:00) New York", "(GMT-08:00) Los Angeles", "(GMT+05:30) Mumbai"];
@@ -20,7 +21,10 @@ export default function GeneralSettings() {
     tz: TIMEZONES[0], lang: LANGS[0], date: DATEF[0], week: WEEK[0],
   });
   const [saved, setSaved] = useState(false);
+  const [country, setCountry] = useState(DEFAULT_COUNTRY);
+  useEffect(() => { setCountry(getCountry()); }, []);
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const changeCountry = (e) => { setCountry(e.target.value); saveCountry(e.target.value); };
   const save = () => { setSaved(true); setTimeout(() => setSaved(false), 1500); };
 
   return (
@@ -59,6 +63,7 @@ export default function GeneralSettings() {
           <h2 className="m-0 text-base font-semibold">Localization</h2>
           <p className="text-[12.5px] text-ink-3 mt-0.5 mb-4">Defaults applied across the workspace.</p>
           <div className="grid sm:grid-cols-2 gap-4">
+            <label className="flex flex-col gap-1.5"><Label hint={`currency ${COUNTRIES[country]?.currency || ""}`}>Country</Label><select value={country} onChange={changeCountry} className={`${FIELD} cursor-pointer`}>{COUNTRY_LIST.map((c) => <option key={c}>{c}</option>)}</select></label>
             <label className="flex flex-col gap-1.5"><Label>Timezone</Label><select value={form.tz} onChange={set("tz")} className={`${FIELD} cursor-pointer`}>{TIMEZONES.map((t) => <option key={t}>{t}</option>)}</select></label>
             <label className="flex flex-col gap-1.5"><Label>Language</Label><select value={form.lang} onChange={set("lang")} className={`${FIELD} cursor-pointer`}>{LANGS.map((l) => <option key={l}>{l}</option>)}</select></label>
             <label className="flex flex-col gap-1.5"><Label>Date format</Label><select value={form.date} onChange={set("date")} className={`${FIELD} cursor-pointer`}>{DATEF.map((d) => <option key={d}>{d}</option>)}</select></label>
