@@ -162,7 +162,7 @@ export default function MessagesPage() {
               <button className="grid place-items-center w-[34px] h-[34px] rounded-[9px] text-ink-3 hover:bg-card"><Icon name="Paperclip" size={18} /></button>
               <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder={`Message ${c.type === "channel" ? "# " + c.name : c.name}`} className="flex-1 bg-transparent outline-none text-[13.5px] py-1.5 min-w-0" />
               <button className="grid place-items-center w-[34px] h-[34px] rounded-[9px] text-ink-3 hover:bg-card"><Icon name="Smile" size={18} /></button>
-              <button onClick={send} className="grid place-items-center w-[38px] h-[38px] rounded-[11px] flex-none shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name="SendHorizontal" size={18} className="text-white" /></button>
+              <button onClick={send} className="grid place-items-center w-[38px] h-[38px] rounded-[11px] flex-none shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}><Icon name="SendHorizontal" size={18} className="text-white" /></button>
             </div>
           </div>
         </div>

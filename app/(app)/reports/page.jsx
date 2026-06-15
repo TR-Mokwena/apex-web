@@ -51,7 +51,7 @@ export default function ReportsPage() {
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2.5 card rounded-field px-3.5 py-2.5 text-[13px] font-medium text-ink-2"><Icon name="Calendar" size={15} className="text-ink-3" />June 12 – June 18, 2026<Icon name="ChevronDown" size={15} className="text-ink-3" /></button>
           <button className="grid place-items-center w-10 h-10 card rounded-field text-ink-2"><Icon name="RefreshCw" size={18} /></button>
-          <button className="grid place-items-center w-10 h-10 rounded-field text-white" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name="Download" size={18} /></button>
+          <button className="grid place-items-center w-10 h-10 rounded-field text-white" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}><Icon name="Download" size={18} /></button>
         </div>
       </div>
 

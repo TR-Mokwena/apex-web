@@ -69,13 +69,13 @@ export function LineChart({ series = [], xLabels = [], yMax = 100, yTicks = [100
   return (
     <span ref={ref} className={cn("relative block", className)}>
       <svg viewBox={`0 0 ${width} ${height}`} className="block w-full h-auto">
-        <g stroke="#F1F3F8" strokeWidth="1">
+        <g stroke="var(--color-line)" strokeWidth="1">
           {yTicks.map((t) => <line key={t} x1={left} y1={y(t)} x2={width - right} y2={y(t)} />)}
         </g>
-        <g fill="#94A3B8" fontSize="11" textAnchor="end" fontFamily="var(--font-mono)">
+        <g fill="var(--color-ink-3)" fontSize="11" textAnchor="end" fontFamily="var(--font-mono)">
           {yTicks.map((t) => <text key={t} x={left - 8} y={y(t) + 4}>{t}</text>)}
         </g>
-        <g fill="#94A3B8" fontSize="11" textAnchor="middle">
+        <g fill="var(--color-ink-3)" fontSize="11" textAnchor="middle">
           {xLabels.map((l, i) => <text key={i} x={x(i, xLabels.length)} y={height - 10}>{l}</text>)}
         </g>
         {series.map((s, si) => {
@@ -115,7 +115,7 @@ export function BarPairs({ data = [], xLabels = [], max, width = 430, height = 1
             <g key={i}>
               <rect x={gx} y={top + ih - ha} width={barW} height={ha} rx="4" fill="var(--color-brand)" className="cursor-pointer hover:opacity-85" onMouseMove={show(xLabels[i], a)} onMouseLeave={hide} />
               <rect x={gx + barW + pairGap} y={top + ih - hb} width={barW} height={hb} rx="4" className="cursor-pointer hover:opacity-85" style={{ fill: "color-mix(in srgb, var(--color-brand) 32%, white)" }} onMouseMove={show(xLabels[i], b)} onMouseLeave={hide} />
-              {xLabels[i] && <text x={gx + groupW / 2} y={height - 6} fill="#94A3B8" fontSize="11" textAnchor="middle">{xLabels[i]}</text>}
+              {xLabels[i] && <text x={gx + groupW / 2} y={height - 6} fill="var(--color-ink-3)" fontSize="11" textAnchor="middle">{xLabels[i]}</text>}
             </g>
           );
         })}
@@ -134,7 +134,7 @@ export function Donut({ segments = [], size = 150, thickness = 6, center, center
   return (
     <span ref={ref} className={cn("relative inline-block", className)}>
       <svg width={size} height={size} viewBox="0 0 42 42">
-        <circle cx="21" cy="21" r={r} fill="none" stroke="#F1F3F8" strokeWidth={thickness} />
+        <circle cx="21" cy="21" r={r} fill="none" stroke="var(--color-line)" strokeWidth={thickness} />
         {segments.map((seg, i) => {
           const pct = (seg.value / total) * 100;
           const el = (
@@ -146,8 +146,8 @@ export function Donut({ segments = [], size = 150, thickness = 6, center, center
           acc += pct;
           return el;
         })}
-        {center != null && <text x="21" y="20.5" textAnchor="middle" fontSize="8" fontWeight="700" fill="#0F172A">{center}</text>}
-        {centerSub && <text x="21" y="26" textAnchor="middle" fontSize="3.1" fill="#94A3B8">{centerSub}</text>}
+        {center != null && <text x="21" y="20.5" textAnchor="middle" fontSize="8" fontWeight="700" fill="var(--color-heading)">{center}</text>}
+        {centerSub && <text x="21" y="26" textAnchor="middle" fontSize="3.1" fill="var(--color-ink-3)">{centerSub}</text>}
       </svg>
       <Tooltip tip={tip} />
     </span>
@@ -163,11 +163,11 @@ export function Gauge({ value = 0, color = "#22C55E", label, width = 170, height
   return (
     <span ref={ref} className="relative inline-block">
       <svg width={width} height={height} viewBox="0 0 170 118">
-        <path d={path} fill="none" stroke="#EEF1F6" strokeWidth="15" strokeLinecap="round" />
+        <path d={path} fill="none" stroke="var(--color-line)" strokeWidth="15" strokeLinecap="round" />
         <path d={path} fill="none" stroke={color} strokeWidth="15" strokeLinecap="round" strokeDasharray={`${on} ${len}`}
           className="cursor-pointer" onMouseMove={show(label, `${value}%`)} onMouseLeave={hide} />
-        <text x="85" y="92" textAnchor="middle" fontSize="30" fontWeight="700" fill="#0F172A">{value}%</text>
-        {label && <text x="85" y="108" textAnchor="middle" fontSize="12" fill="#94A3B8">{label}</text>}
+        <text x="85" y="92" textAnchor="middle" fontSize="30" fontWeight="700" fill="var(--color-heading)">{value}%</text>
+        {label && <text x="85" y="108" textAnchor="middle" fontSize="12" fill="var(--color-ink-3)">{label}</text>}
       </svg>
       <Tooltip tip={tip} />
     </span>

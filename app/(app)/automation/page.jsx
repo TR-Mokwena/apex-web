@@ -188,7 +188,7 @@ export default function AutomationPage() {
         <button onClick={redo} disabled={!hist.current.future.length} title="Redo" className="grid place-items-center w-9 h-9 rounded-[9px] border border-line bg-card disabled:opacity-40"><Icon name="Redo2" size={15} className="text-ink-2" /></button>
         <button onClick={reset} title="Reset to default" className="grid place-items-center w-9 h-9 rounded-[9px] border border-line bg-card"><Icon name="RotateCcw" size={15} className="text-ink-2" /></button>
         <button onClick={save} className="flex items-center gap-1.5 h-9 px-3.5 rounded-[9px] border border-line bg-card text-[13px] font-medium"><Icon name={saved ? "Check" : "Save"} size={15} className={saved ? "text-emerald-500" : "text-ink-2"} />{saved ? "Saved" : "Save"}</button>
-        <button onClick={testRun} className="flex items-center gap-1.5 h-9 px-3.5 rounded-[9px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name={running ? "Loader" : "Play"} size={15} className={running ? "animate-spin" : ""} />Test Run</button>
+        <button onClick={testRun} className="flex items-center gap-1.5 h-9 px-3.5 rounded-[9px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}><Icon name={running ? "Loader" : "Play"} size={15} className={running ? "animate-spin" : ""} />Test Run</button>
       </div>
 
       <div className="flex-1 min-h-0 flex">

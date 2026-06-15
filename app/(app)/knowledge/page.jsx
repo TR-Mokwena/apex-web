@@ -66,7 +66,7 @@ export default function KnowledgePage() {
           <div className="flex items-center gap-3 p-[16px_18px] border-b border-line flex-wrap">
             <div className="flex-1 flex items-center gap-2.5 bg-bg border border-line rounded-[10px] px-3 py-2.5 min-w-[180px]"><Icon name="Search" size={16} className="text-ink-3" /><input placeholder="Search knowledge..." className="flex-1 bg-transparent outline-none text-[13px]" /><span className="text-[11px] text-ink-3 border border-line rounded-[5px] px-1.5">⌘K</span></div>
             <button className="grid place-items-center w-[38px] h-[38px] rounded-[10px] border border-line bg-card"><Icon name="SlidersHorizontal" size={16} className="text-ink-2" /></button>
-            <button className="flex items-center gap-1.5 h-[38px] px-[15px] rounded-[10px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name="Plus" size={15} />New</button>
+            <button className="flex items-center gap-1.5 h-[38px] px-[15px] rounded-[10px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}><Icon name="Plus" size={15} />New</button>
           </div>
           <div className="p-[18px]">
             <div className="flex items-center justify-between mb-1.5">

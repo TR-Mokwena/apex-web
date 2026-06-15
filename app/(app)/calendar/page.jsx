@@ -82,7 +82,7 @@ export default function CalendarPage() {
               <span key={v} className={cn("px-3.5 py-[7px] rounded-[7px] text-[12.5px] font-medium cursor-pointer", v === "Month" ? "bg-brand-soft text-brand-600 font-semibold" : "text-ink-2")}>{v}</span>
             ))}
           </div>
-          <button className="flex items-center gap-1.5 h-[38px] px-3.5 rounded-[10px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name="Plus" size={15} />New Event</button>
+          <button className="flex items-center gap-1.5 h-[38px] px-3.5 rounded-[10px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}><Icon name="Plus" size={15} />New Event</button>
         </div>
       </div>
 

@@ -44,7 +44,7 @@ export default function IntegrationsPage() {
             <div className="text-[13px] text-ink-2 mt-0.5">Connect Apex to the tools your team already uses.</div>
           </div>
         </div>
-        <button className="flex items-center gap-2 h-10 px-4 rounded-field text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name="Plus" size={15} />Request integration</button>
+        <button className="flex items-center gap-2 h-10 px-4 rounded-field text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}><Icon name="Plus" size={15} />Request integration</button>
       </div>
 
       {/* summary */}

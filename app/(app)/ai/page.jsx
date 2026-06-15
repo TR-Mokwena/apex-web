@@ -2,7 +2,7 @@
 
 import Icon from "@/components/Icon";
 
-const GRAD = "linear-gradient(135deg,#6366F1,#8B5CF6)";
+const GRAD = "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))";
 const RISK = [
   { ms: "Mobile App Launch", icon: "Smartphone", ib: "rgba(248,113,113,.16)", icol: "#F87171", proj: "Apex v2.1", due: "June 24, 2026", level: "High", lc: "bg-[rgba(248,113,113,.16)] text-[#F87171]", reason: "2 critical dependencies delayed" },
   { ms: "Analytics Module", icon: "ChartLine", ib: "rgba(56,189,248,.16)", icol: "#38BDF8", proj: "Apex v2.1", due: "June 30, 2026", level: "Medium", lc: "bg-[rgba(251,191,36,.16)] text-[#FBBF24]", reason: "Behind velocity by 18%" },
