@@ -51,7 +51,7 @@ export default function ThemePicker() {
       <div className="card p-[18px]">
         <h3 className="m-0 mb-4 text-[15px] font-semibold">Preview</h3>
         <div className="flex flex-col gap-3">
-          <Button variant="primary" icon={<Icon name="Sparkles" size={15} />}>Primary button</Button>
+          <Button variant="primary" >Primary button</Button>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-full bg-brand-soft text-brand-600">Badge</span>
             <a className="text-[13px] font-medium text-brand cursor-pointer">A link →</a>
