@@ -313,38 +313,51 @@ export default function AutomationPage() {
           {toast && <div data-ui className="absolute left-1/2 -translate-x-1/2 bottom-[18px] bg-[#1e293b] text-white text-[12.5px] font-medium px-4 py-2 rounded-[10px] shadow-pop z-[9]">{toast}</div>}
         </div>
 
-        {/* inspector */}
+        {/* inspector — desktop sidebar */}
         {selNode && (
           <div className="hidden lg:flex w-[280px] flex-none bg-card border-l border-line flex-col">
-            <div className="flex items-center justify-between p-[16px_18px] border-b border-line">
-              <div className="flex items-center gap-2.5">
-                <span className="grid place-items-center w-8 h-8 rounded-lg flex-none" style={{ background: NODE_TYPES[selNode.type].grad }}><Icon name={NODE_TYPES[selNode.type].icon} size={16} className="text-white" /></span>
-                <b className="text-[14px] font-semibold">{NODE_TYPES[selNode.type].title}</b>
-              </div>
-              <button onClick={() => setSel(null)} className="text-ink-3 grid place-items-center"><Icon name="X" size={17} /></button>
-            </div>
-            <div className="p-[18px] flex flex-col gap-4 overflow-y-auto">
-              {NODE_TYPES[selNode.type].fields.length === 0 && <div className="text-[12.5px] text-ink-3">This node has no configuration.</div>}
-              {NODE_TYPES[selNode.type].fields.map((f) => (
-                <label key={f.key} className="flex flex-col gap-1.5">
-                  <span className="text-[12.5px] font-medium text-ink-2">{f.label}</span>
-                  <input
-                    type={f.type === "number" ? "number" : "text"}
-                    value={selNode.config[f.key] ?? ""}
-                    onFocus={snapshot}
-                    onChange={(e) => updateConfig(selNode.id, f.key, f.type === "number" ? Number(e.target.value) : e.target.value)}
-                    className="h-10 border border-line rounded-[10px] px-3 text-sm outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-soft)]"
-                  />
-                </label>
-              ))}
-              <div className="pt-2 border-t border-line">
-                <button onClick={() => deleteNode(selNode.id)} className="w-full h-10 rounded-[10px] bg-red-50 text-red-500 text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-red-100"><Icon name="Trash2" size={15} />Delete node</button>
-              </div>
-              <p className="text-[11.5px] text-ink-3 leading-relaxed">Drag a node's right dot onto another node's left dot to connect them. Click a wire to remove it. Press Delete to remove the selected node.</p>
-            </div>
+            {inspectorHeader}
+            {inspectorBody}
           </div>
         )}
       </div>
+
+      {/* inspector — mobile bottom sheet */}
+      {selNode && (
+        <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 bg-card border-t border-line rounded-t-2xl shadow-pop flex flex-col max-h-[62vh]">
+          <div className="mx-auto mt-2 mb-1 h-1 w-9 rounded-full bg-slate-300 flex-none" />
+          {inspectorHeader}
+          {inspectorBody}
+        </div>
+      )}
+
+      {/* palette — mobile bottom sheet (tap to add) */}
+      {sheet === "palette" && (
+        <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
+          <div className="absolute inset-0 bg-black/30" onClick={() => setSheet(null)} />
+          <div className="relative bg-card rounded-t-2xl shadow-pop max-h-[72vh] overflow-y-auto p-4 pb-6">
+            <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-slate-300" />
+            <div className="flex items-center justify-between mb-1">
+              <b className="text-[15px] font-semibold">Add a node</b>
+              <button onClick={() => setSheet(null)} className="text-ink-3 grid place-items-center"><Icon name="X" size={18} /></button>
+            </div>
+            {PALETTE_GROUPS.map((group) => (
+              <div key={group}>
+                <div className="text-[10.5px] font-bold uppercase tracking-wider text-ink-3 mx-1 mb-2 mt-4">{group}</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.entries(NODE_TYPES).filter(([, t]) => t.group === group).map(([type, t]) => (
+                    <button key={type} onClick={() => addAtCenter(type)}
+                      className="flex items-center gap-2.5 p-[10px_11px] border border-line rounded-[11px] text-[13px] font-medium bg-card text-left active:scale-[0.98]">
+                      <span className="grid place-items-center w-[30px] h-[30px] rounded-lg flex-none" style={{ background: t.pi }}><Icon name={t.icon} size={16} style={{ color: t.pc }} /></span>
+                      <span className="truncate">{t.title}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
