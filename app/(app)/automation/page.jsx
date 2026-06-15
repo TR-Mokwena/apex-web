@@ -206,7 +206,7 @@ export default function AutomationPage() {
             <div key={group}>
               <div className="flex items-center justify-between text-[10.5px] font-bold uppercase tracking-wider text-ink-3 mx-1 mb-2.5 mt-5">{group}{group === "Triggers" && <Icon name="Zap" size={14} />}</div>
               {Object.entries(NODE_TYPES).filter(([, t]) => t.group === group).map(([type, t]) => (
-                <div key={type} draggable onDragStart={(e) => e.dataTransfer.setData("type", type)}
+                <div key={type} draggable onDragStart={(e) => e.dataTransfer.setData("type", type)} onClick={() => addAtCenter(type)} title="Drag onto canvas or click to add"
                   className="flex items-center gap-3 p-[10px_11px] border border-line rounded-[11px] mb-2 cursor-grab active:scale-[0.98] text-[13px] font-medium bg-card hover:border-[#D6DCEA] hover:shadow-card">
                   <span className="grid place-items-center w-[30px] h-[30px] rounded-lg flex-none" style={{ background: t.pi }}><Icon name={t.icon} size={16} style={{ color: t.pc }} /></span>{t.title}
                 </div>
@@ -272,7 +272,7 @@ export default function AutomationPage() {
           </div>
 
           {/* minimap */}
-          <div data-ui className="absolute right-[18px] bottom-[18px] w-[180px] h-[108px] bg-card border border-line rounded-[11px] shadow-card z-[8] overflow-hidden">
+          <div data-ui className="hidden sm:block absolute right-[18px] bottom-[18px] w-[180px] h-[108px] bg-card border border-line rounded-[11px] shadow-card z-[8] overflow-hidden">
             {nodes.map((n) => { const s = sizeOf(n.type); return <span key={n.id} className="absolute rounded-[3px] bg-[#C7CEFB]" style={{ left: (n.x - b.x0) * ms + mox, top: (n.y - b.y0) * ms + moy, width: s.w * ms, height: s.h * ms }} />; })}
             {c && <span className="absolute border-[1.5px] border-brand rounded bg-brand/10" style={{ left: Math.max(0, (-view.tx / view.scale - b.x0) * ms + mox), top: Math.max(0, (-view.ty / view.scale - b.y0) * ms + moy), width: (c.clientWidth / view.scale) * ms, height: (c.clientHeight / view.scale) * ms }} />}
           </div>
