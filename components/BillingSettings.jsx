@@ -5,8 +5,7 @@ import Icon from "@/components/Icon";
 import { Button, Modal } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { generateInvoicePdf, generateStatementPdf } from "@/lib/invoice";
-
-const fmtR = (n) => "R" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+import { useCountry, formatMoney } from "@/lib/locale";
 
 const SEATS = 50;
 // prices in ZAR (Rand), per member / month
@@ -36,9 +35,10 @@ export default function BillingSettings() {
   const [open, setOpen] = useState(false);
   const [pick, setPick] = useState("enterprise");
 
+  const country = useCountry();
   const plan = PLANS.find((p) => p.id === planId);
   const perSeat = cycle === "monthly" ? plan.monthly : Math.round(plan.annual / 12);
-  const total = (perSeat * SEATS).toLocaleString();
+  const total = formatMoney(perSeat * SEATS, country);
 
   const apply = () => { setPlanId(pick); setOpen(false); };
 
