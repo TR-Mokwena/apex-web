@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Icon from "@/components/Icon";
-import { Button } from "@/components/ui";
+import { Button, Modal, Field, TextInput, Select } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
 const GRAD = {
@@ -110,6 +110,22 @@ export default function TasksPage() {
   };
   const Indicator = () => <div className="h-[3px] bg-brand rounded-full mx-[18px] my-px" />;
 
+  /* ---- create ---- */
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ t: "", proj: "Apex v2.1", group: "To Do", pri: "medium", label: "feature", av: "SD", due: "" });
+  const setF = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const create = () => {
+    const t = form.t.trim();
+    if (!t) return;
+    const gi = groups.findIndex((g) => g.name === form.group);
+    if (gi < 0) return;
+    const task = { id: `APEX-${Math.floor(100 + Math.random() * 900)}`, t, proj: form.proj.trim() || "—", pri: form.pri, label: form.label, av: form.av, due: form.due.trim() || "—", done: !!groups[gi].done };
+    setGroups((gs) => gs.map((g, i) => (i === gi ? { ...g, tasks: [task, ...g.tasks] } : g)));
+    setOpenGroups((s) => new Set(s).add(form.group));
+    setOpen(false);
+    setForm((f) => ({ ...f, t: "", due: "" }));
+  };
+
   return (
     <>
       <div className="flex items-start justify-between gap-6 mb-[18px] flex-wrap">
@@ -120,7 +136,7 @@ export default function TasksPage() {
             <div className="text-[13px] text-ink-2 mt-0.5">Everything assigned across your projects and sprints.</div>
           </div>
         </div>
-        <Button variant="primary" icon={<Icon name="Plus" size={15} />}>New Task</Button>
+        <Button variant="primary" icon={<Icon name="Plus" size={15} />} onClick={() => setOpen(true)}>New Task</Button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-4">
@@ -172,6 +188,23 @@ export default function TasksPage() {
           );
         })}
       </div>
+
+      <Modal open={open} onClose={() => setOpen(false)} title="New task"
+        footer={<><Button onClick={() => setOpen(false)}>Cancel</Button><Button variant="primary" onClick={create}>Create task</Button></>}>
+        <Field label="Title"><TextInput value={form.t} onChange={setF("t")} placeholder="What needs to be done?" autoFocus /></Field>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Project"><TextInput value={form.proj} onChange={setF("proj")} /></Field>
+          <Field label="Status"><Select value={form.group} onChange={setF("group")}>{GROUPS.map((g) => <option key={g.name}>{g.name}</option>)}</Select></Field>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Priority"><Select value={form.pri} onChange={setF("pri")}>{["critical", "high", "medium", "low"].map((p) => <option key={p} value={p}>{p[0].toUpperCase() + p.slice(1)}</option>)}</Select></Field>
+          <Field label="Label"><Select value={form.label} onChange={setF("label")}>{Object.keys(LABEL_STYLE).map((l) => <option key={l} value={l}>{l}</option>)}</Select></Field>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Assignee"><Select value={form.av} onChange={setF("av")}>{Object.keys(GRAD).map((a) => <option key={a}>{a}</option>)}</Select></Field>
+          <Field label="Due"><TextInput value={form.due} onChange={setF("due")} placeholder="e.g. June 28" /></Field>
+        </div>
+      </Modal>
     </>
   );
 }
