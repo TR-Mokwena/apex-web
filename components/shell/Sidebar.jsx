@@ -115,7 +115,7 @@ export default function Sidebar({ open, collapsed, onClose, onToggleCollapse }) 
           <MenuItem icon="Settings" href="/settings" onClick={onClose}>Account settings</MenuItem>
           <MenuItem icon="Bell" href="/notifications" onClick={onClose}>Notifications</MenuItem>
           <MenuSep />
-          <MenuItem icon="LogOut" href="/onboarding" onClick={onClose} danger>Sign out</MenuItem>
+          <MenuItem icon="LogOut" href="/login" onClick={onClose} danger>Sign out</MenuItem>
         </Dropdown>
         <button
           type="button"

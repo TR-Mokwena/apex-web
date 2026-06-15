@@ -4,6 +4,7 @@ import { useState } from "react";
 import Icon from "@/components/Icon";
 import { cn } from "@/lib/cn";
 import ThemePicker from "@/components/ThemePicker";
+import GeneralSettings from "@/components/GeneralSettings";
 
 const PAL = [
   "linear-gradient(135deg,#6366F1,#8B5CF6)",
@@ -34,7 +35,7 @@ const TEAMS = [
 ];
 
 export default function SettingsPage() {
-  const [active, setActive] = useState("Teams");
+  const [active, setActive] = useState("General");
   return (
     <>
       <div className="flex items-start justify-between gap-6 mb-5 flex-wrap">
@@ -62,9 +63,10 @@ export default function SettingsPage() {
         </div>
 
         {/* content per section */}
+        {active === "General" && <GeneralSettings />}
         {active === "Appearance" && <div className="flex-1 min-w-0"><ThemePicker /></div>}
 
-        {active !== "Appearance" && active !== "Teams" && (
+        {!["General", "Appearance", "Teams"].includes(active) && (
           <div className="flex-1 min-w-0 card grid place-items-center py-20 text-center">
             <div className="flex flex-col items-center gap-3 max-w-[380px]">
               <span className="grid place-items-center w-14 h-14 rounded-2xl bg-brand-soft text-brand"><Icon name="Settings2" size={26} /></span>
