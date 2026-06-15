@@ -6,11 +6,14 @@
    scales, so prefer those utilities (bg-indigo-500, text-slate-500, …) and
    reach for the semantic tokens below for brand/surface/sidebar specifics.
    ========================================================================= */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* surfaces */
   --color-bg: #f6f7fb;
   --color-card: #ffffff;
   --color-line: #edf0f5;
+  --color-bg-soft: #fbfcfe; /* subtle surface: row hovers, kanban columns */
 
   /* ink (text) */
   --color-ink: #1e293b;
@@ -82,4 +85,24 @@
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);
   }
+}
+
+/* ============================================================================
+   Dark mode — overrides the semantic surface/ink tokens. Everything that uses
+   bg-bg / bg-card / bg-bg-soft / text-ink* / border-line / bg-brand-soft flips
+   automatically. Toggle adds/removes `.dark` on <html> (see ThemePicker).
+   ========================================================================= */
+.dark {
+  --color-bg: #0d1320;
+  --color-card: #151b2c;
+  --color-line: #232b40;
+  --color-bg-soft: #1a2236;
+  --color-ink: #e6eaf3;
+  --color-ink-2: #97a1bb;
+  --color-ink-3: #6b7488;
+  --color-heading: #f3f5fa;
+  --color-brand-soft: color-mix(in srgb, var(--color-brand) 26%, #151b2c);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  --shadow-pop: 0 18px 50px -16px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
 }

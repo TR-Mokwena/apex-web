@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 // Applies the saved accent before first paint to avoid a colour flash.
-const ACCENT_SCRIPT = `try{var a=localStorage.getItem('apex-accent');if(a)document.documentElement.style.setProperty('--color-brand',a);}catch(e){}`;
+const ACCENT_SCRIPT = `try{var a=localStorage.getItem('apex-accent');if(a)document.documentElement.style.setProperty('--color-brand',a);if(localStorage.getItem('apex-mode')==='dark')document.documentElement.classList.add('dark');}catch(e){}`;
 
 export default function RootLayout({ children }) {
   return (
