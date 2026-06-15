@@ -4,7 +4,7 @@ import { useState } from "react";
 import Icon from "@/components/Icon";
 import { LineChart, Donut, BarPairs, LegendRow, Switch, Button } from "@/components/ui";
 import { cn } from "@/lib/cn";
-import { PAL, INITIALS, TAG_STYLE } from "@/lib/projects";
+import { PAL, INITIALS } from "@/lib/projects";
 
 const TONE = {
   green: "bg-emerald-50 text-emerald-600", indigo: "bg-brand-soft text-brand", blue: "bg-[#EAF1FF] text-[#3B82F6]",
