@@ -11,6 +11,7 @@ const INTEGRATIONS = [
   { name: "GitLab", cat: "Source Control", icon: "GitBranch", color: "#FC6D26", desc: "Track merge requests and CI pipelines across your repos." },
   { name: "Slack", cat: "Communication", icon: "MessageSquare", color: "#4A154B", desc: "Post risk alerts, digests and mentions to your channels.", connected: true },
   { name: "Microsoft Teams", cat: "Communication", icon: "Video", color: "#5059C9", desc: "Deliver Apex notifications straight into Teams." },
+  { name: "OmniConnect SA", cat: "Communication", icon: "MessagesSquare", color: "#7C3AED", desc: "Send Apex alerts over SMS, WhatsApp & email — all SA networks, POPIA-compliant.", connected: true },
   { name: "Jira", cat: "Productivity", icon: "SquareKanban", color: "#0052CC", desc: "Two-way issue sync to keep boards and tasks aligned." },
   { name: "Linear", cat: "Productivity", icon: "Activity", color: "#5E6AD2", desc: "Sync issues and cycles with your engineering workflow." },
   { name: "Figma", cat: "Productivity", icon: "Figma", color: "#F24E1E", desc: "Embed design files and frames directly inside tasks." },

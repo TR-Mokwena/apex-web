@@ -30,6 +30,7 @@ const CHANNELS = [
   { ic: "Mail", b: "Email Notifications", s: "Digest & important alerts", on: true },
   { ic: "Smartphone", b: "Push Notifications", s: "Mobile & desktop push", on: true },
   { ic: "MessageSquare", b: "SMS Notifications", s: "Critical alerts only", on: false },
+  { ic: "MessagesSquare", b: "WhatsApp & SMS · OmniConnect", s: "Delivered via OmniConnect SA · POPIA-safe", on: true },
   { ic: "AppWindow", b: "In-App Notifications", s: "Shown in the activity bell", on: true },
 ];
 const ACTIVITY = [
