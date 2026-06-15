@@ -44,6 +44,7 @@ export default function AutomationPage() {
   const [running, setRunning] = useState(null); // node id currently "executing"
   const [toast, setToast] = useState("");
   const [saved, setSaved] = useState(false);
+  const [sheet, setSheet] = useState(null); // mobile: "palette" | null
 
   const canvasRef = useRef(null);
   const viewRef = useRef(view);
@@ -104,7 +105,10 @@ export default function AutomationPage() {
     };
     const onUp = (e) => {
       if (connecting) {
-        const portEl = e.target.closest?.("[data-portin]");
+        // For touch, e.target stays on the origin port (implicit pointer capture),
+        // so hit-test the actual element under the release point.
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        const portEl = el?.closest?.("[data-portin]");
         const toId = portEl?.getAttribute("data-portin");
         if (toId && toId !== connecting.fromId) {
           snapshot();
@@ -114,9 +118,10 @@ export default function AutomationPage() {
       }
       drag.current = null; pan.current = null;
     };
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-    return () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    return () => { window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); window.removeEventListener("pointercancel", onUp); };
   }, [connecting, snapshot]);
 
   useEffect(() => {
@@ -133,6 +138,7 @@ export default function AutomationPage() {
 
   /* mutations */
   const addNode = (type, x, y) => { snapshot(); const s = sizeOf(type); const id = uid(); setNodes((ns) => [...ns, { id, type, x: x - s.w / 2, y: y - s.h / 2, config: {} }]); setSel(id); };
+  const addAtCenter = (type) => { const c = canvasRef.current; if (!c) return; const r = c.getBoundingClientRect(); const [x, y] = toStage(r.left + c.clientWidth / 2, r.top + c.clientHeight / 2); addNode(type, x, y); setSheet(null); };
   const deleteNode = (id) => { snapshot(); setNodes((ns) => ns.filter((n) => n.id !== id)); setConns((cs) => cs.filter((c) => c.from !== id && c.to !== id)); setSel(null); };
   const deleteConn = (id) => { snapshot(); setConns((cs) => cs.filter((c) => c.id !== id)); };
   const updateNode = (id, patch) => setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, ...patch } : n)));
@@ -211,11 +217,11 @@ export default function AutomationPage() {
         {/* canvas */}
         <div
           ref={canvasRef}
-          onMouseDown={onCanvasDown}
+          onPointerDown={onCanvasDown}
           onWheel={(e) => { e.preventDefault(); zoomBy(e.deltaY < 0 ? 0.08 : -0.08); }}
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => { e.preventDefault(); const type = e.dataTransfer.getData("type"); if (NODE_TYPES[type]) { const [x, y] = toStage(e.clientX, e.clientY); addNode(type, x, y); } }}
-          className={cn("flex-1 min-w-0 relative overflow-hidden select-none", pan.current ? "cursor-grabbing" : "cursor-grab")}
+          className={cn("flex-1 min-w-0 relative overflow-hidden select-none touch-none", pan.current ? "cursor-grabbing" : "cursor-grab")}
           style={{ backgroundColor: "#FBFCFE", backgroundImage: "radial-gradient(circle, #DCE1EC 1.2px, transparent 1.2px)", backgroundSize: "22px 22px" }}
         >
           <div className="absolute inset-0 origin-top-left" style={{ transform: `translate(${view.tx}px,${view.ty}px) scale(${view.scale})` }}>
