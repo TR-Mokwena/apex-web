@@ -1,0 +1,297 @@
+[33mcommit 91b4550c615d9e7482b5fcda360553b9873992dc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 16:58:14 2026 +0200
+
+    feat: add UsersSettings component for user management and invite functionality
+
+[33mcommit d924c48030acce132f953f30e44731cf8a9ee0b0[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 16:54:38 2026 +0200
+
+    feat: add sign-in page and General organization settings
+    
+    - add standalone /login split-screen sign-in (rocket illustration,
+      email/password with show toggle, remember me, social logins);
+      pinned to the brand primary instead of the user accent
+    - add General settings panel (org profile, localization, workspace
+      preferences, danger zone) and make it the default admin tab
+    - point sidebar Sign out to /login
+
+[33mcommit c3e47d012ba935743fc32d6ebb8f24466369bcaf[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 16:21:01 2026 +0200
+
+    feat: update button gradients to use CSS variables for consistency
+
+[33mcommit fd6bf5c83c3e263093dbf2608456d0e23085a24e[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 16:03:38 2026 +0200
+
+    fix: replace closing div with Link component in MilestonesPage
+
+[33mcommit bfb951bbf53ed09cd3bdf53d6403953436a4bc5a[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 16:02:59 2026 +0200
+
+    feat: refactor MilestonesPage to use external milestones and status constants
+
+[33mcommit b578753f881bebdecf7def1c5f00145ab0d20f50[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 16:02:01 2026 +0200
+
+    feat: add MilestoneDetail component with task management and activity tracking
+
+[33mcommit 763bcb1ff435e7c42e0c2187e5c7d3c17db7ff88[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 16:01:07 2026 +0200
+
+    feat: add Modal, Field, TextInput, and Select imports to page component
+
+[33mcommit 45743dc8b6c89e3f860d0d87ac197f562e680eb0[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 15:58:21 2026 +0200
+
+    feat: add useEffect hook and findProject import to ProjectWorkspace component
+
+[33mcommit 5e3261b5f6a0aa2952b9710a2e019f1dbf8531c9[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 15:58:00 2026 +0200
+
+    feat: implement project creation modal with form and localStorage integration
+
+[33mcommit 558149a0363092bf24b513f769056a58f0be3601[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 15:57:14 2026 +0200
+
+    feat: add localStorage support for user-created projects with slugify and retrieval functions
+
+[33mcommit 2a1f66b2529c60fff2887dc45e4411e534de6c4c[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 15:56:20 2026 +0200
+
+    feat: add Modal component with keyboard accessibility and customizable width
+
+[33mcommit 4deea5b72b32173a3cb6df7d4ab9a864773bc8bd[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 15:52:29 2026 +0200
+
+    feat: update button shadows to use color-mix for improved consistency and visual appeal
+
+[33mcommit 6b9bec4ccbe664e59ea85075fcefa5bf3fa16dc0[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 09:42:41 2026 +0200
+
+    feat: update tooltip and card shadow styles for improved visibility and consistency
+
+[33mcommit 46513af55e2cb775bb1c01f436731a30f6d538a8[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 09:30:46 2026 +0200
+
+    refactor: update UI components for consistent styling and improved accessibility
+    
+    - Updated background and border styles across various components to use new design tokens.
+    - Changed hover effects and text colors for better visibility and consistency.
+    - Refactored button and input styles to align with the new theme.
+    - Enhanced the ThemePicker component to include light/dark mode selection.
+    - Adjusted dropdown and badge components for improved visual coherence.
+    - Ensured all components utilize the updated color palette for a unified look.
+
+[33mcommit 93e0ca405ea0d411e9ccdbff3762ad30fc07f021[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 09:24:05 2026 +0200
+
+    feat: implement dark mode support with local storage management for user preference
+
+[33mcommit 512df9dda8b138e62cc3546e828c4950bfc9f6fb[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 09:19:18 2026 +0200
+
+    feat: update Delivery Rate and Sprints series color to use CSS variable for consistency
+
+[33mcommit 448873a1492a058127a6331a696b9a3293b1ba13[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 09:17:37 2026 +0200
+
+    feat: update Sparkline and Ring components to use CSS variable for color consistency
+
+[33mcommit 0d251f399ebf5877a0265a5605936f82c7ac8b92[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 09:10:55 2026 +0200
+
+    fix: add suppressHydrationWarning to RootLayout component for improved rendering
+
+[33mcommit 70b8ff96379eef4aa3ea7244b41e4920b640710b[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 09:09:03 2026 +0200
+
+    refactor: remove unnecessary icon from Primary button in ThemePicker component
+
+[33mcommit 654094ed734a937b919d3ba679c76ef8553ab791[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 09:07:10 2026 +0200
+
+    feat: enhance SettingsPage with dynamic content display for Appearance and Teams sections
+
+[33mcommit 8297ba74d5a91ac37888d4ae5039ce689d7f7132[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 09:03:03 2026 +0200
+
+    feat: add ThemePicker component import to SettingsPage
+
+[33mcommit fa2a4753b26b1fa58a538f4d0846b15f682984e9[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 09:02:32 2026 +0200
+
+    feat: implement user-selectable accent color feature with ThemePicker component
+
+[33mcommit 84fcffe416d2d1de9f731098d1b8506b0353ef39[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 08:52:25 2026 +0200
+
+    refactor: remove unused TAG_STYLE import from views.jsx
+
+[33mcommit 61e3b05a0667a3699dee2d5ddb08f7f0d96cbee0[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 08:51:44 2026 +0200
+
+    refactor: remove unused Placeholder component from OverviewView
+
+[33mcommit f01c11ebd5f28d9e22e6bca3c95794109410576f[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Mon Jun 15 08:51:06 2026 +0200
+
+    feat: add individual views for Timeline, Gantt, Milestones, Files, Dependencies, Reports, and Settings in ProjectWorkspace
+
+[33mcommit a7a10284dcd62e97b7a71ba42f2263f1fab62b84[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 21:55:00 2026 +0200
+
+    feat: add project views including Timeline, Gantt, Milestones, Files, Dependencies, Reports, and Settings components
+
+[33mcommit 35f70201d71a5622de327c4ea12b4ba19f36a83f[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 21:31:22 2026 +0200
+
+    Refactor project management components and add project workspace
+    
+    - Simplified ProjectsDirectory component by removing unused states and functions.
+    - Implemented filtering and search functionality for projects.
+    - Created a new ProjectWorkspace component for detailed project views.
+    - Added drag-and-drop functionality for task management in ProjectWorkspace.
+    - Introduced a new data structure for projects and board columns in projects.js.
+    - Enhanced UI elements for better user experience and navigation.
+
+[33mcommit f1fc133e44925bf0be8a8d0fa77d25ff42210f0f[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 21:25:56 2026 +0200
+
+    feat: implement drag-and-drop functionality for task management in Projects and Tasks pages
+
+[33mcommit e68505040a30a12161f995299de0f48f6a5535c5[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 21:06:04 2026 +0200
+
+    feat: add tooltip to velocity bars for enhanced data visibility
+
+[33mcommit 13cf99b1ca6c9bf5a68e04e1020e7c9f83274047[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 21:02:37 2026 +0200
+
+    feat: add tooltip functionality to charts for enhanced data interaction
+
+[33mcommit 5125bcf375273b50afd45689c9d1fa5d220f5fd5[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 20:50:52 2026 +0200
+
+    feat: update ORGS structure in Topbar component to include plan details and gradients
+
+[33mcommit 965227eb29b8b7a457fb5438ffb767fb976cbace[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 10:51:05 2026 +0200
+
+    feat: add Dropdown component with menu items and integrate into Sidebar and Topbar for enhanced navigation
+
+[33mcommit b83805742fed4d5a76e959066c57db3c16dc7634[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 10:41:38 2026 +0200
+
+    feat: overhaul Automation page with enhanced node type registry, improved state management, and new UI interactions
+
+[33mcommit da8e527102f7df3d1dc10bbca818457c62986c15[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 10:19:49 2026 +0200
+
+    feat: implement Integrations page with category filtering, search functionality, and connection management
+
+[33mcommit 854f0132ae5d6fa24e9a6c4e7cb5875fa93f1cb3[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 10:17:42 2026 +0200
+
+    feat: enhance Automation page with interactive canvas, zoom controls, and node management
+
+[33mcommit c9ebf24fd8ce28067e1244ac4b442bb6e16997d5[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 10:12:22 2026 +0200
+
+    feat: implement Onboarding page with multi-step setup process, team management, and repository integration
+
+[33mcommit b15e890fb8a70a7af852ade7f0136f1b9ce6ed25[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 10:10:39 2026 +0200
+
+    feat: implement Messages page with conversation threads, direct messaging, and enhanced UI components
+
+[33mcommit 7b53dcc0b689d8554500d3326cfa9274e699f0ea[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 10:08:49 2026 +0200
+
+    feat: implement Automation page with workflow visualization, palette, and interactive controls
+
+[33mcommit d5a59b515de4e447df3be5e85044d553fd32dde6[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 10:06:42 2026 +0200
+
+    feat: implement AI Command Center page with risk assessment, insights, and enhanced UI components
+
+[33mcommit f993d086244625b14320bd91b28fb76e28b56f01[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 10:04:57 2026 +0200
+
+    feat: implement calendar page with event management and improved UI components
+
+[33mcommit 300854a1da93b55addffb82e6ff4abfbfe62a613[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 10:00:00 2026 +0200
+
+    feat: implement notifications and settings pages with enhanced UI components and functionality
+
+[33mcommit 61a63e87dc082af7fb640038017793beacc766df[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 09:50:02 2026 +0200
+
+    feat: improve milestones timeline layout with enhanced styling and structure
+
+[33mcommit ff82ade8972d6365cb868f5a1dda98a53439bfb3[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 09:42:00 2026 +0200
+
+    feat: implement detailed reports page with analytics and performance metrics
+
+[33mcommit dd067f2ac676ec0a13be18305bb355fa571baecc[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 01:33:02 2026 +0200
+
+    feat: enhance project, sprint, and task pages with new UI components and functionality
+    
+    - Refactored ProjectsPage to include a detailed project board with task columns, toolbar, and sprint summary.
+    - Updated SprintsPage to display sprint details, burndown chart, and team capacity.
+    - Revamped TasksPage to show task groups with filtering options and task completion functionality.
+    - Introduced Tabs component for navigation in ProjectsPage.
+    - Added new UI elements such as Donut charts and Line charts for better data visualization.
+    - Improved styling and responsiveness across all pages.
+
+[33mcommit c373f82bad4c6ca24a50c4ddc6bae9f516d12666[m
+Author: TTK <tshepisodev@gmail.com>
+Date:   Sun Jun 14 00:59:49 2026 +0200
+
+    "Initial commit: Apex Next.js app (shell + dashboard)
