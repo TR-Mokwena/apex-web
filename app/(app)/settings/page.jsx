@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Icon from "@/components/Icon";
 import { cn } from "@/lib/cn";
+import ThemePicker from "@/components/ThemePicker";
 
 const PAL = [
   "linear-gradient(135deg,#6366F1,#8B5CF6)",
@@ -13,6 +14,7 @@ const PAL = [
 ];
 const ADMIN_NAV = [
   { label: "General", icon: "SlidersHorizontal" },
+  { label: "Appearance", icon: "Palette" },
   { label: "Teams", icon: "UsersRound" },
   { label: "Users", icon: "User" },
   { label: "Roles & Permissions", icon: "Shield" },
