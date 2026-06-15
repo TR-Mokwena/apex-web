@@ -182,6 +182,39 @@ export default function AutomationPage() {
   const bw = Math.max(b.w, 200), bh = Math.max(b.h, 150), ms = Math.min((mw - mp * 2) / bw, (mh - mp * 2) / bh);
   const mox = (mw - bw * ms) / 2, moy = (mh - bh * ms) / 2;
 
+  /* inspector — shared between the desktop sidebar and the mobile bottom sheet */
+  const inspType = selNode ? NODE_TYPES[selNode.type] : null;
+  const inspectorHeader = selNode && (
+    <div className="flex items-center justify-between p-[16px_18px] border-b border-line flex-none">
+      <div className="flex items-center gap-2.5">
+        <span className="grid place-items-center w-8 h-8 rounded-lg flex-none" style={{ background: inspType.grad }}><Icon name={inspType.icon} size={16} className="text-white" /></span>
+        <b className="text-[14px] font-semibold">{inspType.title}</b>
+      </div>
+      <button onClick={() => setSel(null)} className="text-ink-3 grid place-items-center"><Icon name="X" size={17} /></button>
+    </div>
+  );
+  const inspectorBody = selNode && (
+    <div className="p-[18px] flex flex-col gap-4 overflow-y-auto">
+      {inspType.fields.length === 0 && <div className="text-[12.5px] text-ink-3">This node has no configuration.</div>}
+      {inspType.fields.map((f) => (
+        <label key={f.key} className="flex flex-col gap-1.5">
+          <span className="text-[12.5px] font-medium text-ink-2">{f.label}</span>
+          <input
+            type={f.type === "number" ? "number" : "text"}
+            value={selNode.config[f.key] ?? ""}
+            onFocus={snapshot}
+            onChange={(e) => updateConfig(selNode.id, f.key, f.type === "number" ? Number(e.target.value) : e.target.value)}
+            className="h-10 border border-line rounded-[10px] px-3 text-sm outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-soft)]"
+          />
+        </label>
+      ))}
+      <div className="pt-2 border-t border-line">
+        <button onClick={() => deleteNode(selNode.id)} className="w-full h-10 rounded-[10px] bg-red-50 text-red-500 text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-red-100"><Icon name="Trash2" size={15} />Delete node</button>
+      </div>
+      <p className="text-[11.5px] text-ink-3 leading-relaxed">Drag a node's right dot onto another node's left dot to connect them. Click a wire to remove it. Press Delete to remove the selected node.</p>
+    </div>
+  );
+
   return (
     <div className="-mx-4 md:-mx-7 -my-6 flex flex-col h-[calc(100vh-65px)]">
       {/* header */}
