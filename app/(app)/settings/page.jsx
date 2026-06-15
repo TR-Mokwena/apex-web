@@ -61,7 +61,20 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* teams panel */}
+        {/* content per section */}
+        {active === "Appearance" && <div className="flex-1 min-w-0"><ThemePicker /></div>}
+
+        {active !== "Appearance" && active !== "Teams" && (
+          <div className="flex-1 min-w-0 card grid place-items-center py-20 text-center">
+            <div className="flex flex-col items-center gap-3 max-w-[380px]">
+              <span className="grid place-items-center w-14 h-14 rounded-2xl bg-brand-soft text-brand"><Icon name="Settings2" size={26} /></span>
+              <h3 className="m-0 text-lg font-semibold">{active}</h3>
+              <p className="m-0 text-[13.5px] text-ink-2">This admin section is part of the roadmap. <b>Teams</b> and <b>Appearance</b> are fully functional today.</p>
+            </div>
+          </div>
+        )}
+
+        {active === "Teams" && (
         <div className="flex-1 min-w-0 card !shadow-card">
           <div className="flex items-center justify-between gap-3.5 p-[18px_20px] border-b border-line flex-wrap">
             <div>
@@ -114,6 +127,7 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+        )}
       </div>
     </>
   );
