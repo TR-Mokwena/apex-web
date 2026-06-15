@@ -4,6 +4,9 @@ import { useState } from "react";
 import Icon from "@/components/Icon";
 import { Button, Modal } from "@/components/ui";
 import { cn } from "@/lib/cn";
+import { generateInvoicePdf, generateStatementPdf } from "@/lib/invoice";
+
+const fmtR = (n) => "R" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const SEATS = 50;
 // prices in ZAR (Rand), per member / month
@@ -19,11 +22,12 @@ const USAGE = [
   { label: "API requests", used: 1.2, total: 5, unit: "M", note: "this month" },
   { label: "Active projects", used: 24, total: null, unit: "", note: "Unlimited" },
 ];
+// total is VAT-inclusive (subscription × seats + 15% VAT)
 const INVOICES = [
-  { date: "Jun 1, 2026", desc: "Enterprise · 50 seats", amount: "R27,450.00", status: "Paid" },
-  { date: "May 1, 2026", desc: "Enterprise · 48 seats", amount: "R26,352.00", status: "Paid" },
-  { date: "Apr 1, 2026", desc: "Enterprise · 45 seats", amount: "R24,705.00", status: "Paid" },
-  { date: "Mar 1, 2026", desc: "Pro · 42 seats", amount: "R9,618.00", status: "Paid" },
+  { no: "INV-2026-0006", date: "Jun 1, 2026", plan: "Enterprise", seats: 50, total: 31567.50, status: "Paid" },
+  { no: "INV-2026-0005", date: "May 1, 2026", plan: "Enterprise", seats: 48, total: 30304.80, status: "Paid" },
+  { no: "INV-2026-0004", date: "Apr 1, 2026", plan: "Enterprise", seats: 45, total: 28410.75, status: "Paid" },
+  { no: "INV-2026-0003", date: "Mar 1, 2026", plan: "Pro", seats: 42, total: 11060.70, status: "Paid" },
 ];
 
 export default function BillingSettings() {
