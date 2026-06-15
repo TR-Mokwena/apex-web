@@ -21,7 +21,7 @@ const INTEGRATIONS = [
   { name: "Datadog", cat: "Monitoring", icon: "ChartNoAxesColumn", slug: "datadog", color: "#632CA6", desc: "Pull deploy and performance metrics into reports." },
   { name: "PagerDuty", cat: "Monitoring", icon: "Siren", slug: "pagerduty", color: "#06AC38", desc: "Escalate incidents and link them to affected projects." },
   { name: "CircleCI", cat: "Developer", icon: "CircleDot", slug: "circleci", color: "#343434", desc: "Show build and test status on tasks and PRs." },
-  { name: "Webhooks", cat: "Developer", icon: "Webhook", color: "#6366F1", desc: "Send any Apex event to an external URL in real time." },
+  { name: "Webhooks", cat: "Developer", icon: "Webhook", slug: "webhooks", color: "#6366F1", desc: "Send any Apex event to an external URL in real time." },
 ];
 
 // Real brand marks via the Simple Icons CDN (monochrome white on the brand-coloured
