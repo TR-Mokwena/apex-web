@@ -8,7 +8,7 @@ import { PAL, INITIALS } from "@/lib/projects";
 
 const TONE = {
   green: "bg-emerald-50 text-emerald-600", indigo: "bg-brand-soft text-brand", blue: "bg-[#EAF1FF] text-[#3B82F6]",
-  red: "bg-red-50 text-red-500", violet: "bg-[#F3EEFE] text-[#7C3AED]", amber: "bg-amber-50 text-amber-500", slate: "bg-slate-100 text-slate-500",
+  red: "bg-red-50 text-red-500", violet: "bg-[#F3EEFE] text-[#7C3AED]", amber: "bg-amber-50 text-amber-500", slate: "bg-bg-soft text-ink-2",
 };
 const LEGEND = [{ color: "#94A3B8" }, { color: "#3B82F6" }, { color: "#6366F1" }, { color: "#F59E0B" }, { color: "#22C55E" }];
 
@@ -69,7 +69,7 @@ export function GanttView() {
               <div className="min-w-0"><div className="text-[11.5px] font-medium leading-tight truncate">{r.t}</div><div className="text-[10px] text-ink-3 font-mono">{r.id}</div></div>
             </div>
             <div className="relative h-9">
-              <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${DAYS},1fr)` }}>{Array.from({ length: DAYS }, (_, i) => <span key={i} className="border-l border-[#F1F3F8]" />)}</div>
+              <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${DAYS},1fr)` }}>{Array.from({ length: DAYS }, (_, i) => <span key={i} className="border-l border-line" />)}</div>
               <div className="absolute top-0 bottom-0 w-0.5 bg-red-400/60" style={{ left: `${(TODAY / DAYS) * 100}%` }} />
               <div className="absolute top-[7px] h-[22px] rounded-md flex items-center px-2.5 text-[11px] font-semibold text-white whitespace-nowrap overflow-hidden" style={{ left: `${(r.start / DAYS) * 100}%`, width: `${(r.len / DAYS) * 100}%`, background: r.color }}>{r.t}</div>
             </div>
@@ -136,7 +136,7 @@ export function FilesView() {
       </div>
       <div>
         {FILES.map((f) => (
-          <div key={f.name} className="flex items-center gap-3 px-[18px] py-3 border-b border-line last:border-b-0 hover:bg-[#FBFCFE] transition-colors cursor-pointer">
+          <div key={f.name} className="flex items-center gap-3 px-[18px] py-3 border-b border-line last:border-b-0 hover:bg-bg-soft transition-colors cursor-pointer">
             <span className={cn("grid place-items-center w-10 h-10 rounded-[10px] flex-none", TONE[f.tone])}><Icon name={f.icon} size={18} /></span>
             <div className="flex-1 min-w-0"><b className="block text-[13.5px] font-semibold truncate">{f.name}</b><span className="text-[11.5px] text-ink-3">{f.size} · {f.by} · {f.when}</span></div>
             <button className="grid place-items-center w-8 h-8 rounded-lg text-ink-3 hover:bg-bg flex-none"><Icon name="Download" size={16} /></button>
@@ -222,7 +222,7 @@ export function SettingsView({ project }) {
   const [key, setKey] = useState(project.key);
   const [desc, setDesc] = useState(project.desc);
   const [color, setColor] = useState(project.color);
-  const field = "h-10 border border-slate-200 rounded-[10px] px-3 text-sm outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-soft)] bg-white";
+  const field = "h-10 border border-line rounded-[10px] px-3 text-sm outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-soft)] bg-card";
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
@@ -257,7 +257,7 @@ export function SettingsView({ project }) {
           <h3 className="m-0 mb-1 text-[15px] font-semibold text-red-500">Danger zone</h3>
           <p className="m-0 text-[12.5px] text-ink-2 mb-3">Archiving hides the project. Deleting is permanent.</p>
           <div className="flex flex-col gap-2">
-            <button className="h-10 rounded-[10px] border border-slate-200 text-[13px] font-semibold text-ink-2 hover:bg-bg">Archive project</button>
+            <button className="h-10 rounded-[10px] border border-line text-[13px] font-semibold text-ink-2 hover:bg-bg">Archive project</button>
             <button className="h-10 rounded-[10px] bg-red-50 text-red-500 text-[13px] font-semibold hover:bg-red-100">Delete project</button>
           </div>
         </div>

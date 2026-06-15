@@ -190,7 +190,7 @@ export function Ring({ value = 0, size = 58, color = "var(--color-brand)", track
 export function LegendRow({ color, label, value, className }) {
   return (
     <div className={cn("flex items-center justify-between text-[13px] py-[5px]", className)}>
-      <span className="flex items-center gap-2.5 text-slate-700">
+      <span className="flex items-center gap-2.5 text-ink">
         <span className="w-[9px] h-[9px] rounded-full" style={{ background: color }} />
         {label}
       </span>

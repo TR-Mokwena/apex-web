@@ -179,28 +179,28 @@ export default function AutomationPage() {
   return (
     <div className="-mx-4 md:-mx-7 -my-6 flex flex-col h-[calc(100vh-65px)]">
       {/* header */}
-      <div className="bg-white border-b border-line px-5 py-3.5 flex items-center gap-3.5 flex-none flex-wrap">
+      <div className="bg-card border-b border-line px-5 py-3.5 flex items-center gap-3.5 flex-none flex-wrap">
         <span className="text-[12.5px] text-ink-3 font-medium">Workflow:</span>
         <span className="text-base font-bold tracking-[-0.01em] flex items-center gap-1.5">Inactive Contributor Follow-up <Icon name="ChevronDown" size={15} className="text-ink-3" /></span>
         <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-[11.5px] font-semibold px-2.5 py-1 rounded-full"><span className="w-[7px] h-[7px] rounded-full bg-emerald-500" />Active</span>
         <div className="flex-1" />
-        <button onClick={undo} disabled={!hist.current.past.length} title="Undo" className="grid place-items-center w-9 h-9 rounded-[9px] border border-slate-200 bg-white disabled:opacity-40"><Icon name="Undo2" size={15} className="text-ink-2" /></button>
-        <button onClick={redo} disabled={!hist.current.future.length} title="Redo" className="grid place-items-center w-9 h-9 rounded-[9px] border border-slate-200 bg-white disabled:opacity-40"><Icon name="Redo2" size={15} className="text-ink-2" /></button>
-        <button onClick={reset} title="Reset to default" className="grid place-items-center w-9 h-9 rounded-[9px] border border-slate-200 bg-white"><Icon name="RotateCcw" size={15} className="text-ink-2" /></button>
-        <button onClick={save} className="flex items-center gap-1.5 h-9 px-3.5 rounded-[9px] border border-slate-200 bg-white text-[13px] font-medium"><Icon name={saved ? "Check" : "Save"} size={15} className={saved ? "text-emerald-500" : "text-ink-2"} />{saved ? "Saved" : "Save"}</button>
+        <button onClick={undo} disabled={!hist.current.past.length} title="Undo" className="grid place-items-center w-9 h-9 rounded-[9px] border border-line bg-card disabled:opacity-40"><Icon name="Undo2" size={15} className="text-ink-2" /></button>
+        <button onClick={redo} disabled={!hist.current.future.length} title="Redo" className="grid place-items-center w-9 h-9 rounded-[9px] border border-line bg-card disabled:opacity-40"><Icon name="Redo2" size={15} className="text-ink-2" /></button>
+        <button onClick={reset} title="Reset to default" className="grid place-items-center w-9 h-9 rounded-[9px] border border-line bg-card"><Icon name="RotateCcw" size={15} className="text-ink-2" /></button>
+        <button onClick={save} className="flex items-center gap-1.5 h-9 px-3.5 rounded-[9px] border border-line bg-card text-[13px] font-medium"><Icon name={saved ? "Check" : "Save"} size={15} className={saved ? "text-emerald-500" : "text-ink-2"} />{saved ? "Saved" : "Save"}</button>
         <button onClick={testRun} className="flex items-center gap-1.5 h-9 px-3.5 rounded-[9px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_rgba(99,102,241,0.8)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name={running ? "Loader" : "Play"} size={15} className={running ? "animate-spin" : ""} />Test Run</button>
       </div>
 
       <div className="flex-1 min-h-0 flex">
         {/* palette */}
-        <div className="hidden md:block w-[208px] flex-none bg-white border-r border-line p-[16px_14px] overflow-y-auto">
+        <div className="hidden md:block w-[208px] flex-none bg-card border-r border-line p-[16px_14px] overflow-y-auto">
           <div className="text-[10.5px] font-bold uppercase tracking-wider text-ink-3 mx-1 mb-2.5">Drag onto canvas</div>
           {PALETTE_GROUPS.map((group) => (
             <div key={group}>
               <div className="flex items-center justify-between text-[10.5px] font-bold uppercase tracking-wider text-ink-3 mx-1 mb-2.5 mt-5">{group}{group === "Triggers" && <Icon name="Zap" size={14} />}</div>
               {Object.entries(NODE_TYPES).filter(([, t]) => t.group === group).map(([type, t]) => (
                 <div key={type} draggable onDragStart={(e) => e.dataTransfer.setData("type", type)}
-                  className="flex items-center gap-3 p-[10px_11px] border border-line rounded-[11px] mb-2 cursor-grab active:scale-[0.98] text-[13px] font-medium bg-white hover:border-[#D6DCEA] hover:shadow-card">
+                  className="flex items-center gap-3 p-[10px_11px] border border-line rounded-[11px] mb-2 cursor-grab active:scale-[0.98] text-[13px] font-medium bg-card hover:border-[#D6DCEA] hover:shadow-card">
                   <span className="grid place-items-center w-[30px] h-[30px] rounded-lg flex-none" style={{ background: t.pi }}><Icon name={t.icon} size={16} style={{ color: t.pc }} /></span>{t.title}
                 </div>
               ))}
@@ -236,7 +236,7 @@ export default function AutomationPage() {
               const t = NODE_TYPES[n.type], s = sizeOf(n.type), isSel = sel === n.id, isRun = running === n.id;
               return (
                 <div key={n.id} data-node onMouseDown={(e) => onNodeDown(e, n.id)}
-                  className={cn("absolute bg-white border rounded-[14px] cursor-grab active:cursor-grabbing transition-shadow",
+                  className={cn("absolute bg-card border rounded-[14px] cursor-grab active:cursor-grabbing transition-shadow",
                     isRun ? "border-[1.5px] border-emerald-500 shadow-[0_0_0_3px_rgba(34,197,94,0.18)]" : isSel ? "border-[1.5px] border-brand shadow-[0_0_0_3px_rgba(99,102,241,0.13),0_10px_26px_-12px_rgba(16,24,40,0.22)]" : "border-line shadow-[0_1px_2px_rgba(16,24,40,0.06),0_10px_26px_-12px_rgba(16,24,40,0.22)]")}
                   style={{ left: n.x, top: n.y, width: s.w }}>
                   <div className="flex items-center gap-2.5 p-[11px_12px]">
@@ -245,8 +245,8 @@ export default function AutomationPage() {
                     {n.type !== "end" && <button data-nodemenu onClick={() => deleteNode(n.id)} className="text-ink-3 hover:text-red-500 cursor-pointer"><Icon name="Trash2" size={13} /></button>}
                   </div>
                   {t.bIcon && <div className="flex items-center gap-2 p-[9px_12px_11px] border-t border-line"><Icon name={t.bIcon} size={13} className="text-ink-3" /><span className="text-xs text-ink-2 font-medium truncate">{t.body(n.config)}</span></div>}
-                  {t.hasIn !== false && <span data-portin={n.id} className="absolute w-[13px] h-[13px] rounded-full bg-white border-2 border-brand top-1/2 -translate-y-1/2 -left-[7px] hover:scale-125 transition-transform" />}
-                  {t.hasOut !== false && <span data-port onMouseDown={(e) => onPortDown(e, n.id)} title="Drag to connect" className="absolute w-[13px] h-[13px] rounded-full bg-white border-2 border-brand top-1/2 -translate-y-1/2 -right-[7px] cursor-crosshair hover:scale-125 hover:bg-brand transition-transform" />}
+                  {t.hasIn !== false && <span data-portin={n.id} className="absolute w-[13px] h-[13px] rounded-full bg-card border-2 border-brand top-1/2 -translate-y-1/2 -left-[7px] hover:scale-125 transition-transform" />}
+                  {t.hasOut !== false && <span data-port onMouseDown={(e) => onPortDown(e, n.id)} title="Drag to connect" className="absolute w-[13px] h-[13px] rounded-full bg-card border-2 border-brand top-1/2 -translate-y-1/2 -right-[7px] cursor-crosshair hover:scale-125 hover:bg-brand transition-transform" />}
                 </div>
               );
             })}
@@ -256,7 +256,7 @@ export default function AutomationPage() {
           {!nodes.length && <div className="absolute inset-0 grid place-items-center text-ink-3 text-sm pointer-events-none">Drag a trigger from the palette to start</div>}
 
           {/* zoom */}
-          <div data-ui className="absolute left-[18px] bottom-[18px] flex items-center gap-1.5 bg-white border border-slate-200 rounded-[11px] p-1.5 shadow-card z-[8]">
+          <div data-ui className="absolute left-[18px] bottom-[18px] flex items-center gap-1.5 bg-card border border-line rounded-[11px] p-1.5 shadow-card z-[8]">
             <button onClick={() => zoomBy(-0.1)} className="grid place-items-center w-8 h-8 rounded-lg text-ink-2 hover:bg-bg"><Icon name="Minus" size={16} /></button>
             <span className="text-[12.5px] font-semibold px-1.5 tabular-nums">{Math.round(view.scale * 100)}%</span>
             <button onClick={() => zoomBy(0.1)} className="grid place-items-center w-8 h-8 rounded-lg text-ink-2 hover:bg-bg"><Icon name="Plus" size={16} /></button>
@@ -265,7 +265,7 @@ export default function AutomationPage() {
           </div>
 
           {/* minimap */}
-          <div data-ui className="absolute right-[18px] bottom-[18px] w-[180px] h-[108px] bg-white border border-slate-200 rounded-[11px] shadow-card z-[8] overflow-hidden">
+          <div data-ui className="absolute right-[18px] bottom-[18px] w-[180px] h-[108px] bg-card border border-line rounded-[11px] shadow-card z-[8] overflow-hidden">
             {nodes.map((n) => { const s = sizeOf(n.type); return <span key={n.id} className="absolute rounded-[3px] bg-[#C7CEFB]" style={{ left: (n.x - b.x0) * ms + mox, top: (n.y - b.y0) * ms + moy, width: s.w * ms, height: s.h * ms }} />; })}
             {c && <span className="absolute border-[1.5px] border-brand rounded bg-brand/10" style={{ left: Math.max(0, (-view.tx / view.scale - b.x0) * ms + mox), top: Math.max(0, (-view.ty / view.scale - b.y0) * ms + moy), width: (c.clientWidth / view.scale) * ms, height: (c.clientHeight / view.scale) * ms }} />}
           </div>
@@ -275,7 +275,7 @@ export default function AutomationPage() {
 
         {/* inspector */}
         {selNode && (
-          <div className="hidden lg:flex w-[280px] flex-none bg-white border-l border-line flex-col">
+          <div className="hidden lg:flex w-[280px] flex-none bg-card border-l border-line flex-col">
             <div className="flex items-center justify-between p-[16px_18px] border-b border-line">
               <div className="flex items-center gap-2.5">
                 <span className="grid place-items-center w-8 h-8 rounded-lg flex-none" style={{ background: NODE_TYPES[selNode.type].grad }}><Icon name={NODE_TYPES[selNode.type].icon} size={16} className="text-white" /></span>
@@ -293,7 +293,7 @@ export default function AutomationPage() {
                     value={selNode.config[f.key] ?? ""}
                     onFocus={snapshot}
                     onChange={(e) => updateConfig(selNode.id, f.key, f.type === "number" ? Number(e.target.value) : e.target.value)}
-                    className="h-10 border border-slate-200 rounded-[10px] px-3 text-sm outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-soft)]"
+                    className="h-10 border border-line rounded-[10px] px-3 text-sm outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-soft)]"
                   />
                 </label>
               ))}

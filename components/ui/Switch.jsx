@@ -15,7 +15,7 @@ export function Switch({ checked, defaultChecked = false, onChange, className })
       onClick={() => { setOn((v) => !v); onChange?.(!value); }}
       className={cn("relative w-10 h-[23px] rounded-full flex-none transition-colors", value ? "bg-brand" : "bg-slate-200", className)}
     >
-      <span className={cn("absolute top-[2.5px] w-[18px] h-[18px] rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-[left]", value ? "left-[19.5px]" : "left-[2.5px]")} />
+      <span className={cn("absolute top-[2.5px] w-[18px] h-[18px] rounded-full bg-card shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-[left]", value ? "left-[19.5px]" : "left-[2.5px]")} />
     </button>
   );
 }

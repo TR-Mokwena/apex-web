@@ -22,7 +22,7 @@ function IconButton({ icon, badge, primary, href, label, onClick }) {
       onClick={onClick || (href ? () => router.push(href) : undefined)}
       className={cn(
         "relative grid place-items-center w-10 h-10 rounded-field card cursor-pointer transition-transform hover:-translate-y-px",
-        primary ? "bg-brand border-brand text-white" : "text-slate-600",
+        primary ? "bg-brand border-brand text-white" : "text-ink-2",
       )}
     >
       <Icon name={icon} size={18} />
@@ -51,12 +51,12 @@ export default function Topbar({ onOpenMenu }) {
   }, [router]);
 
   return (
-    <header className="sticky top-0 z-40 flex items-center gap-3 px-4 md:px-7 py-3 bg-white/85 backdrop-blur-md border-b border-line">
+    <header className="sticky top-0 z-40 flex items-center gap-3 px-4 md:px-7 py-3 bg-card/85 backdrop-blur-md border-b border-line">
       <button
         type="button"
         aria-label="Open menu"
         onClick={onOpenMenu}
-        className="md:hidden grid place-items-center w-10 h-10 rounded-field card text-slate-600"
+        className="md:hidden grid place-items-center w-10 h-10 rounded-field card text-ink-2"
       >
         <Icon name="Menu" size={19} />
       </button>

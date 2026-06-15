@@ -25,7 +25,7 @@ export default function CommandPalette() {
         <div className="p-2 max-h-[50vh] overflow-y-auto">
           <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-3">Go to</div>
           {NAV.map((item) => (
-            <Link key={item.href} href={item.href} className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13.5px] text-slate-700 hover:bg-brand-soft hover:text-brand transition-colors">
+            <Link key={item.href} href={item.href} className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13.5px] text-ink hover:bg-brand-soft hover:text-brand transition-colors">
               <Icon name={item.icon} size={17} />
               {item.label}
             </Link>

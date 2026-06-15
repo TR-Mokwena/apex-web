@@ -25,7 +25,7 @@ const ILLUS = [
 const SUGGEST = ["Platform", "Mobile", "DevOps", "QA", "Data", "Marketing"];
 const TEAM_COLORS = ["#6366F1", "#0EA5E9", "#8B5CF6", "#10B981", "#F59E0B", "#EC4899"];
 
-const FIELD = "flex items-center h-11 border border-slate-200 rounded-[11px] bg-white overflow-hidden focus-within:border-brand focus-within:shadow-[0_0_0_3px_var(--color-brand-soft)]";
+const FIELD = "flex items-center h-11 border border-line rounded-[11px] bg-card overflow-hidden focus-within:border-brand focus-within:shadow-[0_0_0_3px_var(--color-brand-soft)]";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -62,13 +62,13 @@ export default function OnboardingPage() {
       </div>
 
       <div className="flex-1 flex items-center justify-center p-[10px_24px_40px]">
-        <div className="w-[min(980px,100%)] bg-white border border-line rounded-[24px] shadow-[0_30px_70px_-30px_rgba(16,24,40,0.35)] overflow-hidden">
+        <div className="w-[min(980px,100%)] bg-card border border-line rounded-[24px] shadow-[0_30px_70px_-30px_rgba(16,24,40,0.35)] overflow-hidden">
           {/* stepper */}
           <div className="flex items-center p-[24px_34px_6px] overflow-x-auto">
             {STEPS.map((label, i) => (
               <div key={label} className="flex items-center flex-1 last:flex-none">
                 <button onClick={() => i <= step && setStep(i)} className="flex items-center gap-2.5 flex-none">
-                  <span className={cn("grid place-items-center w-[30px] h-[30px] rounded-full text-[13px] font-semibold border-[1.5px] transition", i === step ? "bg-brand text-white border-brand shadow-[0_0_0_4px_var(--color-brand-soft)]" : i < step ? "bg-brand text-white border-brand" : "bg-bg text-ink-3 border-slate-200")}>
+                  <span className={cn("grid place-items-center w-[30px] h-[30px] rounded-full text-[13px] font-semibold border-[1.5px] transition", i === step ? "bg-brand text-white border-brand shadow-[0_0_0_4px_var(--color-brand-soft)]" : i < step ? "bg-brand text-white border-brand" : "bg-bg text-ink-3 border-line")}>
                     {i < step ? <Icon name="Check" size={15} /> : i + 1}
                   </span>
                   <span className={cn("text-[13.5px] whitespace-nowrap hidden sm:inline", i === step ? "text-ink font-semibold" : i < step ? "text-ink-2 font-medium" : "text-ink-3 font-medium")}>{label}</span>
@@ -84,7 +84,7 @@ export default function OnboardingPage() {
               {step === 0 && (
                 <Pane title="Create your organization" lede="Set up your workspace on Apex.">
                   <Field label="Organization name"><input defaultValue="Eclipse Softworks" className="flex-1 outline-none text-sm px-[13px] h-full" /></Field>
-                  <Field label="Subdomain"><input defaultValue="eclipsesoftworks" className="flex-1 outline-none text-sm px-[13px] h-full" /><span className="px-[13px] text-[13px] text-ink-3 bg-bg h-full flex items-center border-l border-slate-200">.apex.io</span></Field>
+                  <Field label="Subdomain"><input defaultValue="eclipsesoftworks" className="flex-1 outline-none text-sm px-[13px] h-full" /><span className="px-[13px] text-[13px] text-ink-3 bg-bg h-full flex items-center border-l border-line">.apex.io</span></Field>
                   <Field label="Country" select><select className="flex-1 outline-none text-sm px-[13px] h-full appearance-none cursor-pointer bg-transparent"><option>South Africa</option><option>Nigeria</option><option>Kenya</option><option>United Kingdom</option><option>United States</option></select></Field>
                 </Pane>
               )}
@@ -102,7 +102,7 @@ export default function OnboardingPage() {
                   <div className="text-xs text-ink-3">Suggested teams</div>
                   <div className="flex flex-wrap gap-2">
                     {SUGGEST.filter((s) => !teams.find((t) => t.n === s)).map((s) => (
-                      <button key={s} onClick={() => addTeam(s)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] text-[13px] font-medium border border-dashed border-slate-200 text-ink-2 bg-white hover:border-brand hover:text-brand-600"><Icon name="Plus" size={14} />{s}</button>
+                      <button key={s} onClick={() => addTeam(s)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] text-[13px] font-medium border border-dashed border-line text-ink-2 bg-card hover:border-brand hover:text-brand-600"><Icon name="Plus" size={14} />{s}</button>
                     ))}
                   </div>
                 </Pane>
@@ -112,7 +112,7 @@ export default function OnboardingPage() {
                   <div className="flex items-center gap-2.5 p-[12px_14px] rounded-xl bg-[#0D1117] text-white"><Icon name="Github" size={18} /><b className="text-[13px] font-semibold">github.com/eclipse-softworks</b><span className="ml-auto text-xs text-[#34D399] font-semibold flex items-center gap-1.5"><Icon name="CircleCheckBig" size={14} />Connected</span></div>
                   <div className="flex flex-col gap-2.5">
                     {repos.map((r, i) => (
-                      <div key={r.n} className="flex items-center gap-3 p-[11px_13px] border border-line rounded-xl bg-white">
+                      <div key={r.n} className="flex items-center gap-3 p-[11px_13px] border border-line rounded-xl bg-card">
                         <span className="grid place-items-center w-[34px] h-[34px] rounded-[9px] flex-none bg-bg"><Icon name="GitBranch" size={16} className="text-ink-2" /></span>
                         <div className="flex-1 min-w-0"><b className="block text-[13.5px] font-semibold">{r.n}</b><span className="text-[11.5px] text-ink-3">{r.d}</span></div>
                         <Switch checked={r.on} onChange={() => setRepos((rs) => rs.map((x, j) => (j === i ? { ...x, on: !x.on } : x)))} />
@@ -130,10 +130,10 @@ export default function OnboardingPage() {
                   </div>
                   <div className="flex flex-col gap-2.5">
                     {invites.map((v, i) => (
-                      <div key={i} className="flex items-center gap-3 p-[11px_13px] border border-line rounded-xl bg-white">
+                      <div key={i} className="flex items-center gap-3 p-[11px_13px] border border-line rounded-xl bg-card">
                         <span className="grid place-items-center w-[30px] h-[30px] rounded-full text-white text-[11px] font-semibold flex-none" style={{ background: PAL[v.pi] }}>{v.av}</span>
                         <div className="flex-1 min-w-0"><b className="block text-[13.5px] font-semibold truncate">{v.e}</b><span className="text-[11.5px] text-ink-3">Pending invite</span></div>
-                        <span className="text-[11.5px] font-semibold text-ink-2 bg-bg border border-slate-200 rounded-[7px] px-2.5 py-1">{v.r}</span>
+                        <span className="text-[11.5px] font-semibold text-ink-2 bg-bg border border-line rounded-[7px] px-2.5 py-1">{v.r}</span>
                         <button onClick={() => setInvites((vs) => vs.filter((_, j) => j !== i))} className="text-ink-3 grid place-items-center"><Icon name="X" size={15} /></button>
                       </div>
                     ))}
@@ -167,7 +167,7 @@ export default function OnboardingPage() {
               <span className="absolute rounded-full blur-lg opacity-50 w-[120px] h-[120px] -bottom-5 -left-8" style={{ background: "rgba(14,165,233,.4)" }} />
               <div className="grid place-items-center w-[104px] h-[104px] rounded-[28px] relative z-10 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.4)]" style={{ background: "rgba(255,255,255,.16)", border: "1px solid rgba(255,255,255,.25)" }}><Icon name={il.ic} size={48} className="text-white" /></div>
               <div className="text-center relative z-10"><h3 className="m-0 mb-2 text-lg font-bold">{il.t}</h3><p className="m-0 text-[13px] leading-relaxed" style={{ color: "rgba(255,255,255,.82)" }}>{il.x}</p></div>
-              <div className="flex gap-1.5 relative z-10">{ILLUS.map((_, i) => <span key={i} className={cn("h-[7px] rounded-full transition-all", i === step ? "w-[22px] bg-white" : "w-[7px] bg-white/40")} />)}</div>
+              <div className="flex gap-1.5 relative z-10">{ILLUS.map((_, i) => <span key={i} className={cn("h-[7px] rounded-full transition-all", i === step ? "w-[22px] bg-card" : "w-[7px] bg-white/40")} />)}</div>
             </div>
           </div>
 
@@ -175,7 +175,7 @@ export default function OnboardingPage() {
           <div className="flex items-center justify-between p-[18px_34px] border-t border-line">
             <span className="text-[12.5px] text-ink-3">Step {step + 1} of 5</span>
             <div className="flex gap-2.5">
-              <button onClick={() => step > 0 && setStep((s) => s - 1)} disabled={step === 0} className="h-[42px] px-[18px] rounded-[11px] border border-slate-200 bg-white text-[13.5px] font-semibold flex items-center gap-2 disabled:opacity-45 disabled:cursor-not-allowed"><Icon name="ArrowLeft" size={16} />Back</button>
+              <button onClick={() => step > 0 && setStep((s) => s - 1)} disabled={step === 0} className="h-[42px] px-[18px] rounded-[11px] border border-line bg-card text-[13.5px] font-semibold flex items-center gap-2 disabled:opacity-45 disabled:cursor-not-allowed"><Icon name="ArrowLeft" size={16} />Back</button>
               <button onClick={next} className="h-[42px] px-[18px] rounded-[11px] text-white text-[13.5px] font-semibold flex items-center gap-2 shadow-[0_10px_22px_-10px_rgba(99,102,241,0.9)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}>
                 {step === 4 ? "Go to dashboard" : step === 3 ? "Finish setup" : "Continue"}<Icon name="ArrowRight" size={16} />
               </button>

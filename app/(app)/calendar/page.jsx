@@ -71,13 +71,13 @@ export default function CalendarPage() {
           </div>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <button onClick={today} className="h-[34px] px-3.5 rounded-[9px] border border-slate-200 bg-white text-[12.5px] font-semibold text-ink-2 shadow-card hover:text-brand-600">Today</button>
+          <button onClick={today} className="h-[34px] px-3.5 rounded-[9px] border border-line bg-card text-[12.5px] font-semibold text-ink-2 shadow-card hover:text-brand-600">Today</button>
           <div className="flex items-center gap-1.5">
-            <button onClick={() => step(-1)} className="grid place-items-center w-[34px] h-[34px] rounded-[9px] border border-slate-200 bg-white shadow-card"><Icon name="ChevronLeft" size={16} className="text-ink-2" /></button>
+            <button onClick={() => step(-1)} className="grid place-items-center w-[34px] h-[34px] rounded-[9px] border border-line bg-card shadow-card"><Icon name="ChevronLeft" size={16} className="text-ink-2" /></button>
             <span className="text-[15px] font-semibold min-w-[150px] text-center">{MONTHS[cur.m]} {cur.y}</span>
-            <button onClick={() => step(1)} className="grid place-items-center w-[34px] h-[34px] rounded-[9px] border border-slate-200 bg-white shadow-card"><Icon name="ChevronRight" size={16} className="text-ink-2" /></button>
+            <button onClick={() => step(1)} className="grid place-items-center w-[34px] h-[34px] rounded-[9px] border border-line bg-card shadow-card"><Icon name="ChevronRight" size={16} className="text-ink-2" /></button>
           </div>
-          <div className="flex bg-white border border-slate-200 rounded-[10px] p-[3px] shadow-card">
+          <div className="flex bg-card border border-line rounded-[10px] p-[3px] shadow-card">
             {["Day", "Week", "Month"].map((v) => (
               <span key={v} className={cn("px-3.5 py-[7px] rounded-[7px] text-[12.5px] font-medium cursor-pointer", v === "Month" ? "bg-brand-soft text-brand-600 font-semibold" : "text-ink-2")}>{v}</span>
             ))}
@@ -99,7 +99,7 @@ export default function CalendarPage() {
               const shown = evs.slice(0, 3);
               const extra = evs.length - shown.length;
               return (
-                <div key={i} onClick={() => setSel(id)} className={cn("border-r border-b border-line p-2 flex flex-col gap-1 overflow-hidden cursor-pointer transition-colors hover:bg-[#FBFCFE] [&:nth-child(7n)]:border-r-0", c.out && "bg-[#FBFCFE]", id === sel && "shadow-[inset_0_0_0_2px_var(--color-brand)]")}>
+                <div key={i} onClick={() => setSel(id)} className={cn("border-r border-b border-line p-2 flex flex-col gap-1 overflow-hidden cursor-pointer transition-colors hover:bg-bg-soft [&:nth-child(7n)]:border-r-0", c.out && "bg-bg-soft", id === sel && "shadow-[inset_0_0_0_2px_var(--color-brand)]")}>
                   <span className={cn("grid place-items-center w-6 h-6 rounded-full text-[12.5px] font-semibold flex-none", id === TODAY ? "bg-brand text-white" : c.out ? "text-ink-3 font-medium" : "text-ink-2")}>{c.d}</span>
                   {shown.map((e, j) => (
                     <span key={j} className={cn("flex items-center gap-1.5 text-[11px] font-semibold px-1.5 py-[3px] rounded-md truncate", CALS[e.cal].ev)}>
@@ -125,7 +125,7 @@ export default function CalendarPage() {
                 return (
                   <button key={i} onClick={() => setSel(id)} className={cn("relative text-xs text-center py-1.5 rounded-[7px]", c.out && "text-ink-3 opacity-50", id === TODAY ? "bg-brand text-white font-semibold" : id === sel ? "shadow-[inset_0_0_0_1.5px_var(--color-brand)] text-brand-600 font-semibold" : "text-ink-2 hover:bg-bg")}>
                     {c.d}
-                    {has && <span className={cn("absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full", id === TODAY ? "bg-white" : "bg-brand")} />}
+                    {has && <span className={cn("absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full", id === TODAY ? "bg-card" : "bg-brand")} />}
                   </button>
                 );
               })}

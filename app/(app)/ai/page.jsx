@@ -94,7 +94,7 @@ export default function AIPage() {
               <div className="flex items-center gap-[18px] mt-3.5 pt-[13px] border-t border-[#1E2742] flex-wrap">
                 <div className="flex items-center gap-2 border border-[#28324F] rounded-[9px] p-[7px_11px] text-[12.5px] font-medium cursor-pointer" style={{ background: "#11162A" }}><Icon name="Telescope" size={14} className="text-[#97A1BB]" />Deep Research<Icon name="ChevronDown" size={13} className="text-[#6B7593]" /></div>
                 {["Use project context", "Include GitHub data"].map((t) => (
-                  <div key={t} className="flex items-center gap-2.5 text-[12.5px] text-[#97A1BB]">{t}<span className="relative w-[38px] h-[22px] rounded-full" style={{ background: GRAD }}><span className="absolute top-0.5 left-[18px] w-[18px] h-[18px] rounded-full bg-white" /></span></div>
+                  <div key={t} className="flex items-center gap-2.5 text-[12.5px] text-[#97A1BB]">{t}<span className="relative w-[38px] h-[22px] rounded-full" style={{ background: GRAD }}><span className="absolute top-0.5 left-[18px] w-[18px] h-[18px] rounded-full bg-card" /></span></div>
                 ))}
               </div>
             </div>

@@ -92,15 +92,15 @@ export default function MessagesPage() {
           </div>
         </div>
         <div className="flex items-center gap-2.5">
-          <button className="grid place-items-center w-[38px] h-[38px] rounded-[10px] bg-white border border-slate-200 shadow-card"><Icon name="PenLine" size={17} className="text-ink-2" /></button>
-          <button className="grid place-items-center w-[38px] h-[38px] rounded-[10px] bg-white border border-slate-200 shadow-card"><Icon name="SlidersHorizontal" size={17} className="text-ink-2" /></button>
+          <button className="grid place-items-center w-[38px] h-[38px] rounded-[10px] bg-card border border-line shadow-card"><Icon name="PenLine" size={17} className="text-ink-2" /></button>
+          <button className="grid place-items-center w-[38px] h-[38px] rounded-[10px] bg-card border border-line shadow-card"><Icon name="SlidersHorizontal" size={17} className="text-ink-2" /></button>
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 flex bg-white border border-line rounded-card shadow-card overflow-hidden">
+      <div className="flex-1 min-h-0 flex bg-card border border-line rounded-card shadow-card overflow-hidden">
         {/* conversation list */}
         <div className="w-[288px] flex-none border-r border-line flex-col min-h-0 hidden sm:flex">
-          <div className="p-[14px_14px_10px]"><div className="flex items-center gap-2 bg-bg border border-slate-200 rounded-[10px] px-[11px] py-2"><Icon name="Search" size={15} className="text-ink-3" /><input placeholder="Search messages..." className="bg-transparent outline-none text-[13px] flex-1 min-w-0" /></div></div>
+          <div className="p-[14px_14px_10px]"><div className="flex items-center gap-2 bg-bg border border-line rounded-[10px] px-[11px] py-2"><Icon name="Search" size={15} className="text-ink-3" /><input placeholder="Search messages..." className="bg-transparent outline-none text-[13px] flex-1 min-w-0" /></div></div>
           <div className="flex gap-1 px-3.5 pb-2">
             {["All", "Unread", "Channels", "DMs"].map((t) => (
               <button key={t} onClick={() => setTab(t)} className={cn("text-xs font-medium px-3 py-1.5 rounded-lg", tab === t ? "bg-brand-soft text-brand-600 font-semibold" : "text-ink-2")}>{t}</button>
@@ -146,7 +146,7 @@ export default function MessagesPage() {
                   <div className={cn("flex flex-col gap-[3px] max-w-[64%]", me && "items-end")}>
                     {!me && !m.cont && <span className="text-[11.5px] font-semibold text-ink-2 mb-0.5 px-1">{m.who}</span>}
                     {m.attach ? (
-                      <div className="flex items-center gap-2.5 p-[9px_12px] rounded-xl bg-white border border-line w-fit"><span className="grid place-items-center w-8 h-8 rounded-lg bg-brand-soft flex-none"><Icon name="FileText" size={16} className="text-brand" /></span><div><b className="block text-[12.5px] font-semibold">{m.attach.name}</b><span className="text-[11px] text-ink-3">{m.attach.meta}</span></div></div>
+                      <div className="flex items-center gap-2.5 p-[9px_12px] rounded-xl bg-card border border-line w-fit"><span className="grid place-items-center w-8 h-8 rounded-lg bg-brand-soft flex-none"><Icon name="FileText" size={16} className="text-brand" /></span><div><b className="block text-[12.5px] font-semibold">{m.attach.name}</b><span className="text-[11px] text-ink-3">{m.attach.meta}</span></div></div>
                     ) : (
                       <div className={cn("text-[13.5px] leading-relaxed px-3 py-2.5 rounded-[14px] w-fit border", me ? "bg-brand text-white border-transparent rounded-br-[5px]" : "bg-bg text-ink border-line rounded-bl-[5px]")}>{m.t}</div>
                     )}
@@ -158,10 +158,10 @@ export default function MessagesPage() {
           </div>
 
           <div className="flex-none border-t border-line p-[12px_16px_14px]">
-            <div className="flex items-end gap-2.5 bg-bg border border-slate-200 rounded-[14px] p-[8px_10px_8px_14px] focus-within:border-brand focus-within:bg-white focus-within:shadow-[0_0_0_3px_var(--color-brand-soft)]">
-              <button className="grid place-items-center w-[34px] h-[34px] rounded-[9px] text-ink-3 hover:bg-white"><Icon name="Paperclip" size={18} /></button>
+            <div className="flex items-end gap-2.5 bg-bg border border-line rounded-[14px] p-[8px_10px_8px_14px] focus-within:border-brand focus-within:bg-card focus-within:shadow-[0_0_0_3px_var(--color-brand-soft)]">
+              <button className="grid place-items-center w-[34px] h-[34px] rounded-[9px] text-ink-3 hover:bg-card"><Icon name="Paperclip" size={18} /></button>
               <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder={`Message ${c.type === "channel" ? "# " + c.name : c.name}`} className="flex-1 bg-transparent outline-none text-[13.5px] py-1.5 min-w-0" />
-              <button className="grid place-items-center w-[34px] h-[34px] rounded-[9px] text-ink-3 hover:bg-white"><Icon name="Smile" size={18} /></button>
+              <button className="grid place-items-center w-[34px] h-[34px] rounded-[9px] text-ink-3 hover:bg-card"><Icon name="Smile" size={18} /></button>
               <button onClick={send} className="grid place-items-center w-[38px] h-[38px] rounded-[11px] flex-none shadow-[0_8px_18px_-8px_rgba(99,102,241,0.8)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name="SendHorizontal" size={18} className="text-white" /></button>
             </div>
           </div>

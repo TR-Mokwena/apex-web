@@ -32,13 +32,13 @@ export default function ProjectsDirectory() {
 
       {/* filters */}
       <div className="flex items-center gap-3 flex-wrap mb-4">
-        <div className="flex gap-1.5 bg-white border border-slate-200 rounded-[11px] p-1 shadow-card overflow-x-auto max-w-full">
+        <div className="flex gap-1.5 bg-card border border-line rounded-[11px] p-1 shadow-card overflow-x-auto max-w-full">
           {FILTERS.map((f) => (
             <button key={f} onClick={() => setFilter(f)} className={cn("px-3 py-1.5 rounded-lg text-[12.5px] font-medium whitespace-nowrap transition-colors", filter === f ? "bg-brand-soft text-brand-600 font-semibold" : "text-ink-2 hover:text-ink")}>{f}</button>
           ))}
         </div>
         <div className="flex-1" />
-        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-field px-3 py-2.5 w-full sm:w-[240px] shadow-card">
+        <div className="flex items-center gap-2 bg-card border border-line rounded-field px-3 py-2.5 w-full sm:w-[240px] shadow-card">
           <Icon name="Search" size={15} className="text-ink-3" />
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search projects..." className="bg-transparent outline-none text-[13px] flex-1 min-w-0" />
         </div>

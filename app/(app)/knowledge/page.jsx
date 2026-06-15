@@ -55,7 +55,7 @@ export default function KnowledgePage() {
             {CATS.map((c) => (
               <button key={c.label} onClick={() => setCat(c.label)} className={cn("flex items-center gap-3 px-2.5 py-2 rounded-[10px] text-[13px] font-medium text-left transition-colors", cat === c.label ? "bg-brand-soft text-brand-600 font-semibold" : "text-ink-2 hover:bg-bg")}>
                 <Icon name={c.icon} size={16} className={cat === c.label ? "text-brand" : "text-ink-3"} />{c.label}
-                <span className={cn("ml-auto text-[11px] font-semibold rounded-[7px] px-1.5", cat === c.label ? "bg-white text-brand-600" : "bg-bg text-ink-3")}>{c.ct}</span>
+                <span className={cn("ml-auto text-[11px] font-semibold rounded-[7px] px-1.5", cat === c.label ? "bg-card text-brand-600" : "bg-bg text-ink-3")}>{c.ct}</span>
               </button>
             ))}
           </div>
@@ -64,8 +64,8 @@ export default function KnowledgePage() {
         {/* doc list */}
         <div className="flex-1 min-w-0 card !shadow-card overflow-hidden">
           <div className="flex items-center gap-3 p-[16px_18px] border-b border-line flex-wrap">
-            <div className="flex-1 flex items-center gap-2.5 bg-bg border border-slate-200 rounded-[10px] px-3 py-2.5 min-w-[180px]"><Icon name="Search" size={16} className="text-ink-3" /><input placeholder="Search knowledge..." className="flex-1 bg-transparent outline-none text-[13px]" /><span className="text-[11px] text-ink-3 border border-slate-200 rounded-[5px] px-1.5">⌘K</span></div>
-            <button className="grid place-items-center w-[38px] h-[38px] rounded-[10px] border border-slate-200 bg-white"><Icon name="SlidersHorizontal" size={16} className="text-ink-2" /></button>
+            <div className="flex-1 flex items-center gap-2.5 bg-bg border border-line rounded-[10px] px-3 py-2.5 min-w-[180px]"><Icon name="Search" size={16} className="text-ink-3" /><input placeholder="Search knowledge..." className="flex-1 bg-transparent outline-none text-[13px]" /><span className="text-[11px] text-ink-3 border border-line rounded-[5px] px-1.5">⌘K</span></div>
+            <button className="grid place-items-center w-[38px] h-[38px] rounded-[10px] border border-line bg-card"><Icon name="SlidersHorizontal" size={16} className="text-ink-2" /></button>
             <button className="flex items-center gap-1.5 h-[38px] px-[15px] rounded-[10px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_rgba(99,102,241,0.8)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name="Plus" size={15} />New</button>
           </div>
           <div className="p-[18px]">

@@ -2,8 +2,8 @@ import { cn } from "@/lib/cn";
 
 const VARIANT = {
   primary: "bg-brand text-white border-transparent hover:bg-brand-600 shadow-[0_8px_18px_-8px_rgba(99,102,241,0.9)]",
-  secondary: "bg-white text-ink border-line hover:border-[#C7D2FE] shadow-card",
-  ghost: "bg-transparent text-ink-2 border-transparent hover:bg-slate-100",
+  secondary: "bg-card text-ink border-line hover:border-[#C7D2FE] shadow-card",
+  ghost: "bg-transparent text-ink-2 border-transparent hover:bg-bg-soft",
 };
 const SIZE = {
   sm: "h-8 px-3 text-[12.5px]",

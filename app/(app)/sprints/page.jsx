@@ -112,7 +112,7 @@ export default function SprintsPage() {
         <Card title="All Sprints" action={<span className="text-[12.5px] font-medium text-brand cursor-pointer">View archive →</span>}>
           <div className="-mx-[18px] -mb-[18px]">
             {SPRINTS.map((s) => (
-              <div key={s.n} className="flex items-center gap-3.5 px-[18px] py-3 border-b border-line last:border-b-0 cursor-pointer hover:bg-[#FBFCFE] transition-colors">
+              <div key={s.n} className="flex items-center gap-3.5 px-[18px] py-3 border-b border-line last:border-b-0 cursor-pointer hover:bg-bg-soft transition-colors">
                 <span className={cn("grid place-items-center w-9 h-9 rounded-[10px] flex-none", s.ib)}><Icon name={s.ic} size={17} /></span>
                 <div className="flex-1 min-w-0"><b className="block text-[13.5px] font-semibold">{s.n}</b><span className="text-[11.5px] text-ink-3">{s.d}</span></div>
                 <div className="hidden sm:block w-[120px] flex-none"><div className="h-1.5 bg-bg rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width: `${s.pct}%`, background: s.fcol }} /></div></div>

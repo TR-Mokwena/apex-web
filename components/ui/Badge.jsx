@@ -8,7 +8,7 @@ const PILL_TONE = {
   amber: "bg-amber-50 text-amber-600",
   red: "bg-red-50 text-red-500",
   violet: "bg-violet-50 text-violet-600",
-  slate: "bg-slate-100 text-slate-500",
+  slate: "bg-bg-soft text-ink-2",
 };
 export function Pill({ tone = "slate", children, className }) {
   return (

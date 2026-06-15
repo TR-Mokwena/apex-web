@@ -55,9 +55,9 @@ const GROUPS = [
 function TaskRow({ task, onToggle, dragging, dragProps }) {
   const done = task.done;
   return (
-    <div {...dragProps} className={cn("group flex items-center gap-2 px-[18px] py-3 border-b border-line last:border-b-0 hover:bg-[#FBFCFE] transition-[opacity,background] cursor-grab active:cursor-grabbing", dragging && "opacity-40", done && "[&_.tt]:line-through [&_.tt]:text-ink-3")}>
+    <div {...dragProps} className={cn("group flex items-center gap-2 px-[18px] py-3 border-b border-line last:border-b-0 hover:bg-bg-soft transition-[opacity,background] cursor-grab active:cursor-grabbing", dragging && "opacity-40", done && "[&_.tt]:line-through [&_.tt]:text-ink-3")}>
       <Icon name="GripVertical" size={14} className="text-ink-3 opacity-0 group-hover:opacity-100 transition-opacity flex-none -ml-1.5" />
-      <button onClick={(e) => { e.stopPropagation(); onToggle(); }} className={cn("grid place-items-center w-[18px] h-[18px] rounded-[5px] border-[1.5px] flex-none", done ? "bg-emerald-500 border-emerald-500" : "border-slate-300")}>
+      <button onClick={(e) => { e.stopPropagation(); onToggle(); }} className={cn("grid place-items-center w-[18px] h-[18px] rounded-[5px] border-[1.5px] flex-none", done ? "bg-emerald-500 border-emerald-500" : "border-line")}>
         <Icon name="Check" size={11} strokeWidth={3} className={cn("text-white", done ? "opacity-100" : "opacity-0")} />
       </button>
       <span className="w-[3px] h-[18px] rounded-[2px] flex-none" style={{ background: PRI_COLOR[task.pri] }} title={task.pri} />
@@ -136,13 +136,13 @@ export default function TasksPage() {
       </div>
 
       <div className="flex items-center gap-2.5 flex-wrap mb-3.5">
-        <div className="flex gap-1.5 bg-white border border-slate-200 rounded-[11px] p-1 shadow-card">
+        <div className="flex gap-1.5 bg-card border border-line rounded-[11px] p-1 shadow-card">
           {["All", "My Tasks", "Assigned by me", "Recently updated"].map((c) => (
             <button key={c} onClick={() => setFilter(c)} className={cn("px-3 py-1.5 rounded-lg text-[12.5px] font-medium transition-colors", filter === c ? "bg-brand-soft text-brand-600 font-semibold" : "text-ink-2 hover:text-ink")}>{c}</button>
           ))}
         </div>
-        <button className="flex items-center gap-1.5 h-[38px] px-3 rounded-[10px] bg-white border border-slate-200 text-[12.5px] font-medium text-ink-2 shadow-card"><Icon name="SlidersHorizontal" size={14} className="text-ink-3" />Filter</button>
-        <button className="flex items-center gap-1.5 h-[38px] px-3 rounded-[10px] bg-white border border-slate-200 text-[12.5px] font-medium text-ink-2 shadow-card"><Icon name="Layers" size={14} className="text-ink-3" />Group: Status<Icon name="ChevronDown" size={13} className="text-ink-3" /></button>
+        <button className="flex items-center gap-1.5 h-[38px] px-3 rounded-[10px] bg-card border border-line text-[12.5px] font-medium text-ink-2 shadow-card"><Icon name="SlidersHorizontal" size={14} className="text-ink-3" />Filter</button>
+        <button className="flex items-center gap-1.5 h-[38px] px-3 rounded-[10px] bg-card border border-line text-[12.5px] font-medium text-ink-2 shadow-card"><Icon name="Layers" size={14} className="text-ink-3" />Group: Status<Icon name="ChevronDown" size={13} className="text-ink-3" /></button>
       </div>
 
       <div>

@@ -67,13 +67,13 @@ export default function NotificationsPage() {
           <div className="flex items-center gap-1 p-2 border-b border-line overflow-x-auto">
             {TABS.map(([id, label, ct]) => (
               <button key={id} onClick={() => setTab(id)} className={cn("flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] text-[13px] font-medium transition-colors whitespace-nowrap", tab === id ? "bg-brand-soft text-brand-600 font-semibold" : "text-ink-2 hover:bg-bg")}>
-                {label}<span className={cn("text-[11px] font-semibold rounded-full px-1.5", tab === id ? "bg-brand text-white" : "bg-white border border-slate-200 text-ink-3")}>{ct}</span>
+                {label}<span className={cn("text-[11px] font-semibold rounded-full px-1.5", tab === id ? "bg-brand text-white" : "bg-card border border-line text-ink-3")}>{ct}</span>
               </button>
             ))}
           </div>
           <div>
             {data.map((n, i) => (
-              <div key={i} className={cn("relative flex items-start gap-3 px-[18px] py-[15px] border-b border-line last:border-b-0 cursor-pointer transition-colors hover:bg-[#FBFCFE]", n.unread && "bg-[#FAFBFF] before:content-[''] before:absolute before:left-[7px] before:top-1/2 before:-translate-y-1/2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand")}>
+              <div key={i} className={cn("relative flex items-start gap-3 px-[18px] py-[15px] border-b border-line last:border-b-0 cursor-pointer transition-colors hover:bg-bg-soft", n.unread && "bg-bg-soft before:content-[''] before:absolute before:left-[7px] before:top-1/2 before:-translate-y-1/2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand")}>
                 <span className="grid place-items-center w-[38px] h-[38px] rounded-[11px] flex-none" style={{ background: n.ib }}><Icon name={n.ic} size={18} style={{ color: n.icol }} /></span>
                 <div className="flex-1 min-w-0">
                   <div className="text-[13.5px] font-semibold text-ink leading-[1.4]" dangerouslySetInnerHTML={{ __html: n.tt }} />

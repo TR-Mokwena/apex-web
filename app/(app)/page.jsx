@@ -67,7 +67,7 @@ const PRIORITY = { high: ["text-red-500", "bg-red-500", "High"], medium: ["text-
 function PeriodSelect({ value, options, onChange }) {
   return (
     <Dropdown align="right" width={150} trigger={({ toggle }) => (
-      <button onClick={toggle} className="flex items-center gap-1.5 border border-slate-200 rounded-[9px] px-2.5 py-1.5 text-xs font-medium text-ink-2 hover:border-[#C7D2FE]">{value}<Icon name="ChevronDown" size={13} className="text-ink-3" /></button>
+      <button onClick={toggle} className="flex items-center gap-1.5 border border-line rounded-[9px] px-2.5 py-1.5 text-xs font-medium text-ink-2 hover:border-[#C7D2FE]">{value}<Icon name="ChevronDown" size={13} className="text-ink-3" /></button>
     )}>
       {options.map((o) => <MenuItem key={o} onClick={() => onChange(o)} trailing={o === value ? <Icon name="Check" size={14} className="text-brand" /> : null}>{o}</MenuItem>)}
     </Dropdown>
@@ -77,17 +77,17 @@ function PeriodSelect({ value, options, onChange }) {
 function TaskItem({ task, done, onToggle }) {
   const [tone, dot, label] = PRIORITY[task.priority];
   return (
-    <Link href="/tasks" className="flex items-center gap-3 py-[11px] border-t border-[#F1F3F8] first:border-t-0 -mx-2 px-2 rounded-[9px] hover:bg-[#FBFCFE] transition-colors">
+    <Link href="/tasks" className="flex items-center gap-3 py-[11px] border-t border-line first:border-t-0 -mx-2 px-2 rounded-[9px] hover:bg-bg-soft transition-colors">
       <span
         role="checkbox"
         aria-checked={done}
         onClick={(e) => { e.preventDefault(); onToggle(); }}
-        className={`grid place-items-center w-[18px] h-[18px] rounded-[5px] border-[1.5px] flex-none cursor-pointer transition-colors ${done ? "bg-emerald-500 border-emerald-500" : "border-slate-300"}`}
+        className={`grid place-items-center w-[18px] h-[18px] rounded-[5px] border-[1.5px] flex-none cursor-pointer transition-colors ${done ? "bg-emerald-500 border-emerald-500" : "border-line"}`}
       >
         <Icon name="Check" size={11} strokeWidth={3.2} className={done ? "opacity-100" : "opacity-0"} />
       </span>
       <span className="flex-1 min-w-0">
-        <b className={`block text-[13px] font-semibold ${done ? "text-ink-3 line-through" : "text-slate-800"}`}>{task.title}</b>
+        <b className={`block text-[13px] font-semibold ${done ? "text-ink-3 line-through" : "text-ink"}`}>{task.title}</b>
         <span className="text-[11.5px] text-ink-3">{task.project}</span>
       </span>
       <span className={`text-[11px] font-semibold rounded-[7px] px-2.5 py-[3px] whitespace-nowrap ${PILL_TONE[task.statusTone]}`}>{task.status}</span>
@@ -119,7 +119,7 @@ export default function DashboardPage() {
         title={`${greeting}, TR! 👋`}
         subtitle="Here's what's happening across your organization today."
         actions={
-          <Link href="/calendar" className="flex items-center gap-2.5 card rounded-field px-3.5 py-2.5 text-[13px] font-medium text-slate-700 cursor-pointer">
+          <Link href="/calendar" className="flex items-center gap-2.5 card rounded-field px-3.5 py-2.5 text-[13px] font-medium text-ink cursor-pointer">
             <Icon name="Calendar" size={15} className="text-ink-3" />
             June 12 – June 18, 2026
             <Icon name="ChevronDown" size={15} className="text-ink-3" />
@@ -192,10 +192,10 @@ export default function DashboardPage() {
             <Card title="Top Contributors (This Week)">
               <div>
                 {CONTRIBUTORS.map((c, i) => (
-                  <Link key={c.name} href="/contributors" className="flex items-center gap-3 py-2 -mx-1.5 px-1.5 rounded-[9px] hover:bg-[#FBFCFE] transition-colors">
+                  <Link key={c.name} href="/contributors" className="flex items-center gap-3 py-2 -mx-1.5 px-1.5 rounded-[9px] hover:bg-bg-soft transition-colors">
                     <span className="text-xs text-ink-3 w-3 font-semibold">{i + 1}</span>
                     <Avatar name={c.name} size={30} color={c.color} />
-                    <span className="flex-1 text-[13.5px] font-medium text-slate-800">{c.name}</span>
+                    <span className="flex-1 text-[13.5px] font-medium text-ink">{c.name}</span>
                     <span className="font-semibold text-[13.5px] text-heading">{c.score}</span>
                     <Delta value={c.delta} className="w-12 justify-end !text-xs" />
                   </Link>
@@ -239,10 +239,10 @@ export default function DashboardPage() {
           <div className="rounded-card p-[18px] relative overflow-hidden bg-gradient-to-br from-[#F4F3FF] to-[#FBF6FF] border border-[#E9E5FF]">
             <div className="flex items-center justify-between mb-3.5">
               <div className="flex items-center gap-2.5">
-                <span className="grid place-items-center w-[30px] h-[30px] rounded-[9px] bg-white shadow-[0_2px_8px_rgba(124,58,237,0.18)]"><Icon name="Sparkles" size={17} className="text-violet-500" /></span>
+                <span className="grid place-items-center w-[30px] h-[30px] rounded-[9px] bg-card shadow-[0_2px_8px_rgba(124,58,237,0.18)]"><Icon name="Sparkles" size={17} className="text-violet-500" /></span>
                 <h3 className="m-0 text-[15px] font-semibold text-[#1E1B4B]">AI Insight</h3>
               </div>
-              <span className="text-[11px] font-semibold text-violet-500 bg-white border border-[#E9E5FF] rounded-full px-2.5 py-[3px]">New</span>
+              <span className="text-[11px] font-semibold text-violet-500 bg-card border border-[#E9E5FF] rounded-full px-2.5 py-[3px]">New</span>
             </div>
             <p className="text-[14.5px] leading-relaxed text-[#312E5A] font-medium m-0 mb-4 max-w-[74%]">
               Milestone <b className="text-[#1E1B4B] font-bold">“Apex v2.1”</b> has a <b className="text-[#1E1B4B] font-bold">72% chance</b> of being delayed based on current velocity and open dependencies.
@@ -256,10 +256,10 @@ export default function DashboardPage() {
 
           <Card title="Recent Notifications" action={<CardLink href="/notifications">View all</CardLink>}>
             {NOTIFICATIONS.map((n, i) => (
-              <Link key={i} href="/notifications" className="flex gap-3 py-[11px] border-t border-[#F1F3F8] first:border-t-0 -mx-2 px-2 rounded-[9px] hover:bg-[#FBFCFE] transition-colors">
+              <Link key={i} href="/notifications" className="flex gap-3 py-[11px] border-t border-line first:border-t-0 -mx-2 px-2 rounded-[9px] hover:bg-bg-soft transition-colors">
                 <span className={`grid place-items-center w-[34px] h-[34px] rounded-[10px] flex-none ${NOTI_TONE[n.tone]}`}><Icon name={n.icon} size={16} /></span>
                 <span className="flex-1 min-w-0">
-                  <b className="block text-[13px] font-semibold text-slate-800">{n.title}</b>
+                  <b className="block text-[13px] font-semibold text-ink">{n.title}</b>
                   <span className="text-xs text-ink-2">{n.sub}</span>
                 </span>
                 <span className="text-[11.5px] text-ink-3 whitespace-nowrap">{n.time}</span>

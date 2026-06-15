@@ -63,13 +63,13 @@ export default function IntegrationsPage() {
 
       {/* filters */}
       <div className="flex items-center gap-3 flex-wrap mb-4">
-        <div className="flex gap-1.5 bg-white border border-slate-200 rounded-[11px] p-1 shadow-card overflow-x-auto">
+        <div className="flex gap-1.5 bg-card border border-line rounded-[11px] p-1 shadow-card overflow-x-auto">
           {CATEGORIES.map((c) => (
             <button key={c} onClick={() => setCat(c)} className={cn("px-3 py-1.5 rounded-lg text-[12.5px] font-medium whitespace-nowrap transition-colors", cat === c ? "bg-brand-soft text-brand-600 font-semibold" : "text-ink-2 hover:text-ink")}>{c}</button>
           ))}
         </div>
         <div className="flex-1" />
-        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-field px-3 py-2.5 w-full sm:w-[240px] shadow-card">
+        <div className="flex items-center gap-2 bg-card border border-line rounded-field px-3 py-2.5 w-full sm:w-[240px] shadow-card">
           <Icon name="Search" size={15} className="text-ink-3" />
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search integrations..." className="bg-transparent outline-none text-[13px] flex-1 min-w-0" />
         </div>
@@ -100,7 +100,7 @@ export default function IntegrationsPage() {
                 >
                   {on ? <><Icon name="Check" size={15} />Connected</> : "Connect"}
                 </button>
-                <button className="grid place-items-center w-9 h-9 rounded-field border border-slate-200 bg-white text-ink-2 hover:border-[#C7D2FE]"><Icon name="Settings" size={15} /></button>
+                <button className="grid place-items-center w-9 h-9 rounded-field border border-line bg-card text-ink-2 hover:border-[#C7D2FE]"><Icon name="Settings" size={15} /></button>
               </div>
             </div>
           );

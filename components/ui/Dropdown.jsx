@@ -28,7 +28,7 @@ export function Dropdown({ trigger, children, align = "left", placement = "botto
         <div
           onClick={() => setOpen(false)}
           className={cn(
-            "absolute z-50 bg-white border border-line rounded-[12px] shadow-pop p-1.5",
+            "absolute z-50 bg-card border border-line rounded-[12px] shadow-pop p-1.5",
             placement === "top" ? "bottom-full mb-2" : "mt-2",
             align === "right" ? "right-0" : "left-0",
           )}

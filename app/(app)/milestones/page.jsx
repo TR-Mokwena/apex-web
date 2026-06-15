@@ -48,7 +48,7 @@ export default function MilestonesPage() {
       </div>
 
       <div className="flex items-center gap-3 flex-wrap mb-[18px]">
-        <div className="flex gap-1.5 bg-white border border-slate-200 rounded-[11px] p-1 shadow-card">
+        <div className="flex gap-1.5 bg-card border border-line rounded-[11px] p-1 shadow-card">
           {TABS.map(([label, ct]) => (
             <button key={label} onClick={() => setTab(label)} className={cn("flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12.5px] font-medium transition-colors", tab === label ? "bg-brand-soft text-brand-600 font-semibold" : "text-ink-2 hover:text-ink")}>
               {label}<span className={cn("text-[11px] font-semibold", tab === label ? "text-brand-600" : "text-ink-3")}>{ct}</span>
@@ -56,7 +56,7 @@ export default function MilestonesPage() {
           ))}
         </div>
         <div className="flex-1" />
-        <div className="flex bg-white border border-slate-200 rounded-[10px] p-[3px] shadow-card">
+        <div className="flex bg-card border border-line rounded-[10px] p-[3px] shadow-card">
           <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[7px] text-xs font-medium bg-brand-soft text-brand-600"><Icon name="GitCommitVertical" size={14} />Timeline</span>
           <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[7px] text-xs font-medium text-ink-2 cursor-pointer"><Icon name="ChartGantt" size={14} />Gantt</span>
         </div>
