@@ -36,8 +36,8 @@ const RAMP = [
   "color-mix(in srgb, var(--color-brand) 78%, black)",
 ];
 const HM_ROWS = ["11 PM", "9 PM", "6 PM", "12 PM", "9 AM"];
-const HM_COLS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "—"];
-const COL_W = [0.8, 0.95, 1, 0.9, 0.85, 0.4, 0.3, 0.15];
+const HM_COLS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const COL_W = [0.8, 0.95, 1, 0.9, 0.85, 0.4, 0.3];
 const ROW_W = [0.55, 0.85, 1, 0.9, 0.6];
 function heatValue(r, c) {
   const base = COL_W[c] * ROW_W[r];
@@ -57,9 +57,9 @@ function Heatmap() {
     <div ref={ref} className="relative">
       <div className="grid grid-cols-[42px_1fr] gap-2">
         <div />
-        <div className="grid grid-cols-8 text-[11px] text-ink-3 text-center mb-2">{HM_COLS.map((c) => <span key={c}>{c}</span>)}</div>
+        <div className="grid grid-cols-7 text-[11px] text-ink-3 text-center mb-2">{HM_COLS.map((c) => <span key={c}>{c}</span>)}</div>
         <div className="flex flex-col justify-between text-[11px] text-ink-3 py-0.5">{HM_ROWS.map((r) => <span key={r}>{r}</span>)}</div>
-        <div className="grid grid-cols-8 auto-rows-fr gap-[5px]">
+        <div className="grid grid-cols-7 auto-rows-fr gap-[5px]">
           {HM_ROWS.map((_, r) => HM_COLS.map((__, c) => (
             <div key={`${r}-${c}`} className="aspect-square rounded-[5px] cursor-pointer transition-shadow hover:ring-2 hover:ring-brand/50"
               style={{ background: RAMP[levelOf(heatValue(r, c))] }} onMouseMove={show(r, c)} onMouseLeave={() => setTip(null)} />
