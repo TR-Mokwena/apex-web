@@ -14,7 +14,7 @@ const OPS = [
 const KPIS = [
   { l: "Velocity", v: "34", d: "12% vs last sprint", dir: "up", values: [12, 16, 14, 22, 20, 29, 34], color: "var(--color-brand)" },
   { l: "Cycle Time", v: "2.6", unit: " days", d: "8% faster", dir: "down", good: true, values: [24, 20, 22, 16, 18, 12, 10], color: "#22C55E" },
-  { l: "Delivery Rate", v: "91", unit: "%", d: "6%", dir: "up", values: [18, 20, 19, 25, 24, 30, 33], color: "#6366F1" },
+  { l: "Delivery Rate", v: "91", unit: "%", d: "6%", dir: "up", values: [18, 20, 19, 25, 24, 30, 33], color: "var(--color-brand)" },
   { l: "Bug Rate", v: "3.2", unit: "%", d: "2%", dir: "down", good: true, values: [22, 20, 23, 18, 20, 14, 12], color: "#22C55E" },
 ];
 const RISK = [

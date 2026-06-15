@@ -197,7 +197,7 @@ export function ReportsView({ segments, columns }) {
         <div className="card p-[18px]">
           <h3 className="m-0 mb-3 text-[15px] font-semibold">Sprint Burndown</h3>
           <LineChart xLabels={["Jun 12", "Jun 15", "Jun 18", "Jun 21", "Jun 24"]} yMax={60} yTicks={[60, 45, 30, 15, 0]}
-            series={[{ values: [60, 48, 36, 24, 12, 0], color: "#94A3B8", dashed: true }, { values: [60, 54, 44, 33, 22, 10], color: "#6366F1" }]} />
+            series={[{ values: [60, 48, 36, 24, 12, 0], color: "#94A3B8", dashed: true }, { values: [60, 54, 44, 33, 22, 10], color: "var(--color-brand)" }]} />
         </div>
         <div className="card p-[18px]">
           <h3 className="m-0 mb-3 text-[15px] font-semibold">Task Distribution</h3>
