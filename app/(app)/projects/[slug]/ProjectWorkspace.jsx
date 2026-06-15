@@ -109,7 +109,7 @@ export default function ProjectWorkspace({ slug }) {
                         <div key={c.id}>
                           {over?.col === ci && over.index === j && <Indicator />}
                           <div draggable onDragStart={onDragStart(ci, c.id)} onDragEnd={onDragEnd} onDragOver={onCardOver(ci, j)}
-                            className={cn("bg-card border rounded-[11px] p-3 mb-2.5 cursor-grab active:cursor-grabbing shadow-card transition-[border-color,opacity] hover:border-[#D6DCEA]", c.sel ? "border-[1.5px] border-brand shadow-[0_0_0_3px_rgba(99,102,241,0.12)]" : "border-line", dragId === c.id && "opacity-40")}>
+                            className={cn("bg-card border rounded-[11px] p-3 mb-2.5 cursor-grab active:cursor-grabbing shadow-card transition-[border-color,opacity] hover:border-[#D6DCEA]", c.sel ? "border-[1.5px] border-brand shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-brand)_12%,transparent)]" : "border-line", dragId === c.id && "opacity-40")}>
                             <div className="flex items-center justify-between mb-2.5">
                               <span className="text-[11px] font-semibold text-ink-3 font-mono">{c.id}</span>
                               {c.done ? <span className="grid place-items-center w-5 h-5 rounded-full bg-emerald-500 text-white"><Icon name="Check" size={12} strokeWidth={3} /></span> : <Icon name="GripVertical" size={14} className="text-ink-3" />}

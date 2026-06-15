@@ -176,7 +176,7 @@ export default function OnboardingPage() {
             <span className="text-[12.5px] text-ink-3">Step {step + 1} of 5</span>
             <div className="flex gap-2.5">
               <button onClick={() => step > 0 && setStep((s) => s - 1)} disabled={step === 0} className="h-[42px] px-[18px] rounded-[11px] border border-line bg-card text-[13.5px] font-semibold flex items-center gap-2 disabled:opacity-45 disabled:cursor-not-allowed"><Icon name="ArrowLeft" size={16} />Back</button>
-              <button onClick={next} className="h-[42px] px-[18px] rounded-[11px] text-white text-[13.5px] font-semibold flex items-center gap-2 shadow-[0_10px_22px_-10px_rgba(99,102,241,0.9)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}>
+              <button onClick={next} className="h-[42px] px-[18px] rounded-[11px] text-white text-[13.5px] font-semibold flex items-center gap-2 shadow-[0_10px_22px_-10px_color-mix(in_srgb,var(--color-brand)_90%,transparent)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}>
                 {step === 4 ? "Go to dashboard" : step === 3 ? "Finish setup" : "Continue"}<Icon name="ArrowRight" size={16} />
               </button>
             </div>

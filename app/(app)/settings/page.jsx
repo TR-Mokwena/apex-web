@@ -84,7 +84,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-2.5">
               <div className="flex items-center gap-2 bg-bg border border-line rounded-[10px] px-3 py-2 w-[200px]"><Icon name="Search" size={15} className="text-ink-3" /><input placeholder="Search teams..." className="bg-transparent outline-none text-[13px] flex-1 min-w-0" /></div>
               <button className="grid place-items-center w-[38px] h-[38px] rounded-[10px] border border-line bg-card"><Icon name="SlidersHorizontal" size={16} className="text-ink-2" /></button>
-              <button className="flex items-center gap-1.5 h-[38px] px-[15px] rounded-[10px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_rgba(99,102,241,0.8)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name="Plus" size={15} />New Team</button>
+              <button className="flex items-center gap-1.5 h-[38px] px-[15px] rounded-[10px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name="Plus" size={15} />New Team</button>
             </div>
           </div>
 

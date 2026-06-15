@@ -188,7 +188,7 @@ export default function AutomationPage() {
         <button onClick={redo} disabled={!hist.current.future.length} title="Redo" className="grid place-items-center w-9 h-9 rounded-[9px] border border-line bg-card disabled:opacity-40"><Icon name="Redo2" size={15} className="text-ink-2" /></button>
         <button onClick={reset} title="Reset to default" className="grid place-items-center w-9 h-9 rounded-[9px] border border-line bg-card"><Icon name="RotateCcw" size={15} className="text-ink-2" /></button>
         <button onClick={save} className="flex items-center gap-1.5 h-9 px-3.5 rounded-[9px] border border-line bg-card text-[13px] font-medium"><Icon name={saved ? "Check" : "Save"} size={15} className={saved ? "text-emerald-500" : "text-ink-2"} />{saved ? "Saved" : "Save"}</button>
-        <button onClick={testRun} className="flex items-center gap-1.5 h-9 px-3.5 rounded-[9px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_rgba(99,102,241,0.8)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name={running ? "Loader" : "Play"} size={15} className={running ? "animate-spin" : ""} />Test Run</button>
+        <button onClick={testRun} className="flex items-center gap-1.5 h-9 px-3.5 rounded-[9px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}><Icon name={running ? "Loader" : "Play"} size={15} className={running ? "animate-spin" : ""} />Test Run</button>
       </div>
 
       <div className="flex-1 min-h-0 flex">
@@ -237,7 +237,7 @@ export default function AutomationPage() {
               return (
                 <div key={n.id} data-node onMouseDown={(e) => onNodeDown(e, n.id)}
                   className={cn("absolute bg-card border rounded-[14px] cursor-grab active:cursor-grabbing transition-shadow",
-                    isRun ? "border-[1.5px] border-emerald-500 shadow-[0_0_0_3px_rgba(34,197,94,0.18)]" : isSel ? "border-[1.5px] border-brand shadow-[0_0_0_3px_rgba(99,102,241,0.13),0_10px_26px_-12px_rgba(16,24,40,0.22)]" : "border-line shadow-[0_1px_2px_rgba(16,24,40,0.06),0_10px_26px_-12px_rgba(16,24,40,0.22)]")}
+                    isRun ? "border-[1.5px] border-emerald-500 shadow-[0_0_0_3px_rgba(34,197,94,0.18)]" : isSel ? "border-[1.5px] border-brand shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-brand)_13%,transparent),0_10px_26px_-12px_rgba(16,24,40,0.22)]" : "border-line shadow-[0_1px_2px_rgba(16,24,40,0.06),0_10px_26px_-12px_rgba(16,24,40,0.22)]")}
                   style={{ left: n.x, top: n.y, width: s.w }}>
                   <div className="flex items-center gap-2.5 p-[11px_12px]">
                     <span className="grid place-items-center w-[30px] h-[30px] rounded-lg flex-none" style={{ background: t.grad }}><Icon name={t.icon} size={16} className="text-white" /></span>

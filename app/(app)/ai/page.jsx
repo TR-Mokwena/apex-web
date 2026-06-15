@@ -89,7 +89,7 @@ export default function AIPage() {
               <div className="flex items-center gap-3">
                 <input placeholder="Ask anything..." className="flex-1 bg-transparent outline-none text-sm placeholder:text-[#6B7593]" />
                 <div className="grid place-items-center w-9 h-9 rounded-[9px] cursor-pointer"><Icon name="Mic" size={17} className="text-[#97A1BB]" /></div>
-                <div className="grid place-items-center w-10 h-10 rounded-[11px] cursor-pointer shadow-[0_8px_18px_-8px_rgba(99,102,241,.9)]" style={{ background: GRAD }}><Icon name="Send" size={18} className="text-white" /></div>
+                <div className="grid place-items-center w-10 h-10 rounded-[11px] cursor-pointer shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_90%,transparent)]" style={{ background: GRAD }}><Icon name="Send" size={18} className="text-white" /></div>
               </div>
               <div className="flex items-center gap-[18px] mt-3.5 pt-[13px] border-t border-[#1E2742] flex-wrap">
                 <div className="flex items-center gap-2 border border-[#28324F] rounded-[9px] p-[7px_11px] text-[12.5px] font-medium cursor-pointer" style={{ background: "#11162A" }}><Icon name="Telescope" size={14} className="text-[#97A1BB]" />Deep Research<Icon name="ChevronDown" size={13} className="text-[#6B7593]" /></div>

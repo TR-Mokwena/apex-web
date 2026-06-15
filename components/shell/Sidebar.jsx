@@ -60,7 +60,7 @@ export default function Sidebar({ open, collapsed, onClose, onToggleCollapse }) 
                 className={cn(
                   "flex items-center gap-3 px-3 py-[9px] rounded-[10px] text-[13.5px] font-medium transition-colors",
                   active
-                    ? "bg-brand text-white shadow-[0_6px_16px_-6px_rgba(99,102,241,0.8)]"
+                    ? "bg-brand text-white shadow-[0_6px_16px_-6px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]"
                     : "text-[#9AA3B8] hover:bg-white/5 hover:text-[#E8EBF2]",
                   collapsed && "md:justify-center md:gap-0 md:px-0 md:py-2.5",
                 )}
