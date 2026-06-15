@@ -66,7 +66,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen bg-bg" style={{ "--color-brand": DEFAULT_ACCENT }}>
       {/* illustration */}
       <div className="relative hidden lg:block lg:w-[44%] xl:w-[42%] m-3 rounded-[20px] overflow-hidden bg-[#0b1020]">
-        <Image src="/assets/Apex_Rocket_Illustration_Standalone.png" alt="Apex" fill priority className="object-cover" sizes="44vw" />
+        <Image src="/assets/ApexRocket.webp" alt="Apex" fill priority className="object-cover" sizes="44vw" />
       </div>
 
       {/* form */}

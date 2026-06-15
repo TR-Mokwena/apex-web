@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Icon from "@/components/Icon";
-import { Card, CardLink, Tabs, Delta, Sparkline } from "@/components/ui";
+import { Card, CardLink, Tabs, Delta, Sparkline, Dropdown, MenuItem } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
 const PAL = [
@@ -19,12 +19,43 @@ const PEOPLE = [
   { nm: "Priya Singh", cm: "742 commits", in: "PS" },
   { nm: "Naledi Kgasana", cm: "654 commits", in: "NK" },
 ];
-const STATS = [
-  { l: "Commits", v: "1,248", d: "12%" },
-  { l: "Pull Requests", v: "42", d: "18%" },
-  { l: "Reviews", v: "96", d: "6%" },
-  { l: "Lines of Code", v: "12.4k", d: "11%" },
-];
+const STAT_LABELS = ["Commits", "Pull Requests", "Reviews", "Lines of Code"];
+
+// Selectable reporting windows. Each drives the stat tiles, the heatmap intensity
+// (`heat`) and the trend chart (7 points + matching day labels).
+const RANGE_KEYS = ["This Week", "Last Week", "Last 2 Weeks", "This Month", "Last 30 Days"];
+const RANGES = {
+  "This Week": {
+    label: "Jun 12 – Jun 18, 2026", heat: 1,
+    stats: ["1,248", "42", "96", "12.4k"], deltas: ["12%", "18%", "6%", "11%"],
+    trend: [25, 38, 33, 46, 42, 62, 55],
+    days: ["Jun 12", "Jun 13", "Jun 14", "Jun 15", "Jun 16", "Jun 17", "Jun 18"],
+  },
+  "Last Week": {
+    label: "Jun 5 – Jun 11, 2026", heat: 0.82,
+    stats: ["1,032", "37", "88", "10.1k"], deltas: ["7%", "9%", "4%", "8%"],
+    trend: [30, 28, 35, 32, 40, 48, 44],
+    days: ["Jun 5", "Jun 6", "Jun 7", "Jun 8", "Jun 9", "Jun 10", "Jun 11"],
+  },
+  "Last 2 Weeks": {
+    label: "Jun 4 – Jun 18, 2026", heat: 0.92,
+    stats: ["2,280", "79", "184", "22.5k"], deltas: ["10%", "14%", "5%", "9%"],
+    trend: [40, 44, 38, 52, 48, 66, 60],
+    days: ["Jun 4", "Jun 6", "Jun 8", "Jun 11", "Jun 13", "Jun 15", "Jun 18"],
+  },
+  "This Month": {
+    label: "Jun 1 – Jun 30, 2026", heat: 1.18,
+    stats: ["4,690", "163", "372", "48.9k"], deltas: ["15%", "21%", "9%", "13%"],
+    trend: [180, 220, 260, 300, 350, 420, 460],
+    days: ["Jun 1", "Jun 6", "Jun 11", "Jun 16", "Jun 21", "Jun 26", "Jun 30"],
+  },
+  "Last 30 Days": {
+    label: "May 19 – Jun 18, 2026", heat: 1.12,
+    stats: ["4,512", "158", "361", "46.2k"], deltas: ["13%", "17%", "7%", "12%"],
+    trend: [150, 190, 230, 280, 330, 400, 440],
+    days: ["May 19", "May 24", "May 29", "Jun 3", "Jun 8", "Jun 13", "Jun 18"],
+  },
+};
 
 // accent-derived ramp — mixes the brand with the card colour so it adapts to light/dark
 const RAMP = [
@@ -39,19 +70,20 @@ const HM_ROWS = ["11 PM", "9 PM", "6 PM", "12 PM", "9 AM"];
 const HM_COLS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const COL_W = [0.8, 0.95, 1, 0.9, 0.85, 0.4, 0.3];
 const ROW_W = [0.55, 0.85, 1, 0.9, 0.6];
-function heatValue(r, c) {
+function heatValue(r, c, scale = 1) {
   const base = COL_W[c] * ROW_W[r];
   const noise = ((Math.sin(r * 3.1 + c * 1.7) + 1) / 2) * 0.35;
-  return Math.round(Math.max(0, Math.min(1, base * 0.72 + noise)) * 22);
+  return Math.round(Math.min(1, (base * 0.72 + noise) * scale) * 22);
 }
 const levelOf = (v) => (v === 0 ? 0 : v < 4 ? 1 : v < 8 ? 2 : v < 13 ? 3 : v < 18 ? 4 : 5);
 
-function Heatmap() {
+function Heatmap({ scale = 1 }) {
   const ref = useRef(null);
   const [tip, setTip] = useState(null);
+  const hv = (r, c) => heatValue(r, c, scale);
   const show = (r, c) => (e) => {
     const box = ref.current?.getBoundingClientRect();
-    if (box) setTip({ x: e.clientX - box.left, y: e.clientY - box.top, v: heatValue(r, c), label: `${HM_COLS[c]} · ${HM_ROWS[r]}` });
+    if (box) setTip({ x: e.clientX - box.left, y: e.clientY - box.top, v: hv(r, c), label: `${HM_COLS[c]} · ${HM_ROWS[r]}` });
   };
   return (
     <div ref={ref} className="relative">
@@ -62,7 +94,7 @@ function Heatmap() {
         <div className="grid grid-cols-7 auto-rows-fr gap-[5px]">
           {HM_ROWS.map((_, r) => HM_COLS.map((__, c) => (
             <div key={`${r}-${c}`} className="aspect-square rounded-[5px] cursor-pointer transition-shadow hover:ring-2 hover:ring-brand/50"
-              style={{ background: RAMP[levelOf(heatValue(r, c))] }} onMouseMove={show(r, c)} onMouseLeave={() => setTip(null)} />
+              style={{ background: RAMP[levelOf(hv(r, c))] }} onMouseMove={show(r, c)} onMouseLeave={() => setTip(null)} />
           )))}
         </div>
       </div>
@@ -80,6 +112,8 @@ function Heatmap() {
 
 export default function ContributorsPage() {
   const [sel, setSel] = useState(0);
+  const [range, setRange] = useState("This Week");
+  const R = RANGES[range];
   return (
     <>
       <div className="flex items-start justify-between gap-6 mb-[18px] flex-wrap">
@@ -94,7 +128,18 @@ export default function ContributorsPage() {
 
       <div className="flex items-center justify-between gap-4 flex-wrap mb-[18px]">
         <Tabs items={["Overview", "Commits", "Pull Requests", "Reviews", "Activity"]} value="Overview" className="!border-0" />
-        <button className="inline-flex items-center gap-2.5 text-[13px] font-medium text-ink-2"><Icon name="Calendar" size={15} className="text-ink-3" />June 12 – June 18, 2026<Icon name="ChevronDown" size={15} className="text-ink-3" /></button>
+        <Dropdown align="right" width={172} trigger={({ toggle, open }) => (
+          <button onClick={toggle} className="inline-flex items-center gap-2.5 text-[13px] font-medium text-ink-2 hover:text-ink">
+            <Icon name="Calendar" size={15} className="text-ink-3" />{R.label}
+            <Icon name="ChevronDown" size={15} className={cn("text-ink-3 transition-transform", open && "rotate-180")} />
+          </button>
+        )}>
+          {RANGE_KEYS.map((k) => (
+            <MenuItem key={k} onClick={() => setRange(k)} trailing={k === range ? <Icon name="Check" size={14} className="text-brand" /> : null}>
+              <span className="flex flex-col"><span className="font-medium">{k}</span><span className="text-[11px] text-ink-3">{RANGES[k].label}</span></span>
+            </MenuItem>
+          ))}
+        </Dropdown>
       </div>
 
       <div className="flex gap-[18px] items-start flex-col lg:flex-row">
@@ -116,11 +161,11 @@ export default function ContributorsPage() {
         <div className="flex-1 min-w-0 flex flex-col gap-[18px]">
           <Card title="Contribution Overview" action={<CardLink>View detailed breakdown</CardLink>}>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {STATS.map((s) => (
-                <div key={s.l} className="border border-line rounded-[13px] p-[16px_18px]">
-                  <div className="text-[12.5px] text-ink-2 font-medium">{s.l}</div>
-                  <div className="text-[28px] font-bold tracking-[-0.02em] leading-[1.1] mt-2">{s.v}</div>
-                  <Delta value={s.d} className="mt-1.5 !text-xs" />
+              {STAT_LABELS.map((l, i) => (
+                <div key={l} className="border border-line rounded-[13px] p-[16px_18px]">
+                  <div className="text-[12.5px] text-ink-2 font-medium">{l}</div>
+                  <div className="text-[28px] font-bold tracking-[-0.02em] leading-[1.1] mt-2">{R.stats[i]}</div>
+                  <Delta value={R.deltas[i]} className="mt-1.5 !text-xs" />
                 </div>
               ))}
             </div>
@@ -128,13 +173,13 @@ export default function ContributorsPage() {
 
           <div className="grid md:grid-cols-2 gap-[18px]">
             <Card title="Activity Heatmap">
-              <Heatmap />
+              <Heatmap scale={R.heat} />
             </Card>
 
             <Card title="Contribution Trend" action={<span className="flex items-center gap-2 text-xs text-ink-2"><span className="w-4 border-t-2 border-brand" />Commits</span>}>
-              <Sparkline values={[25, 38, 33, 46, 42, 62, 55]} width={420} height={210} fill color="var(--color-brand)" />
+              <Sparkline values={R.trend} width={420} height={210} fill color="var(--color-brand)" />
               <div className="grid grid-cols-7 text-[11px] text-ink-3 text-center mt-1">
-                {["12", "13", "14", "15", "16", "17", "18"].map((d) => <span key={d}>Jun {d}</span>)}
+                {R.days.map((d) => <span key={d}>{d}</span>)}
               </div>
             </Card>
           </div>
