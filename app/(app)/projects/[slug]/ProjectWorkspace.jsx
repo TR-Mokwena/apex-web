@@ -240,16 +240,3 @@ function OverviewView({ project, total, segments, columns }) {
     </div>
   );
 }
-
-function Placeholder({ tab }) {
-  const ICON = { Timeline: "GanttChart", Gantt: "ChartGantt", Milestones: "Flag", Files: "Files", Dependencies: "Workflow", Reports: "ChartNoAxesColumn", Settings: "Settings" };
-  return (
-    <div className="card grid place-items-center py-20 text-center">
-      <div className="flex flex-col items-center gap-3 max-w-[400px]">
-        <span className="grid place-items-center w-14 h-14 rounded-2xl bg-brand-soft text-brand"><Icon name={ICON[tab] || "LayoutGrid"} size={26} /></span>
-        <h3 className="m-0 text-lg font-semibold">{tab}</h3>
-        <p className="m-0 text-[13.5px] text-ink-2 leading-relaxed">The <b>{tab}</b> view for this project is part of the roadmap. Board, List and Overview are fully interactive today.</p>
-      </div>
-    </div>
-  );
-}
