@@ -113,18 +113,18 @@ export default function BillingSettings() {
 
       {/* invoices */}
       <div className="card !shadow-card">
-        <div className="flex items-center justify-between p-[18px_20px] border-b border-line"><h3 className="m-0 text-[15px] font-semibold">Billing history</h3><button className="text-[12.5px] font-medium text-brand hover:text-brand-600">Download all</button></div>
+        <div className="flex items-center justify-between p-[18px_20px] border-b border-line"><h3 className="m-0 text-[15px] font-semibold">Billing history</h3><button onClick={() => generateStatementPdf(INVOICES)} className="text-[12.5px] font-medium text-brand hover:text-brand-600 inline-flex items-center gap-1.5"><Icon name="Download" size={13} />Download all</button></div>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse min-w-[560px]">
             <thead><tr>{["Date", "Description", "Amount", "Status", ""].map((h, i) => <th key={i} className={cn("text-left text-[11px] font-semibold uppercase tracking-wide text-ink-3 px-5 py-3 border-b border-line", i === 4 && "text-right")}>{h}</th>)}</tr></thead>
             <tbody>
-              {INVOICES.map((inv, i) => (
-                <tr key={i} className="hover:bg-bg-soft">
+              {INVOICES.map((inv) => (
+                <tr key={inv.no} className="hover:bg-bg-soft">
                   <td className="px-5 py-3 text-[13px] border-b border-line font-medium">{inv.date}</td>
-                  <td className="px-5 py-3 text-[13px] border-b border-line text-ink-2">{inv.desc}</td>
-                  <td className="px-5 py-3 text-[13px] border-b border-line tabular-nums">{inv.amount}</td>
+                  <td className="px-5 py-3 text-[13px] border-b border-line text-ink-2">{inv.plan} · {inv.seats} seats</td>
+                  <td className="px-5 py-3 text-[13px] border-b border-line tabular-nums">{fmtR(inv.total)}</td>
                   <td className="px-5 py-3 border-b border-line"><span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600"><span className="w-[7px] h-[7px] rounded-full bg-emerald-500" />{inv.status}</span></td>
-                  <td className="px-5 py-3 border-b border-line text-right"><button className="text-ink-3 hover:text-brand" title="Download"><Icon name="Download" size={16} /></button></td>
+                  <td className="px-5 py-3 border-b border-line text-right"><button onClick={() => generateInvoicePdf(inv)} className="text-ink-3 hover:text-brand" title="Download invoice"><Icon name="Download" size={16} /></button></td>
                 </tr>
               ))}
             </tbody>
