@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Icon from "@/components/Icon";
 import { Button, Tabs, Donut, LegendRow } from "@/components/ui";
 import { cn } from "@/lib/cn";
-import { getProject, BOARD, TAG_STYLE, PAL, INITIALS, STATUS_TONE } from "@/lib/projects";
+import { getProject, findProject, BOARD, TAG_STYLE, PAL, INITIALS, STATUS_TONE } from "@/lib/projects";
 import { TimelineView, GanttView, MilestonesView, FilesView, DependenciesView, ReportsView, SettingsView } from "./views";
 
 const TABS = ["Overview", "Board", "List", "Timeline", "Gantt", "Milestones", "Files", "Dependencies", "Reports", "Settings"];
@@ -18,15 +18,19 @@ function Tag({ tag }) {
 }
 
 export default function ProjectWorkspace({ slug }) {
-  const project = getProject(slug);
+  // known projects resolve on the server; user-created ones live in localStorage (client only)
+  const [project, setProject] = useState(() => getProject(slug) || null);
+  const [resolved, setResolved] = useState(false);
   const [tab, setTab] = useState("Board");
   const [columns, setColumns] = useState(() => BOARD.map((c) => ({ ...c, cards: c.cards.map((x) => ({ ...x })) })));
   const drag = useRef(null);
   const [over, setOver] = useState(null);
   const [dragId, setDragId] = useState(null);
 
+  useEffect(() => { if (!project) setProject(findProject(slug) || null); setResolved(true); /* eslint-disable-next-line */ }, [slug]);
+
   if (!project) {
-    return (
+    return resolved ? (
       <div className="card grid place-items-center py-20 text-center">
         <div className="flex flex-col items-center gap-3">
           <Icon name="FolderX" size={30} className="text-ink-3" />
@@ -34,7 +38,7 @@ export default function ProjectWorkspace({ slug }) {
           <Link href="/projects" className="text-[13px] font-medium text-brand">← Back to projects</Link>
         </div>
       </div>
-    );
+    ) : null;
   }
 
   /* ---- DnD ---- */
