@@ -103,7 +103,7 @@ export default function ContributorsPage() {
             </Card>
 
             <Card title="Contribution Trend" action={<span className="flex items-center gap-2 text-xs text-ink-2"><span className="w-4 border-t-2 border-brand" />Commits</span>}>
-              <Sparkline values={[25, 38, 33, 46, 42, 62, 55]} width={420} height={210} fill color="#6366F1" />
+              <Sparkline values={[25, 38, 33, 46, 42, 62, 55]} width={420} height={210} fill color="var(--color-brand)" />
               <div className="grid grid-cols-7 text-[11px] text-ink-3 text-center mt-1">
                 {["12", "13", "14", "15", "16", "17", "18"].map((d) => <span key={d}>Jun {d}</span>)}
               </div>

@@ -150,7 +150,7 @@ export default function DashboardPage() {
                 xLabels={["Jun 12", "Jun 14", "Jun 16", "Jun 18", "Jun 20", "Jun 22"]}
                 series={[
                   { values: [100, 80, 60, 40, 20, 0], color: "#94A3B8", dashed: true },
-                  { values: [100, 90, 76, 58, 40, 12], color: "#6366F1" },
+                  { values: [100, 90, 76, 58, 40, 12], color: "var(--color-brand)" },
                 ]}
               />
               <CardLink href="/sprints" className="mt-1.5">View all sprints</CardLink>

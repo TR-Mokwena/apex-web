@@ -38,7 +38,7 @@ function useTip() {
 }
 
 /* ─── Sparkline (line + optional area + end dot) ──────────────────────────── */
-export function Sparkline({ values = [], width = 120, height = 46, color = "#6366F1", fill = false, dot = true, label, className, style }) {
+export function Sparkline({ values = [], width = 120, height = 46, color = "var(--color-brand)", fill = false, dot = true, label, className, style }) {
   const { ref, tip, show, hide } = useTip();
   if (!values.length) return null;
   const pts = scale(values, width, height, 3);
@@ -113,8 +113,8 @@ export function BarPairs({ data = [], xLabels = [], max, width = 430, height = 1
           const ha = (a / m) * ih, hb = (b / m) * ih;
           return (
             <g key={i}>
-              <rect x={gx} y={top + ih - ha} width={barW} height={ha} rx="4" fill="#6366F1" className="cursor-pointer hover:fill-[#4F46E5]" onMouseMove={show(xLabels[i], a)} onMouseLeave={hide} />
-              <rect x={gx + barW + pairGap} y={top + ih - hb} width={barW} height={hb} rx="4" fill="#C7CCFB" className="cursor-pointer hover:fill-[#A5B0F5]" onMouseMove={show(xLabels[i], b)} onMouseLeave={hide} />
+              <rect x={gx} y={top + ih - ha} width={barW} height={ha} rx="4" fill="var(--color-brand)" className="cursor-pointer hover:opacity-85" onMouseMove={show(xLabels[i], a)} onMouseLeave={hide} />
+              <rect x={gx + barW + pairGap} y={top + ih - hb} width={barW} height={hb} rx="4" className="cursor-pointer hover:opacity-85" style={{ fill: "color-mix(in srgb, var(--color-brand) 32%, white)" }} onMouseMove={show(xLabels[i], b)} onMouseLeave={hide} />
               {xLabels[i] && <text x={gx + groupW / 2} y={height - 6} fill="#94A3B8" fontSize="11" textAnchor="middle">{xLabels[i]}</text>}
             </g>
           );
@@ -175,7 +175,7 @@ export function Gauge({ value = 0, color = "#22C55E", label, width = 170, height
 }
 
 /* ─── Ring (single circular progress) ─────────────────────────────────────── */
-export function Ring({ value = 0, size = 58, color = "#6366F1", track = "#EAE9FE", thickness = 6 }) {
+export function Ring({ value = 0, size = 58, color = "var(--color-brand)", track = "var(--color-brand-soft)", thickness = 6 }) {
   const r = 16.5, c = 2 * Math.PI * r;
   const on = (Math.max(0, Math.min(100, value)) / 100) * c;
   return (

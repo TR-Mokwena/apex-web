@@ -12,7 +12,7 @@ const OPS = [
   { l: "Team Members", v: "48", d: "0%", dir: "flat", icon: "Users", tone: "bg-violet-50 text-violet-500" },
 ];
 const KPIS = [
-  { l: "Velocity", v: "34", d: "12% vs last sprint", dir: "up", values: [12, 16, 14, 22, 20, 29, 34], color: "#6366F1" },
+  { l: "Velocity", v: "34", d: "12% vs last sprint", dir: "up", values: [12, 16, 14, 22, 20, 29, 34], color: "var(--color-brand)" },
   { l: "Cycle Time", v: "2.6", unit: " days", d: "8% faster", dir: "down", good: true, values: [24, 20, 22, 16, 18, 12, 10], color: "#22C55E" },
   { l: "Delivery Rate", v: "91", unit: "%", d: "6%", dir: "up", values: [18, 20, 19, 25, 24, 30, 33], color: "#6366F1" },
   { l: "Bug Rate", v: "3.2", unit: "%", d: "2%", dir: "down", good: true, values: [22, 20, 23, 18, 20, 14, 12], color: "#22C55E" },
@@ -93,7 +93,7 @@ export default function ReportsPage() {
             <span className="flex items-center gap-1.5"><span className="w-4 border-t-2 border-dashed border-[#A5B4FC]" />Previous</span>
           </div>
         }>
-          <Sparkline values={[12, 16, 14, 26, 22, 38, 42]} width={560} height={220} fill color="#6366F1" />
+          <Sparkline values={[12, 16, 14, 26, 22, 38, 42]} width={560} height={220} fill color="var(--color-brand)" />
           <div className="grid grid-cols-7 text-[11px] text-ink-3 text-center mt-1">
             {["May 20", "May 25", "May 30", "Jun 5", "Jun 10", "Jun 15", "Jun 18"].map((d) => <span key={d}>{d}</span>)}
           </div>
