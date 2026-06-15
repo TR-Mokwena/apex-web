@@ -3,6 +3,7 @@ export { PageHeader } from "./PageHeader";
 export { Tabs } from "./Tabs";
 export { Switch } from "./Switch";
 export { Dropdown, MenuItem, MenuLabel, MenuSep } from "./Dropdown";
+export { Modal, Field, TextInput, Select, Textarea } from "./Modal";
 export { Button } from "./Button";
 export { Pill, Priority, Delta } from "./Badge";
 export { Avatar } from "./Avatar";
