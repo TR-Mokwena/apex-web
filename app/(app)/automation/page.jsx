@@ -185,11 +185,12 @@ export default function AutomationPage() {
   return (
     <div className="-mx-4 md:-mx-7 -my-6 flex flex-col h-[calc(100vh-65px)]">
       {/* header */}
-      <div className="bg-card border-b border-line px-5 py-3.5 flex items-center gap-3.5 flex-none flex-wrap">
-        <span className="text-[12.5px] text-ink-3 font-medium">Workflow:</span>
-        <span className="text-base font-bold tracking-[-0.01em] flex items-center gap-1.5">Inactive Contributor Follow-up <Icon name="ChevronDown" size={15} className="text-ink-3" /></span>
+      <div className="bg-card border-b border-line px-3 sm:px-5 py-3 sm:py-3.5 flex items-center gap-2 sm:gap-3.5 flex-none flex-wrap">
+        <span className="hidden sm:inline text-[12.5px] text-ink-3 font-medium">Workflow:</span>
+        <span className="text-[15px] sm:text-base font-bold tracking-[-0.01em] flex items-center gap-1.5 min-w-0"><span className="truncate max-w-[150px] sm:max-w-none">Inactive Contributor Follow-up</span> <Icon name="ChevronDown" size={15} className="text-ink-3 flex-none" /></span>
         <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-[11.5px] font-semibold px-2.5 py-1 rounded-full"><span className="w-[7px] h-[7px] rounded-full bg-emerald-500" />Active</span>
         <div className="flex-1" />
+        <button onClick={() => setSheet("palette")} className="md:hidden flex items-center gap-1.5 h-9 px-3 rounded-[9px] border border-line bg-card text-[13px] font-medium"><Icon name="Plus" size={15} className="text-ink-2" />Add</button>
         <button onClick={undo} disabled={!hist.current.past.length} title="Undo" className="grid place-items-center w-9 h-9 rounded-[9px] border border-line bg-card disabled:opacity-40"><Icon name="Undo2" size={15} className="text-ink-2" /></button>
         <button onClick={redo} disabled={!hist.current.future.length} title="Redo" className="grid place-items-center w-9 h-9 rounded-[9px] border border-line bg-card disabled:opacity-40"><Icon name="Redo2" size={15} className="text-ink-2" /></button>
         <button onClick={reset} title="Reset to default" className="grid place-items-center w-9 h-9 rounded-[9px] border border-line bg-card"><Icon name="RotateCcw" size={15} className="text-ink-2" /></button>
