@@ -14,7 +14,7 @@ const ACCENT_SCRIPT = `try{var a=localStorage.getItem('apex-accent');if(a)docume
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${poppins.variable} ${plexMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${poppins.variable} ${plexMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: ACCENT_SCRIPT }} />
       </head>
