@@ -140,7 +140,7 @@ export default function DashboardPage() {
 
       <div className="flex flex-col xl:flex-row gap-3.5 items-start">
         {/* LEFT */}
-        <div className="flex-1 min-w-0 w-full flex flex-col gap-3.5">
+        <div className="order-2 xl:order-1 flex-1 min-w-0 w-full flex flex-col gap-3.5">
           <div className="grid md:grid-cols-2 gap-3.5">
             <Card title="Sprint Burndown" action={
               <div className="flex gap-3.5 text-xs text-ink-2">
@@ -237,7 +237,7 @@ export default function DashboardPage() {
         </div>
 
         {/* RIGHT RAIL */}
-        <div className="w-full xl:w-[372px] flex-none flex flex-col gap-3.5">
+        <div className="order-1 xl:order-2 w-full xl:w-[372px] flex-none flex flex-col gap-3.5">
           <div className="rounded-card p-[18px] relative overflow-hidden bg-gradient-to-br from-[#F4F3FF] to-[#FBF6FF] border border-[#E9E5FF]">
             <div className="flex items-center justify-between mb-3.5">
               <div className="flex items-center gap-2.5">
@@ -246,11 +246,11 @@ export default function DashboardPage() {
               </div>
               <span className="text-[11px] font-semibold text-violet-500 bg-card border border-[#E9E5FF] rounded-full px-2.5 py-[3px]">New</span>
             </div>
-            <p className="text-[14.5px] leading-relaxed text-[#312E5A] font-medium m-0 mb-4 max-w-[74%]">
+            <p className="text-[14.5px] leading-relaxed text-[#312E5A] font-medium m-0 mb-4 max-w-[86%] sm:max-w-[74%]">
               Milestone <b className="text-[#1E1B4B] font-bold">“Apex v2.1”</b> has a <b className="text-[#1E1B4B] font-bold">72% chance</b> of being delayed based on current velocity and open dependencies.
             </p>
             <Link href="/ai" className="inline-block bg-brand text-white rounded-[10px] px-4 py-2.5 text-[13px] font-semibold cursor-pointer shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_90%,transparent)] hover:-translate-y-px transition-transform">View insight</Link>
-            <svg className="absolute -right-8 top-8 w-[190px] h-[190px] opacity-85 pointer-events-none" viewBox="0 0 200 200" fill="none">
+            <svg className="absolute -right-8 top-8 w-[130px] h-[130px] opacity-50 sm:w-[190px] sm:h-[190px] sm:opacity-85 pointer-events-none" viewBox="0 0 200 200" fill="none">
               <path d="M100 30 L160 65 L160 135 L100 170 L40 135 L40 65 Z" stroke="#B7A6F5" strokeWidth="1.5" />
               <path d="M100 70 L130 88 L130 122 L100 140 L70 122 L70 88 Z" fill="#C9B8FA" opacity="0.5" />
             </svg>
