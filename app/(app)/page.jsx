@@ -7,14 +7,15 @@ import {
   PageHeader, Card, CardLink, Kpi, Avatar, Delta, Dropdown, MenuItem,
   LineChart, BarPairs, Donut, Gauge, Ring, Sparkline, LegendRow,
 } from "@/components/ui";
+import { useCountry, formatNumber } from "@/lib/locale";
 
 /* ---- demo data ---- */
 const CONTRIBUTORS = [
-  { name: "Kabelo M.", score: "1,248", delta: "18%", color: "#6366F1" },
-  { name: "Thabo N.", score: "980", delta: "11%", color: "#22C55E" },
-  { name: "Sipho D.", score: "872", delta: "9%", color: "#F59E0B" },
-  { name: "Priya S.", score: "742", delta: "7%", color: "#0EA5E9" },
-  { name: "Neo K.", score: "654", delta: "6%", color: "#8B5CF6" },
+  { name: "Kabelo M.", score: 1248, delta: "18%", color: "#6366F1" },
+  { name: "Thabo N.", score: 980, delta: "11%", color: "#22C55E" },
+  { name: "Sipho D.", score: 872, delta: "9%", color: "#F59E0B" },
+  { name: "Priya S.", score: 742, delta: "7%", color: "#0EA5E9" },
+  { name: "Neo K.", score: 654, delta: "6%", color: "#8B5CF6" },
 ];
 const NOTIFICATIONS = [
   { icon: "GitMerge", tone: "green", title: "Pull request merged", sub: "#4821 Fix authentication bug", time: "2m ago" },
@@ -100,6 +101,7 @@ function TaskItem({ task, done, onToggle }) {
 }
 
 export default function DashboardPage() {
+  const country = useCountry();
   const [greeting, setGreeting] = useState("Welcome back");
   const [prodPeriod, setProdPeriod] = useState("This Week");
   const [attPeriod, setAttPeriod] = useState("Today");
@@ -159,7 +161,7 @@ export default function DashboardPage() {
             <Card title="GitHub Activity (This Week)">
               <div className="flex items-end gap-2.5">
                 <div>
-                  <div className="text-[30px] font-bold text-heading leading-none">1,429</div>
+                  <div className="text-[30px] font-bold text-heading leading-none">{formatNumber(1429, country)}</div>
                   <div className="text-[12.5px] text-ink-2 mt-1">Events</div>
                 </div>
                 <Delta value="15%" className="ml-auto mb-0.5 !text-[12.5px] font-semibold" />
@@ -196,7 +198,7 @@ export default function DashboardPage() {
                     <span className="text-xs text-ink-3 w-3 font-semibold">{i + 1}</span>
                     <Avatar name={c.name} size={30} color={c.color} />
                     <span className="flex-1 text-[13.5px] font-medium text-ink">{c.name}</span>
-                    <span className="font-semibold text-[13.5px] text-heading">{c.score}</span>
+                    <span className="font-semibold text-[13.5px] text-heading">{formatNumber(c.score, country)}</span>
                     <Delta value={c.delta} className="w-12 justify-end !text-xs" />
                   </Link>
                 ))}
