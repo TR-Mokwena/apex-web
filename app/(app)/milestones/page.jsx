@@ -79,7 +79,7 @@ export default function MilestonesPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             </div>
           );
         })}
