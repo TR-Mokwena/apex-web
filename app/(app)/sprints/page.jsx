@@ -129,7 +129,7 @@ export default function SprintsPage() {
               <div key={d.l} className="flex-1 flex flex-col items-center gap-2">
                 <div className="flex-1 flex items-end w-full justify-center">
                   <div className="group relative w-4 rounded-t-[5px] cursor-pointer transition-[filter] hover:brightness-110" style={{ height: (d.v / MAX_V) * 120, background: d.partial ? "color-mix(in srgb, var(--color-brand) 55%, white)" : "var(--color-brand)" }}>
-                    <span className="pointer-events-none absolute left-1/2 -top-2 -translate-x-1/2 -translate-y-full px-2 py-1 rounded-lg bg-ink text-white text-[11px] font-semibold whitespace-nowrap shadow-pop opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="pointer-events-none absolute left-1/2 -top-2 -translate-x-1/2 -translate-y-full px-2 py-1 rounded-lg bg-[#1e293b] text-white text-[11px] font-semibold whitespace-nowrap shadow-pop opacity-0 group-hover:opacity-100 transition-opacity">
                       {d.v} pts{d.partial ? " · in progress" : ""}
                     </span>
                   </div>

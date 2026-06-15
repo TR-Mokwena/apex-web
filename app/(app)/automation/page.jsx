@@ -270,7 +270,7 @@ export default function AutomationPage() {
             {c && <span className="absolute border-[1.5px] border-brand rounded bg-brand/10" style={{ left: Math.max(0, (-view.tx / view.scale - b.x0) * ms + mox), top: Math.max(0, (-view.ty / view.scale - b.y0) * ms + moy), width: (c.clientWidth / view.scale) * ms, height: (c.clientHeight / view.scale) * ms }} />}
           </div>
 
-          {toast && <div data-ui className="absolute left-1/2 -translate-x-1/2 bottom-[18px] bg-ink text-white text-[12.5px] font-medium px-4 py-2 rounded-[10px] shadow-pop z-[9]">{toast}</div>}
+          {toast && <div data-ui className="absolute left-1/2 -translate-x-1/2 bottom-[18px] bg-[#1e293b] text-white text-[12.5px] font-medium px-4 py-2 rounded-[10px] shadow-pop z-[9]">{toast}</div>}
         </div>
 
         {/* inspector */}

@@ -17,7 +17,7 @@ function Tooltip({ tip }) {
   if (!tip) return null;
   return (
     <div
-      className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full px-2 py-1 rounded-lg bg-ink text-white text-[11px] font-semibold whitespace-nowrap shadow-pop"
+      className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full px-2 py-1 rounded-lg bg-[#1e293b] text-white text-[11px] font-semibold whitespace-nowrap shadow-pop"
       style={{ left: tip.x, top: tip.y - 8 }}
     >
       {tip.label != null && <span className="text-white/55 font-medium mr-1">{tip.label}</span>}

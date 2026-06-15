@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Icon from "@/components/Icon";
 import { Card, CardLink, Tabs, Delta, Sparkline } from "@/components/ui";
 import { cn } from "@/lib/cn";
@@ -26,15 +26,56 @@ const STATS = [
   { l: "Lines of Code", v: "12.4k", d: "11%" },
 ];
 
-const RAMP = ["#EEF0F5", "#DDE1FB", "#C7CEFB", "#9AA5F7", "#6366F1", "#4338CA"];
+// accent-derived ramp — mixes the brand with the card colour so it adapts to light/dark
+const RAMP = [
+  "color-mix(in srgb, var(--color-brand) 8%, var(--color-card))",
+  "color-mix(in srgb, var(--color-brand) 28%, var(--color-card))",
+  "color-mix(in srgb, var(--color-brand) 48%, var(--color-card))",
+  "color-mix(in srgb, var(--color-brand) 70%, var(--color-card))",
+  "var(--color-brand)",
+  "color-mix(in srgb, var(--color-brand) 78%, black)",
+];
 const HM_ROWS = ["11 PM", "9 PM", "6 PM", "12 PM", "9 AM"];
 const HM_COLS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "—"];
 const COL_W = [0.8, 0.95, 1, 0.9, 0.85, 0.4, 0.3, 0.15];
 const ROW_W = [0.55, 0.85, 1, 0.9, 0.6];
-function heatLevel(r, c) {
+function heatValue(r, c) {
   const base = COL_W[c] * ROW_W[r];
   const noise = ((Math.sin(r * 3.1 + c * 1.7) + 1) / 2) * 0.35;
-  return Math.max(0, Math.min(5, Math.round((base * 0.75 + noise) * 5)));
+  return Math.round(Math.max(0, Math.min(1, base * 0.72 + noise)) * 22);
+}
+const levelOf = (v) => (v === 0 ? 0 : v < 4 ? 1 : v < 8 ? 2 : v < 13 ? 3 : v < 18 ? 4 : 5);
+
+function Heatmap() {
+  const ref = useRef(null);
+  const [tip, setTip] = useState(null);
+  const show = (r, c) => (e) => {
+    const box = ref.current?.getBoundingClientRect();
+    if (box) setTip({ x: e.clientX - box.left, y: e.clientY - box.top, v: heatValue(r, c), label: `${HM_COLS[c]} · ${HM_ROWS[r]}` });
+  };
+  return (
+    <div ref={ref} className="relative">
+      <div className="grid grid-cols-[42px_1fr] gap-2">
+        <div />
+        <div className="grid grid-cols-8 text-[11px] text-ink-3 text-center mb-2">{HM_COLS.map((c) => <span key={c}>{c}</span>)}</div>
+        <div className="flex flex-col justify-between text-[11px] text-ink-3 py-0.5">{HM_ROWS.map((r) => <span key={r}>{r}</span>)}</div>
+        <div className="grid grid-cols-8 auto-rows-fr gap-[5px]">
+          {HM_ROWS.map((_, r) => HM_COLS.map((__, c) => (
+            <div key={`${r}-${c}`} className="aspect-square rounded-[5px] cursor-pointer transition-shadow hover:ring-2 hover:ring-brand/50"
+              style={{ background: RAMP[levelOf(heatValue(r, c))] }} onMouseMove={show(r, c)} onMouseLeave={() => setTip(null)} />
+          )))}
+        </div>
+      </div>
+      {tip && (
+        <div className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full px-2 py-1 rounded-lg bg-[#1e293b] text-white text-[11px] font-semibold whitespace-nowrap shadow-pop" style={{ left: tip.x, top: tip.y - 8 }}>
+          <span className="text-white/55 font-medium mr-1">{tip.label}</span>{tip.v} contributions
+        </div>
+      )}
+      <div className="flex items-center gap-1.5 justify-end mt-3.5 text-[11px] text-ink-3">
+        Less{RAMP.slice(0, 5).map((c, i) => <span key={i} className="w-3 h-3 rounded" style={{ background: c }} />)}More
+      </div>
+    </div>
+  );
 }
 
 export default function ContributorsPage() {
@@ -87,19 +128,7 @@ export default function ContributorsPage() {
 
           <div className="grid md:grid-cols-2 gap-[18px]">
             <Card title="Activity Heatmap">
-              <div className="grid grid-cols-[42px_1fr] gap-2">
-                <div />
-                <div className="grid grid-cols-8 text-[11px] text-ink-3 text-center mb-2">{HM_COLS.map((c) => <span key={c}>{c}</span>)}</div>
-                <div className="flex flex-col justify-between text-[11px] text-ink-3 py-0.5">{HM_ROWS.map((r) => <span key={r}>{r}</span>)}</div>
-                <div className="grid grid-cols-8 auto-rows-fr gap-[5px]">
-                  {HM_ROWS.map((_, r) => HM_COLS.map((__, c) => (
-                    <div key={`${r}-${c}`} className="aspect-square rounded-[5px]" style={{ background: RAMP[heatLevel(r, c)] }} />
-                  )))}
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5 justify-end mt-3.5 text-[11px] text-ink-3">
-                Less{RAMP.slice(0, 5).map((c) => <span key={c} className="w-3 h-3 rounded" style={{ background: c }} />)}More
-              </div>
+              <Heatmap />
             </Card>
 
             <Card title="Contribution Trend" action={<span className="flex items-center gap-2 text-xs text-ink-2"><span className="w-4 border-t-2 border-brand" />Commits</span>}>
