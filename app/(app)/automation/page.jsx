@@ -241,7 +241,7 @@ export default function AutomationPage() {
             {nodes.map((n) => {
               const t = NODE_TYPES[n.type], s = sizeOf(n.type), isSel = sel === n.id, isRun = running === n.id;
               return (
-                <div key={n.id} data-node onMouseDown={(e) => onNodeDown(e, n.id)}
+                <div key={n.id} data-node onPointerDown={(e) => onNodeDown(e, n.id)}
                   className={cn("absolute bg-card border rounded-[14px] cursor-grab active:cursor-grabbing transition-shadow",
                     isRun ? "border-[1.5px] border-emerald-500 shadow-[0_0_0_3px_rgba(34,197,94,0.18)]" : isSel ? "border-[1.5px] border-brand shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-brand)_13%,transparent),0_10px_26px_-12px_rgba(16,24,40,0.22)]" : "border-line shadow-[0_1px_2px_rgba(16,24,40,0.06),0_10px_26px_-12px_rgba(16,24,40,0.22)]")}
                   style={{ left: n.x, top: n.y, width: s.w }}>
@@ -252,7 +252,7 @@ export default function AutomationPage() {
                   </div>
                   {t.bIcon && <div className="flex items-center gap-2 p-[9px_12px_11px] border-t border-line"><Icon name={t.bIcon} size={13} className="text-ink-3" /><span className="text-xs text-ink-2 font-medium truncate">{t.body(n.config)}</span></div>}
                   {t.hasIn !== false && <span data-portin={n.id} className="absolute w-[13px] h-[13px] rounded-full bg-card border-2 border-brand top-1/2 -translate-y-1/2 -left-[7px] hover:scale-125 transition-transform" />}
-                  {t.hasOut !== false && <span data-port onMouseDown={(e) => onPortDown(e, n.id)} title="Drag to connect" className="absolute w-[13px] h-[13px] rounded-full bg-card border-2 border-brand top-1/2 -translate-y-1/2 -right-[7px] cursor-crosshair hover:scale-125 hover:bg-brand transition-transform" />}
+                  {t.hasOut !== false && <span data-port onPointerDown={(e) => onPortDown(e, n.id)} title="Drag to connect" className="absolute w-[15px] h-[15px] rounded-full bg-card border-2 border-brand top-1/2 -translate-y-1/2 -right-[7px] cursor-crosshair hover:scale-125 hover:bg-brand transition-transform" />}
                 </div>
               );
             })}
