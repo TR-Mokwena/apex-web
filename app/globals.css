@@ -18,10 +18,11 @@
   --color-ink-3: #94a3b8;
   --color-heading: #0f172a;
 
-  /* brand */
+  /* brand — accent is user-themeable: only --color-brand is swapped (see ThemePicker),
+     the hover + soft shades derive from it so the whole UI re-tints from one variable. */
   --color-brand: #6366f1;
-  --color-brand-600: #4f46e5;
-  --color-brand-soft: #eef0fe;
+  --color-brand-600: color-mix(in srgb, var(--color-brand) 82%, black);
+  --color-brand-soft: color-mix(in srgb, var(--color-brand) 12%, white);
 
   /* dark navy sidebar */
   --color-sidebar: #0b1020;

@@ -9,9 +9,15 @@ export const metadata = {
   description: "Apex — AI-assisted project, sprint & contribution tracking by Eclipse Softworks",
 };
 
+// Applies the saved accent before first paint to avoid a colour flash.
+const ACCENT_SCRIPT = `try{var a=localStorage.getItem('apex-accent');if(a)document.documentElement.style.setProperty('--color-brand',a);}catch(e){}`;
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${poppins.variable} ${plexMono.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: ACCENT_SCRIPT }} />
+      </head>
       <body>{children}</body>
     </html>
   );
