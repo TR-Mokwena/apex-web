@@ -20,10 +20,10 @@ const USAGE = [
   { label: "Active projects", used: 24, total: null, unit: "", note: "Unlimited" },
 ];
 const INVOICES = [
-  { date: "Jun 1, 2026", desc: "Enterprise · 50 seats", amount: "$1,450.00", status: "Paid" },
-  { date: "May 1, 2026", desc: "Enterprise · 48 seats", amount: "$1,392.00", status: "Paid" },
-  { date: "Apr 1, 2026", desc: "Enterprise · 45 seats", amount: "$1,305.00", status: "Paid" },
-  { date: "Mar 1, 2026", desc: "Pro · 42 seats", amount: "$504.00", status: "Paid" },
+  { date: "Jun 1, 2026", desc: "Enterprise · 50 seats", amount: "R27,450.00", status: "Paid" },
+  { date: "May 1, 2026", desc: "Enterprise · 48 seats", amount: "R26,352.00", status: "Paid" },
+  { date: "Apr 1, 2026", desc: "Enterprise · 45 seats", amount: "R24,705.00", status: "Paid" },
+  { date: "Mar 1, 2026", desc: "Pro · 42 seats", amount: "R9,618.00", status: "Paid" },
 ];
 
 export default function BillingSettings() {
@@ -51,8 +51,8 @@ export default function BillingSettings() {
               <div className="text-[12.5px] text-white/80 mt-0.5">{plan.desc}</div>
             </div>
             <div className="text-right">
-              <div className="text-[28px] font-bold leading-none">${total}<span className="text-[14px] font-medium text-white/75">/{cycle === "monthly" ? "mo" : "mo"}</span></div>
-              <div className="text-[11.5px] text-white/75 mt-1">${perSeat}/member · {SEATS} seats</div>
+              <div className="text-[28px] font-bold leading-none">R{total}<span className="text-[14px] font-medium text-white/75">/mo</span></div>
+              <div className="text-[11.5px] text-white/75 mt-1">R{perSeat}/member · {SEATS} seats</div>
             </div>
           </div>
         </div>
@@ -137,7 +137,7 @@ export default function BillingSettings() {
               <button key={p.id} onClick={() => setPick(p.id)} className={cn("text-left p-4 rounded-xl border transition-colors", sel ? "border-brand bg-brand-soft" : "border-line hover:border-[#C7D2FE]")}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2"><b className="text-[14px] font-semibold">{p.name}</b>{cur && <span className="text-[10px] font-semibold text-ink-3 bg-bg-soft rounded-full px-2 py-0.5">Current</span>}</div>
-                  <div className="text-[15px] font-bold">${cycle === "monthly" ? p.monthly : Math.round(p.annual / 12)}<span className="text-[11px] font-medium text-ink-3">/member/mo</span></div>
+                  <div className="text-[15px] font-bold">R{cycle === "monthly" ? p.monthly : Math.round(p.annual / 12)}<span className="text-[11px] font-medium text-ink-3">/member/mo</span></div>
                 </div>
                 <p className="m-0 text-[12px] text-ink-2 mt-0.5">{p.desc}</p>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
