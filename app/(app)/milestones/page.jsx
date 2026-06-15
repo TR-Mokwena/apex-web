@@ -1,34 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import Icon from "@/components/Icon";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/cn";
-
-const PAL = [
-  "linear-gradient(135deg,#6366F1,#8B5CF6)",
-  "linear-gradient(135deg,#0EA5E9,#6366F1)",
-  "linear-gradient(135deg,#10B981,#22C55E)",
-  "linear-gradient(135deg,#F59E0B,#EF4444)",
-  "linear-gradient(135deg,#8B5CF6,#EC4899)",
-];
-const INIT = ["TM", "SD", "TN", "PS", "NK"];
-
-const STATUS = {
-  done: { node: "bg-emerald-50 border-emerald-500 text-emerald-600", icon: "Check", badge: "bg-emerald-50 text-emerald-600", dot: "bg-emerald-500", label: "Completed", fill: "#22C55E" },
-  active: { node: "bg-brand-soft border-brand text-brand", icon: "Loader", badge: "bg-brand-soft text-brand-600", dot: "bg-brand", label: "On track", fill: "#6366F1" },
-  risk: { node: "bg-amber-50 border-amber-500 text-amber-500", icon: "TriangleAlert", badge: "bg-amber-50 text-[#B45309]", dot: "bg-amber-500", label: "At risk", fill: "#F59E0B" },
-  stalled: { node: "bg-red-50 border-red-500 text-red-500", icon: "OctagonX", badge: "bg-red-50 text-[#DC2626]", dot: "bg-red-500", label: "Stalled", fill: "#EF4444" },
-};
-
-const MILESTONES = [
-  { t: "Event bus migration", proj: "Platform Core", due: "Completed June 2", prog: 100, st: "done", tasks: "14/14", owners: [1, 0] },
-  { t: "v2.1 Beta cutover", proj: "Apex v2.1", due: "Due June 24", prog: 68, st: "active", tasks: "17/25", owners: [0, 1, 4] },
-  { t: "RBAC permission scopes", proj: "Platform Core", due: "Due June 30", prog: 55, st: "active", tasks: "11/20", owners: [0] },
-  { t: "Mobile App Launch", proj: "Apex v2.1", due: "Due June 24", prog: 41, st: "risk", tasks: "9/22", owners: [1, 3] },
-  { t: "Analytics Module GA", proj: "Analytics", due: "Due Jul 15", prog: 12, st: "stalled", tasks: "3/18", owners: [3] },
-  { t: "Observability rollout", proj: "Infra", due: "Due Aug 2", prog: 27, st: "active", tasks: "4/15", owners: [2, 1] },
-];
+import { MILESTONES, STATUS, PAL, INIT } from "@/lib/milestones";
 
 const TABS = [["All", 6], ["Active", 3], ["At risk", 2], ["Completed", 1]];
 
@@ -73,7 +50,7 @@ export default function MilestonesPage() {
               <div className="flex-none w-[30px] flex items-center justify-center">
                 <span className={cn("relative z-10 grid place-items-center w-[30px] h-[30px] rounded-full border-2", s.node)}><Icon name={s.icon} size={14} /></span>
               </div>
-              <div className="flex-1 min-w-0 card !shadow-card overflow-hidden cursor-pointer transition-colors hover:border-[#D6DCEA]">
+              <Link href={`/milestones/${m.slug}`} className="flex-1 min-w-0 card !shadow-card overflow-hidden cursor-pointer transition-colors hover:border-[#D6DCEA]">
                 <div className="flex items-start gap-3.5 px-[18px] pt-4 pb-3.5">
                   <div className="flex-1 min-w-0">
                     <div className="text-[15px] font-semibold tracking-[-0.01em]">{m.t}</div>
@@ -92,7 +69,7 @@ export default function MilestonesPage() {
                   </div>
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-4 text-xs text-ink-2">
-                      <span className="flex items-center gap-1.5"><Icon name="SquareCheckBig" size={14} className="text-ink-3" />{m.tasks} tasks</span>
+                      <span className="flex items-center gap-1.5"><Icon name="SquareCheckBig" size={14} className="text-ink-3" />{m.done}/{m.total} tasks</span>
                       <span className="hidden sm:flex items-center gap-1.5"><Icon name="GitCommitHorizontal" size={14} className="text-ink-3" />{m.proj}</span>
                     </div>
                     <div className="flex">
