@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Icon from "@/components/Icon";
-import { Card, CardLink, Tabs, Sparkline, Gauge, Donut, BarPairs, LegendRow, RangePicker, RANGE_OPTIONS } from "@/components/ui";
+import { Card, CardLink, Tabs, Sparkline, Gauge, Donut, BarPairs, LegendRow, Modal, Button, RangePicker, RANGE_OPTIONS } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
 const PAL = [
@@ -181,15 +181,45 @@ function IndividualView({ f }) {
   );
 }
 
+const RISK_FACTORS = [
+  { f: "Velocity vs. plan", w: 30, desc: "How far actual burn-down trails the ideal line." },
+  { f: "Scope churn", w: 25, desc: "Story points added or re-estimated mid-cycle." },
+  { f: "Open dependencies", w: 20, desc: "Unresolved blockers linked to the milestone." },
+  { f: "Review latency", w: 15, desc: "Time PRs sit awaiting review or changes." },
+  { f: "Bug inflow", w: 10, desc: "New defects opened against in-progress work." },
+];
+
 function PredictiveView({ score }) {
+  const [info, setInfo] = useState(false);
   return (
     <div className="grid lg:grid-cols-[1fr_1.7fr] gap-4">
-      <Card title="Overall Risk" action={<CardLink>How it works</CardLink>}>
+      <Card title="Overall Risk" action={<CardLink onClick={() => setInfo(true)}>How it works</CardLink>}>
         <div className="flex flex-col items-center justify-center gap-1.5 py-1.5">
           <Gauge value={score} color={riskColor(score)} label="Risk Score" width={190} height={130} />
           <div className="text-xs text-ink-2 text-center mt-1.5 max-w-[230px]">Forecast from velocity, scope churn and open dependencies for the selected window.</div>
         </div>
       </Card>
+
+      <Modal open={info} onClose={() => setInfo(false)} title="How the risk score works" width={480}
+        footer={<Button variant="primary" onClick={() => setInfo(false)}>Got it</Button>}>
+        <p className="m-0 text-[13px] text-ink-2 leading-relaxed">
+          The risk score is a weighted 0–100 index. Each milestone is scored on five signals and blended into one number — higher means more likely to slip. It recomputes for the date range you select.
+        </p>
+        <div className="flex flex-col gap-3">
+          {RISK_FACTORS.map((r) => (
+            <div key={r.f}>
+              <div className="flex items-center justify-between text-[12.5px]"><b className="font-semibold">{r.f}</b><span className="text-ink-3 font-semibold tabular-nums">{r.w}%</span></div>
+              <Bar pct={r.w} color="var(--color-brand)" w="block w-full mt-1" />
+              <div className="text-[11.5px] text-ink-3 mt-1">{r.desc}</div>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-4 text-[11.5px] text-ink-2 pt-1 border-t border-line">
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />0–39 Low</span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" />40–59 Moderate</span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500" />60–100 High</span>
+        </div>
+      </Modal>
       <Card title="Milestone Forecast">
         <div className="-mx-[18px] -mb-[18px] overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[480px]">
