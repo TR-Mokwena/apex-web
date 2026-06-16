@@ -6,6 +6,7 @@ import Icon from "@/components/Icon";
 import {
   PageHeader, Card, CardLink, Kpi, Avatar, Delta, Dropdown, MenuItem,
   LineChart, BarPairs, Donut, Gauge, Ring, Sparkline, LegendRow,
+  RangePicker, RANGE_OPTIONS,
 } from "@/components/ui";
 import { useCountry, formatNumber } from "@/lib/locale";
 
@@ -56,6 +57,49 @@ const ATTENDANCE = {
   "This Month": { present: 91, late: 7, absent: 2 },
 };
 
+// Headline figures per date range (drives the KPI row, GitHub activity, burndown,
+// projects donut and contributor scores). Productivity & Attendance keep their own
+// period selectors below.
+const DASH = {
+  "This Week": {
+    projects: 24, sprint: 68, risk: 6, healthVal: "Good", healthClass: "!text-[26px] !mt-[7px] text-emerald-600", healthDelta: "8%",
+    healthSpark: [8, 14, 11, 22, 18, 30, 26, 40], events: 1429,
+    bars: [[56, 36], [72, 48], [44, 30], [90, 60], [36, 24], [76, 44], [32, 0]],
+    bdX: ["Jun 12", "Jun 14", "Jun 16", "Jun 18", "Jun 20", "Jun 22"], bdActual: [100, 90, 76, 58, 40, 12],
+    total: 24, segs: [51, 21, 17, 11], contrib: [1248, 980, 872, 742, 654],
+  },
+  "Last Week": {
+    projects: 23, sprint: 54, risk: 8, healthVal: "Fair", healthClass: "!text-[26px] !mt-[7px] text-amber-500", healthDelta: "5%",
+    healthSpark: [10, 12, 14, 16, 20, 22, 26, 30], events: 1187,
+    bars: [[48, 30], [60, 40], [52, 34], [70, 46], [40, 26], [58, 36], [28, 0]],
+    bdX: ["Jun 5", "Jun 7", "Jun 9", "Jun 11", "Jun 13", "Jun 15"], bdActual: [100, 88, 72, 66, 50, 30],
+    total: 23, segs: [48, 24, 17, 11], contrib: [1032, 910, 805, 690, 612],
+  },
+  "This Month": {
+    projects: 26, sprint: 82, risk: 4, healthVal: "Strong", healthClass: "!text-[26px] !mt-[7px] text-emerald-600", healthDelta: "11%",
+    healthSpark: [12, 18, 16, 26, 30, 38, 44, 52], events: 6240,
+    bars: [[120, 80], [150, 96], [96, 64], [180, 120], [80, 52], [160, 100], [70, 0]],
+    bdX: ["Jun 1", "Jun 6", "Jun 12", "Jun 18", "Jun 24", "Jun 30"], bdActual: [100, 86, 70, 52, 30, 8],
+    total: 26, segs: [44, 20, 18, 18], contrib: [4890, 3820, 3410, 2980, 2560],
+  },
+  "Last 30 Days": {
+    projects: 25, sprint: 76, risk: 5, healthVal: "Good", healthClass: "!text-[26px] !mt-[7px] text-emerald-600", healthDelta: "9%",
+    healthSpark: [10, 16, 15, 24, 28, 34, 40, 48], events: 5870,
+    bars: [[110, 72], [140, 90], [90, 60], [170, 112], [76, 50], [150, 96], [64, 0]],
+    bdX: ["May 19", "May 25", "May 31", "Jun 6", "Jun 12", "Jun 18"], bdActual: [100, 84, 68, 50, 34, 14],
+    total: 25, segs: [46, 22, 17, 15], contrib: [4610, 3700, 3300, 2880, 2480],
+  },
+  "This Quarter": {
+    projects: 31, sprint: 90, risk: 3, healthVal: "Strong", healthClass: "!text-[26px] !mt-[7px] text-emerald-600", healthDelta: "14%",
+    healthSpark: [14, 20, 30, 28, 40, 46, 54, 64], events: 18420,
+    bars: [[320, 210], [400, 260], [280, 180], [480, 300], [220, 150], [420, 270], [180, 0]],
+    bdX: ["Apr 1", "Apr 21", "May 11", "May 31", "Jun 15", "Jun 30"], bdActual: [100, 82, 64, 46, 26, 6],
+    total: 31, segs: [40, 18, 16, 26], contrib: [14200, 11800, 10400, 9100, 8200],
+  },
+};
+const DASH_RANGES = RANGE_OPTIONS.filter((o) => DASH[o.key]);
+const BD_IDEAL = [100, 80, 60, 40, 20, 0];
+
 const NOTI_TONE = {
   green: "bg-emerald-50 text-emerald-600",
   indigo: "bg-brand-soft text-brand",
@@ -105,6 +149,8 @@ export default function DashboardPage() {
   const [greeting, setGreeting] = useState("Welcome back");
   const [prodPeriod, setProdPeriod] = useState("This Week");
   const [attPeriod, setAttPeriod] = useState("Today");
+  const [range, setRange] = useState("This Week");
+  const R = DASH[range];
   const [doneTasks, setDoneTasks] = useState(() => new Set());
 
   useEffect(() => {
@@ -120,21 +166,15 @@ export default function DashboardPage() {
       <PageHeader
         title={`${greeting}, TR! 👋`}
         subtitle="Here's what's happening across your organization today."
-        actions={
-          <Link href="/calendar" className="flex items-center gap-2.5 card rounded-field px-3.5 py-2.5 text-[13px] font-medium text-ink cursor-pointer">
-            <Icon name="Calendar" size={15} className="text-ink-3" />
-            June 12 – June 18, 2026
-            <Icon name="ChevronDown" size={15} className="text-ink-3" />
-          </Link>
-        }
+        actions={<RangePicker value={range} onChange={setRange} options={DASH_RANGES} />}
       />
 
       {/* KPI row */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5 mb-3.5">
-        <Link href="/projects"><Kpi label="Active Projects" value="24" delta="12% from last week" deltaArrow="up" icon="Folder" iconTone="indigo" /></Link>
-        <Link href="/sprints"><Kpi label="Sprint Progress" value="68%" delta="On Track" deltaTone="ok" visual={<Ring value={68} size={58} />} /></Link>
-        <Link href="/contributors"><Kpi label="Team Health" value="Good" valueClass="!text-[26px] !mt-[7px] text-emerald-600" delta="8% from last week" deltaArrow="up" visual={<Sparkline values={[8, 14, 11, 22, 18, 30, 26, 40]} width={92} height={44} color="#10B981" fill dot={false} className="!w-[92px]" />} /></Link>
-        <Link href="/ai"><Kpi label="AI Risk Alerts" value="6" valueClass="text-red-500" delta="Needs attention" deltaTone="warn" icon="TriangleAlert" iconTone="red" /></Link>
+        <Link href="/projects"><Kpi label="Active Projects" value={R.projects} delta="12% from last week" deltaArrow="up" icon="Folder" iconTone="indigo" /></Link>
+        <Link href="/sprints"><Kpi label="Sprint Progress" value={`${R.sprint}%`} delta={R.sprint >= 60 ? "On Track" : "Behind"} deltaTone={R.sprint >= 60 ? "ok" : "warn"} visual={<Ring value={R.sprint} size={58} />} /></Link>
+        <Link href="/contributors"><Kpi label="Team Health" value={R.healthVal} valueClass={R.healthClass} delta={`${R.healthDelta} from last week`} deltaArrow="up" visual={<Sparkline values={R.healthSpark} width={92} height={44} color="#10B981" fill dot={false} className="!w-[92px]" />} /></Link>
+        <Link href="/ai"><Kpi label="AI Risk Alerts" value={R.risk} valueClass="text-red-500" delta="Needs attention" deltaTone="warn" icon="TriangleAlert" iconTone="red" /></Link>
         <Link href="/reports"><Kpi label="Attendance Today" value={`${att.present}%`} delta="Present" deltaTone="ok" icon="Users" iconTone="green" /></Link>
       </div>
 
@@ -149,19 +189,19 @@ export default function DashboardPage() {
               </div>
             }>
               <LineChart
-                xLabels={["Jun 12", "Jun 14", "Jun 16", "Jun 18", "Jun 20", "Jun 22"]}
+                xLabels={R.bdX}
                 series={[
-                  { values: [100, 80, 60, 40, 20, 0], color: "#94A3B8", dashed: true },
-                  { values: [100, 90, 76, 58, 40, 12], color: "var(--color-brand)" },
+                  { values: BD_IDEAL, color: "#94A3B8", dashed: true },
+                  { values: R.bdActual, color: "var(--color-brand)" },
                 ]}
               />
               <CardLink href="/sprints" className="mt-1.5">View all sprints</CardLink>
             </Card>
 
-            <Card title="GitHub Activity (This Week)">
+            <Card title={`GitHub Activity (${range})`}>
               <div className="flex items-end gap-2.5">
                 <div>
-                  <div className="text-[30px] font-bold text-heading leading-none">{formatNumber(1429, country)}</div>
+                  <div className="text-[30px] font-bold text-heading leading-none">{formatNumber(R.events, country)}</div>
                   <div className="text-[12.5px] text-ink-2 mt-1">Events</div>
                 </div>
                 <Delta value="15%" className="ml-auto mb-0.5 !text-[12.5px] font-semibold" />
@@ -169,7 +209,7 @@ export default function DashboardPage() {
               <BarPairs
                 className="mt-1.5"
                 xLabels={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]}
-                data={[[56, 36], [72, 48], [44, 30], [90, 60], [36, 24], [76, 44], [32, 0]]}
+                data={R.bars}
               />
               <CardLink href="/reports" className="mt-1.5">View full report</CardLink>
             </Card>
@@ -178,27 +218,27 @@ export default function DashboardPage() {
           <div className="grid md:grid-cols-2 gap-3.5">
             <Card title="Projects Overview">
               <div className="flex items-center gap-5">
-                <Donut size={150} center="24" centerSub="Total Projects" segments={[
-                  { value: 51, color: "#6366F1" }, { value: 21, color: "#22C55E" }, { value: 17, color: "#F59E0B" }, { value: 11, color: "#A5B4FC" },
+                <Donut size={150} center={String(R.total)} centerSub="Total Projects" segments={[
+                  { value: R.segs[0], color: "#6366F1" }, { value: R.segs[1], color: "#22C55E" }, { value: R.segs[2], color: "#F59E0B" }, { value: R.segs[3], color: "#A5B4FC" },
                 ]} />
                 <div className="flex-1">
-                  <LegendRow color="#6366F1" label="In Progress" value="51%" />
-                  <LegendRow color="#22C55E" label="In Review" value="21%" />
-                  <LegendRow color="#F59E0B" label="Planning" value="17%" />
-                  <LegendRow color="#A5B4FC" label="Completed" value="11%" />
+                  <LegendRow color="#6366F1" label="In Progress" value={`${R.segs[0]}%`} />
+                  <LegendRow color="#22C55E" label="In Review" value={`${R.segs[1]}%`} />
+                  <LegendRow color="#F59E0B" label="Planning" value={`${R.segs[2]}%`} />
+                  <LegendRow color="#A5B4FC" label="Completed" value={`${R.segs[3]}%`} />
                 </div>
               </div>
               <CardLink href="/projects" className="mt-3">View all projects</CardLink>
             </Card>
 
-            <Card title="Top Contributors (This Week)">
+            <Card title={`Top Contributors (${range})`}>
               <div>
                 {CONTRIBUTORS.map((c, i) => (
                   <Link key={c.name} href="/contributors" className="flex items-center gap-3 py-2 -mx-1.5 px-1.5 rounded-[9px] hover:bg-bg-soft transition-colors">
                     <span className="text-xs text-ink-3 w-3 font-semibold">{i + 1}</span>
                     <Avatar name={c.name} size={30} color={c.color} />
                     <span className="flex-1 text-[13.5px] font-medium text-ink">{c.name}</span>
-                    <span className="font-semibold text-[13.5px] text-heading">{formatNumber(c.score, country)}</span>
+                    <span className="font-semibold text-[13.5px] text-heading">{formatNumber(R.contrib[i], country)}</span>
                     <Delta value={c.delta} className="w-12 justify-end !text-xs" />
                   </Link>
                 ))}

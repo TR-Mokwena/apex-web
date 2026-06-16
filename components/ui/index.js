@@ -9,3 +9,4 @@ export { Pill, Priority, Delta } from "./Badge";
 export { Avatar } from "./Avatar";
 export { Kpi } from "./Kpi";
 export { Sparkline, LineChart, BarPairs, Donut, Gauge, Ring, LegendRow } from "./charts";
+export { RangePicker, RANGE_OPTIONS } from "./RangePicker";
