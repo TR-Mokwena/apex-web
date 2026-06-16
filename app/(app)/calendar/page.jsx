@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Icon from "@/components/Icon";
+import { Modal, Field, TextInput, Select, Button } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
 const CALS = {
@@ -15,7 +16,7 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 const TODAY = "2026-06-13";
 const isoOf = (y, m, d) => `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
-const EVENTS = {
+const EVENTS_SEED = {
   "2026-06-01": [{ title: "Sprint 13 review", cal: "meeting", time: "10:00 AM" }],
   "2026-06-02": [{ title: "Event bus GA", cal: "milestone" }],
   "2026-06-05": [{ title: "Design sync", cal: "meeting", time: "11:00 AM" }],
@@ -47,18 +48,45 @@ function buildMonth(y, m) {
   return cells.slice(0, 42);
 }
 
+const BLANK = { title: "", date: TODAY, cal: "meeting", time: "" };
+const fmtLong = (iso) => new Date(iso + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+
 export default function CalendarPage() {
   const [cur, setCur] = useState({ y: 2026, m: 5 });
   const [sel, setSel] = useState(TODAY);
   const [hidden, setHidden] = useState(new Set());
+  const [events, setEvents] = useState(EVENTS_SEED);
+  const [view, setView] = useState("Month");
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(BLANK);
 
-  const evAt = (id) => (EVENTS[id] || []).filter((e) => !hidden.has(e.cal));
+  const evAt = (id) => (events[id] || []).filter((e) => !hidden.has(e.cal));
   const step = (dir) => setCur((c) => { const d = new Date(c.y, c.m + dir, 1); return { y: d.getFullYear(), m: d.getMonth() }; });
   const today = () => { setCur({ y: 2026, m: 5 }); setSel(TODAY); };
   const toggleCal = (k) => setHidden((h) => { const n = new Set(h); n.has(k) ? n.delete(k) : n.add(k); return n; });
+  const setF = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const create = () => {
+    if (!form.title.trim() || !form.date) return;
+    setEvents((ev) => ({ ...ev, [form.date]: [...(ev[form.date] || []), { title: form.title.trim(), cal: form.cal, ...(form.time.trim() ? { time: form.time.trim() } : {}) }] }));
+    setSel(form.date);
+    setForm(BLANK);
+    setOpen(false);
+  };
+  const openNew = () => { setForm({ ...BLANK, date: sel }); setOpen(true); };
 
   const cells = buildMonth(cur.y, cur.m);
-  const upcoming = Object.keys(EVENTS).sort().filter((d) => d >= TODAY).flatMap((d) => evAt(d).map((e) => ({ date: d, ...e }))).slice(0, 5);
+  const upcoming = Object.keys(events).sort().filter((d) => d >= TODAY).flatMap((d) => evAt(d).map((e) => ({ date: d, ...e }))).slice(0, 5);
+
+  // week containing the selected day (Sun–Sat)
+  const selDate = new Date(sel + "T00:00:00");
+  const weekDays = [...Array(7)].map((_, i) => { const d = new Date(selDate); d.setDate(selDate.getDate() - selDate.getDay() + i); return isoOf(d.getFullYear(), d.getMonth(), d.getDate()); });
+
+  const AgendaRow = ({ e }) => (
+    <div className="flex gap-3 py-2.5 border-b border-line last:border-b-0">
+      <div className="w-[3px] rounded-[2px] flex-none" style={{ background: CALS[e.cal].color }} />
+      <div className="flex-1 min-w-0"><b className="block text-[13.5px] font-semibold">{e.title}</b><span className="text-[11.5px] text-ink-3">{e.time ? e.time + " · " : ""}{CALS[e.cal].label}</span></div>
+    </div>
+  );
 
   return (
     <>
@@ -79,15 +107,16 @@ export default function CalendarPage() {
           </div>
           <div className="flex bg-card border border-line rounded-[10px] p-[3px] shadow-card">
             {["Day", "Week", "Month"].map((v) => (
-              <span key={v} className={cn("px-3.5 py-[7px] rounded-[7px] text-[12.5px] font-medium cursor-pointer", v === "Month" ? "bg-brand-soft text-brand-600 font-semibold" : "text-ink-2")}>{v}</span>
+              <button key={v} onClick={() => setView(v)} className={cn("px-3.5 py-[7px] rounded-[7px] text-[12.5px] font-medium cursor-pointer", v === view ? "bg-brand-soft text-brand-600 font-semibold" : "text-ink-2")}>{v}</button>
             ))}
           </div>
-          <button className="flex items-center gap-1.5 h-[38px] px-3.5 rounded-[10px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}><Icon name="Plus" size={15} />New Event</button>
+          <button onClick={openNew} className="flex items-center gap-1.5 h-[38px] px-3.5 rounded-[10px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}><Icon name="Plus" size={15} />New Event</button>
         </div>
       </div>
 
       <div className="flex gap-4 items-start flex-col xl:flex-row">
         {/* month grid */}
+        {view === "Month" && (
         <div className="flex-1 min-w-0 w-full card !shadow-card overflow-hidden flex flex-col">
           <div className="grid grid-cols-7 border-b border-line">
             {DOW.map((d) => <div key={d} className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-ink-3">{d}</div>)}
@@ -99,7 +128,7 @@ export default function CalendarPage() {
               const shown = evs.slice(0, 3);
               const extra = evs.length - shown.length;
               return (
-                <div key={i} onClick={() => setSel(id)} className={cn("border-r border-b border-line p-2 flex flex-col gap-1 overflow-hidden cursor-pointer transition-colors hover:bg-bg-soft [&:nth-child(7n)]:border-r-0", c.out && "bg-bg-soft", id === sel && "shadow-[inset_0_0_0_2px_var(--color-brand)]")}>
+                <div key={i} onClick={() => setSel(id)} onDoubleClick={() => { setForm({ ...BLANK, date: id }); setOpen(true); }} className={cn("border-r border-b border-line p-2 flex flex-col gap-1 overflow-hidden cursor-pointer transition-colors hover:bg-bg-soft [&:nth-child(7n)]:border-r-0", c.out && "bg-bg-soft", id === sel && "shadow-[inset_0_0_0_2px_var(--color-brand)]")}>
                   <span className={cn("grid place-items-center w-6 h-6 rounded-full text-[12.5px] font-semibold flex-none", id === TODAY ? "bg-brand text-white" : c.out ? "text-ink-3 font-medium" : "text-ink-2")}>{c.d}</span>
                   {shown.map((e, j) => (
                     <span key={j} className={cn("flex items-center gap-1.5 text-[11px] font-semibold px-1.5 py-[3px] rounded-md truncate", CALS[e.cal].ev)}>
@@ -112,6 +141,39 @@ export default function CalendarPage() {
             })}
           </div>
         </div>
+        )}
+
+        {/* day agenda */}
+        {view === "Day" && (
+        <div className="flex-1 min-w-0 w-full card !shadow-card p-[18px_20px]">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="m-0 text-[15px] font-semibold">{fmtLong(sel)}{sel === TODAY && <span className="ml-2 text-[11px] font-semibold text-brand bg-brand-soft rounded-full px-2 py-0.5">Today</span>}</h3>
+            <button onClick={openNew} className="text-[12.5px] font-medium text-brand">+ Add</button>
+          </div>
+          {evAt(sel).length === 0 ? <div className="text-[13px] text-ink-3 py-10 text-center">No events on this day.</div> : evAt(sel).map((e, i) => <AgendaRow key={i} e={e} />)}
+        </div>
+        )}
+
+        {/* week agenda */}
+        {view === "Week" && (
+        <div className="flex-1 min-w-0 w-full card !shadow-card p-[18px_20px]">
+          <h3 className="m-0 mb-3 text-[15px] font-semibold">Week of {new Date(weekDays[0] + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric" })}</h3>
+          <div className="flex flex-col gap-4">
+            {weekDays.map((id) => {
+              const evs = evAt(id);
+              const dt = new Date(id + "T00:00:00");
+              return (
+                <div key={id}>
+                  <button onClick={() => setSel(id)} className={cn("flex items-center gap-2 text-[12.5px] font-semibold mb-1.5", id === TODAY ? "text-brand" : id === sel ? "text-brand-600" : "text-ink-2")}>
+                    {dt.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}{id === TODAY && <span className="text-[10px] bg-brand-soft text-brand rounded-full px-1.5 py-0.5">Today</span>}
+                  </button>
+                  {evs.length === 0 ? <div className="text-[12px] text-ink-3 pl-1">—</div> : <div className="border border-line rounded-[11px] divide-y divide-line">{evs.map((e, i) => <div key={i} className="px-3"><AgendaRow e={e} /></div>)}</div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        )}
 
         {/* rail */}
         <div className="w-full xl:w-[300px] flex-none flex flex-col gap-4">
@@ -162,6 +224,21 @@ export default function CalendarPage() {
           </div>
         </div>
       </div>
+
+      <Modal open={open} onClose={() => setOpen(false)} title="New event"
+        footer={<>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="primary" onClick={create} disabled={!form.title.trim() || !form.date}>Add event</Button>
+        </>}>
+        <Field label="Title"><TextInput value={form.title} onChange={setF("title")} placeholder="e.g. Sprint review" autoFocus /></Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Date"><TextInput type="date" value={form.date} onChange={setF("date")} /></Field>
+          <Field label="Time (optional)"><TextInput value={form.time} onChange={setF("time")} placeholder="e.g. 10:00 AM" /></Field>
+        </div>
+        <Field label="Calendar">
+          <Select value={form.cal} onChange={setF("cal")}>{Object.keys(CALS).map((k) => <option key={k} value={k}>{CALS[k].label}</option>)}</Select>
+        </Field>
+      </Modal>
     </>
   );
 }
