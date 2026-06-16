@@ -12,12 +12,13 @@ const PAL = [
   "linear-gradient(135deg,#F59E0B,#EF4444)",
   "linear-gradient(135deg,#8B5CF6,#EC4899)",
 ];
+// `w` = a contributor's typical weekly volume; tab KPIs scale it by the range factor.
 const PEOPLE = [
-  { nm: "TR Mokwena", cm: "1,248 commits", in: "TM" },
-  { nm: "Thabo Nkosi", cm: "980 commits", in: "TN" },
-  { nm: "Sipho Dlamini", cm: "672 commits", in: "SD" },
-  { nm: "Priya Singh", cm: "742 commits", in: "PS" },
-  { nm: "Naledi Kgasana", cm: "654 commits", in: "NK" },
+  { nm: "TR Mokwena", cm: "1,248 commits", in: "TM", w: { commits: 52, adds: 2100, dels: 980, prs: 6, merged: 5, closed: 1, reviews: 12, approved: 9, changes: 3 } },
+  { nm: "Thabo Nkosi", cm: "980 commits", in: "TN", w: { commits: 41, adds: 1680, dels: 760, prs: 5, merged: 4, closed: 1, reviews: 9, approved: 7, changes: 2 } },
+  { nm: "Sipho Dlamini", cm: "672 commits", in: "SD", w: { commits: 33, adds: 1290, dels: 540, prs: 4, merged: 3, closed: 1, reviews: 8, approved: 6, changes: 2 } },
+  { nm: "Priya Singh", cm: "742 commits", in: "PS", w: { commits: 38, adds: 1520, dels: 690, prs: 5, merged: 4, closed: 0, reviews: 11, approved: 9, changes: 2 } },
+  { nm: "Naledi Kgasana", cm: "654 commits", in: "NK", w: { commits: 29, adds: 1100, dels: 470, prs: 3, merged: 3, closed: 0, reviews: 7, approved: 5, changes: 2 } },
 ];
 const STAT_LABELS = ["Commits", "Pull Requests", "Reviews", "Lines of Code"];
 
@@ -110,10 +111,184 @@ function Heatmap({ scale = 1 }) {
   );
 }
 
+// How much a range scales a contributor's weekly volume in the per-person tabs.
+const RANGE_F = { "This Week": 1, "Last Week": 0.85, "Last 2 Weeks": 1.9, "This Month": 4.1, "Last 30 Days": 3.8 };
+
+const fmt = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+const COMMITS = [
+  { h: "a3f9c21", msg: "Fix race condition in auth token refresh", repo: "apex/api", add: 142, del: 38, t: "2h ago" },
+  { h: "7b1e904", msg: "Add WhatsApp delivery channel via OmniConnect", repo: "apex/web", add: 318, del: 24, t: "5h ago" },
+  { h: "e29d7a0", msg: "Refactor sprint burndown chart to SVG", repo: "apex/web", add: 96, del: 120, t: "1d ago" },
+  { h: "c41b8f5", msg: "Country-based currency & number formatting", repo: "apex/web", add: 210, del: 12, t: "1d ago" },
+  { h: "f08a3d2", msg: "Cache GitHub contribution aggregates", repo: "apex/api", add: 174, del: 46, t: "2d ago" },
+  { h: "9d52e7b", msg: "Wire real brand logos on integrations page", repo: "apex/web", add: 64, del: 9, t: "3d ago" },
+];
+const PRS = [
+  { n: 4821, t: "Fix authentication bug", st: "merged", repo: "apex/api", t2: "merged 2h ago" },
+  { n: 4810, t: "Webhook signature verification", st: "open", repo: "apex/api", t2: "opened 6h ago" },
+  { n: 4805, t: "Real-time activity feed", st: "merged", repo: "apex/web", t2: "merged 1d ago" },
+  { n: 4799, t: "Rate limiting middleware", st: "open", repo: "apex/api", t2: "opened 1d ago" },
+  { n: 4790, t: "Deprecate legacy export endpoint", st: "closed", repo: "apex/api", t2: "closed 2d ago" },
+];
+const PR_TONE = { open: ["bg-[#EAF1FF] text-[#2563EB]", "GitPullRequestArrow"], merged: ["bg-brand-soft text-brand-600", "GitMerge"], closed: ["bg-red-50 text-red-500", "GitPullRequestClosed"] };
+const REVIEWS = [
+  { pr: "API Gateway v2", author: "Sipho Dlamini", verdict: "approved", t: "1h ago" },
+  { pr: "Design system update", author: "Priya Singh", verdict: "changes", t: "3h ago" },
+  { pr: "Notification preferences", author: "Naledi Kgasana", verdict: "approved", t: "6h ago" },
+  { pr: "Auth token refresh", author: "Thabo Nkosi", verdict: "commented", t: "1d ago" },
+  { pr: "Billing invoices PDF", author: "Priya Singh", verdict: "approved", t: "1d ago" },
+];
+const REV_TONE = { approved: ["bg-emerald-50 text-emerald-600", "CircleCheckBig", "approved"], changes: ["bg-amber-50 text-amber-500", "MessageSquareWarning", "changes requested"], commented: ["bg-[#EAF1FF] text-[#2563EB]", "MessageSquare", "commented"] };
+const ACTIVITY = [
+  { ic: "GitCommit", tone: "bg-brand-soft text-brand", act: "pushed 4 commits to", tgt: "apex/web", t: "2h ago" },
+  { ic: "GitMerge", tone: "bg-emerald-50 text-emerald-600", act: "merged PR #4821 in", tgt: "apex/api", t: "5h ago" },
+  { ic: "GitPullRequestArrow", tone: "bg-[#EAF1FF] text-[#2563EB]", act: "opened PR #4810 in", tgt: "apex/api", t: "6h ago" },
+  { ic: "MessageSquare", tone: "bg-violet-50 text-violet-500", act: "reviewed PR #4805 in", tgt: "apex/web", t: "1d ago" },
+  { ic: "GitCommit", tone: "bg-brand-soft text-brand", act: "pushed 2 commits to", tgt: "apex/api", t: "1d ago" },
+  { ic: "CircleCheckBig", tone: "bg-emerald-50 text-emerald-600", act: "approved PR #4799 in", tgt: "apex/api", t: "2d ago" },
+];
+
+function StatTile({ label, value, delta, tone }) {
+  return (
+    <div className="border border-line rounded-[13px] p-[16px_18px]">
+      <div className="text-[12.5px] text-ink-2 font-medium">{label}</div>
+      <div className={cn("text-[28px] font-bold tracking-[-0.02em] leading-[1.1] mt-2", tone)}>{value}</div>
+      {delta && <Delta value={delta} className="mt-1.5 !text-xs" />}
+    </div>
+  );
+}
+
+function CommitsView({ person, f }) {
+  const w = person.w;
+  const commits = w.commits * f, adds = w.adds * f, dels = w.dels * f;
+  return (
+    <>
+      <Card title={`Commits · ${person.nm}`}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatTile label="Total commits" value={fmt(commits)} />
+          <StatTile label="Additions" value={`+${fmt(adds)}`} tone="text-emerald-600" />
+          <StatTile label="Deletions" value={`−${fmt(dels)}`} tone="text-red-500" />
+          <StatTile label="Avg / day" value={fmt(commits / 7)} />
+        </div>
+      </Card>
+      <Card title="Recent commits">
+        <div className="-mx-[18px] -mb-[18px]">
+          {COMMITS.map((c) => (
+            <div key={c.h} className="flex items-center gap-3 px-[18px] py-3 border-b border-line last:border-b-0 hover:bg-bg-soft transition-colors">
+              <span className="grid place-items-center w-9 h-9 rounded-[10px] flex-none bg-brand-soft text-brand"><Icon name="GitCommit" size={17} /></span>
+              <div className="flex-1 min-w-0">
+                <b className="block text-[13.5px] font-medium truncate">{c.msg}</b>
+                <span className="text-[11.5px] text-ink-3 font-mono">{c.repo} · {c.h}</span>
+              </div>
+              <span className="hidden sm:flex items-center gap-2 text-[11.5px] font-semibold tabular-nums flex-none"><span className="text-emerald-600">+{c.add}</span><span className="text-red-500">−{c.del}</span></span>
+              <span className="text-[11.5px] text-ink-3 whitespace-nowrap flex-none w-[56px] text-right">{c.t}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </>
+  );
+}
+
+function PullRequestsView({ person, f }) {
+  const w = person.w;
+  const merged = Math.round(w.merged * f), open = Math.round(w.prs * f - merged), closed = Math.round(w.closed * f);
+  const rate = Math.round((merged / Math.max(merged + closed, 1)) * 100);
+  return (
+    <>
+      <Card title={`Pull requests · ${person.nm}`}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatTile label="Open" value={Math.max(open, 0)} tone="text-[#2563EB]" />
+          <StatTile label="Merged" value={merged} tone="text-brand" />
+          <StatTile label="Closed" value={closed} tone="text-red-500" />
+          <StatTile label="Merge rate" value={`${rate}%`} />
+        </div>
+      </Card>
+      <Card title="Pull requests">
+        <div className="-mx-[18px] -mb-[18px]">
+          {PRS.map((p) => {
+            const [tone, ic] = PR_TONE[p.st];
+            return (
+              <div key={p.n} className="flex items-center gap-3 px-[18px] py-3 border-b border-line last:border-b-0 hover:bg-bg-soft transition-colors">
+                <span className={cn("grid place-items-center w-9 h-9 rounded-[10px] flex-none", tone)}><Icon name={ic} size={17} /></span>
+                <div className="flex-1 min-w-0">
+                  <b className="block text-[13.5px] font-medium truncate">{p.t}</b>
+                  <span className="text-[11.5px] text-ink-3 font-mono">{p.repo} #{p.n}</span>
+                </div>
+                <span className={cn("text-[11px] font-semibold px-2.5 py-1 rounded-[7px] capitalize flex-none", tone)}>{p.st}</span>
+                <span className="hidden md:block text-[11.5px] text-ink-3 whitespace-nowrap flex-none w-[100px] text-right">{p.t2}</span>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+    </>
+  );
+}
+
+function ReviewsView({ person, f }) {
+  const w = person.w;
+  const given = Math.round(w.reviews * f), approved = Math.round(w.approved * f), changes = Math.round(w.changes * f);
+  const rate = Math.round((approved / Math.max(given, 1)) * 100);
+  return (
+    <>
+      <Card title={`Code reviews · ${person.nm}`}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatTile label="Reviews given" value={given} />
+          <StatTile label="Approved" value={approved} tone="text-emerald-600" />
+          <StatTile label="Changes requested" value={changes} tone="text-amber-500" />
+          <StatTile label="Approval rate" value={`${rate}%`} />
+        </div>
+      </Card>
+      <Card title="Recent reviews">
+        <div className="-mx-[18px] -mb-[18px]">
+          {REVIEWS.map((r, i) => {
+            const [tone, ic, label] = REV_TONE[r.verdict];
+            return (
+              <div key={i} className="flex items-center gap-3 px-[18px] py-3 border-b border-line last:border-b-0 hover:bg-bg-soft transition-colors">
+                <span className={cn("grid place-items-center w-9 h-9 rounded-[10px] flex-none", tone)}><Icon name={ic} size={17} /></span>
+                <div className="flex-1 min-w-0">
+                  <b className="block text-[13.5px] font-medium truncate">{r.pr}</b>
+                  <span className="text-[11.5px] text-ink-3">by {r.author}</span>
+                </div>
+                <span className={cn("text-[11px] font-semibold px-2.5 py-1 rounded-[7px] whitespace-nowrap flex-none", tone)}>{label}</span>
+                <span className="text-[11.5px] text-ink-3 whitespace-nowrap flex-none w-[56px] text-right">{r.t}</span>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+    </>
+  );
+}
+
+function ActivityView({ person }) {
+  return (
+    <Card title="Activity timeline" action={<span className="text-xs text-ink-3">{person.nm}</span>}>
+      <div className="relative pl-1">
+        {ACTIVITY.map((a, i) => (
+          <div key={i} className="flex items-start gap-3 pb-4 last:pb-0 relative">
+            {i < ACTIVITY.length - 1 && <span className="absolute left-[18px] top-9 bottom-0 w-px bg-line" />}
+            <span className={cn("grid place-items-center w-9 h-9 rounded-full flex-none z-10", a.tone)}><Icon name={a.ic} size={16} /></span>
+            <div className="flex-1 min-w-0 pt-1.5">
+              <div className="text-[13px] leading-snug"><b className="font-semibold">{person.nm}</b> <span className="text-ink-2">{a.act}</span> <b className="font-semibold text-brand-600">{a.tgt}</b></div>
+              <div className="text-[11.5px] text-ink-3 mt-0.5">{a.t}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export default function ContributorsPage() {
   const [sel, setSel] = useState(0);
+  const [tab, setTab] = useState("Overview");
   const [range, setRange] = useState("This Week");
   const R = RANGES[range];
+  const person = PEOPLE[sel];
+  const f = RANGE_F[range] ?? 1;
   return (
     <>
       <div className="flex items-start justify-between gap-6 mb-[18px] flex-wrap">
@@ -127,7 +302,7 @@ export default function ContributorsPage() {
       </div>
 
       <div className="flex items-center justify-between gap-4 flex-wrap mb-[18px]">
-        <Tabs items={["Overview", "Commits", "Pull Requests", "Reviews", "Activity"]} value="Overview" className="!border-0" />
+        <Tabs items={["Overview", "Commits", "Pull Requests", "Reviews", "Activity"]} value={tab} onChange={setTab} className="!border-0" />
         <Dropdown align="right" width={172} trigger={({ toggle, open }) => (
           <button onClick={toggle} className="inline-flex items-center gap-2.5 text-[13px] font-medium text-ink-2 hover:text-ink">
             <Icon name="Calendar" size={15} className="text-ink-3" />{R.label}
@@ -159,30 +334,39 @@ export default function ContributorsPage() {
 
         {/* main */}
         <div className="flex-1 min-w-0 flex flex-col gap-[18px]">
-          <Card title="Contribution Overview" action={<CardLink>View detailed breakdown</CardLink>}>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {STAT_LABELS.map((l, i) => (
-                <div key={l} className="border border-line rounded-[13px] p-[16px_18px]">
-                  <div className="text-[12.5px] text-ink-2 font-medium">{l}</div>
-                  <div className="text-[28px] font-bold tracking-[-0.02em] leading-[1.1] mt-2">{R.stats[i]}</div>
-                  <Delta value={R.deltas[i]} className="mt-1.5 !text-xs" />
+          {tab === "Overview" && (
+            <>
+              <Card title="Contribution Overview" action={<CardLink>View detailed breakdown</CardLink>}>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {STAT_LABELS.map((l, i) => (
+                    <div key={l} className="border border-line rounded-[13px] p-[16px_18px]">
+                      <div className="text-[12.5px] text-ink-2 font-medium">{l}</div>
+                      <div className="text-[28px] font-bold tracking-[-0.02em] leading-[1.1] mt-2">{R.stats[i]}</div>
+                      <Delta value={R.deltas[i]} className="mt-1.5 !text-xs" />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </Card>
+              </Card>
 
-          <div className="grid md:grid-cols-2 gap-[18px]">
-            <Card title="Activity Heatmap">
-              <Heatmap scale={R.heat} />
-            </Card>
+              <div className="grid md:grid-cols-2 gap-[18px]">
+                <Card title="Activity Heatmap">
+                  <Heatmap scale={R.heat} />
+                </Card>
 
-            <Card title="Contribution Trend" action={<span className="flex items-center gap-2 text-xs text-ink-2"><span className="w-4 border-t-2 border-brand" />Commits</span>}>
-              <Sparkline values={R.trend} width={420} height={210} fill color="var(--color-brand)" />
-              <div className="grid grid-cols-7 text-[11px] text-ink-3 text-center mt-1">
-                {R.days.map((d) => <span key={d}>{d}</span>)}
+                <Card title="Contribution Trend" action={<span className="flex items-center gap-2 text-xs text-ink-2"><span className="w-4 border-t-2 border-brand" />Commits</span>}>
+                  <Sparkline values={R.trend} width={420} height={210} fill color="var(--color-brand)" />
+                  <div className="grid grid-cols-7 text-[11px] text-ink-3 text-center mt-1">
+                    {R.days.map((d) => <span key={d}>{d}</span>)}
+                  </div>
+                </Card>
               </div>
-            </Card>
-          </div>
+            </>
+          )}
+
+          {tab === "Commits" && <CommitsView person={person} f={f} />}
+          {tab === "Pull Requests" && <PullRequestsView person={person} f={f} />}
+          {tab === "Reviews" && <ReviewsView person={person} f={f} />}
+          {tab === "Activity" && <ActivityView person={person} />}
         </div>
       </div>
     </>
