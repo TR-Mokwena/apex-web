@@ -11,6 +11,7 @@ import AuditLogsSettings from "@/components/AuditLogsSettings";
 import FeatureFlagsSettings from "@/components/FeatureFlagsSettings";
 import ApiKeysSettings from "@/components/ApiKeysSettings";
 import BillingSettings from "@/components/BillingSettings";
+import IntegrationsSettings from "@/components/IntegrationsSettings";
 
 const PAL = [
   "linear-gradient(135deg,#6366F1,#8B5CF6)",
@@ -76,9 +77,10 @@ export default function SettingsPage() {
         {active === "Feature Flags" && <FeatureFlagsSettings />}
         {active === "API Keys" && <ApiKeysSettings />}
         {active === "Billing" && <BillingSettings />}
+        {active === "Integrations" && <IntegrationsSettings />}
         {active === "Appearance" && <div className="flex-1 min-w-0"><ThemePicker /></div>}
 
-        {!["General", "Users", "Roles & Permissions", "Audit Logs", "Feature Flags", "API Keys", "Billing", "Appearance", "Teams"].includes(active) && (
+        {!["General", "Users", "Roles & Permissions", "Audit Logs", "Feature Flags", "Integrations", "API Keys", "Billing", "Appearance", "Teams"].includes(active) && (
           <div className="flex-1 min-w-0 card grid place-items-center py-20 text-center">
             <div className="flex flex-col items-center gap-3 max-w-[380px]">
               <span className="grid place-items-center w-14 h-14 rounded-2xl bg-brand-soft text-brand"><Icon name="Settings2" size={26} /></span>

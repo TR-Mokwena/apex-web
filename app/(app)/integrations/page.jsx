@@ -2,56 +2,45 @@
 
 import { useState } from "react";
 import Icon from "@/components/Icon";
+import BrandLogo from "@/components/BrandLogo";
+import { Modal, Field, TextInput, Select, Textarea, Switch, Button } from "@/components/ui";
 import { cn } from "@/lib/cn";
+import { CATEGORIES, INTEGRATIONS } from "@/lib/integrations";
 
-const CATEGORIES = ["All", "Source Control", "Communication", "Productivity", "Monitoring", "Developer"];
-
-const INTEGRATIONS = [
-  { name: "GitHub", cat: "Source Control", icon: "Github", slug: "github", color: "#181717", desc: "Sync commits, pull requests and reviews for contribution insights.", connected: true },
-  { name: "GitLab", cat: "Source Control", icon: "GitBranch", slug: "gitlab", color: "#FC6D26", desc: "Track merge requests and CI pipelines across your repos." },
-  { name: "Slack", cat: "Communication", icon: "MessageSquare", slug: "slack", color: "#4A154B", desc: "Post risk alerts, digests and mentions to your channels.", connected: true },
-  { name: "Microsoft Teams", cat: "Communication", icon: "Video", slug: "microsoftteams", color: "#5059C9", desc: "Deliver Apex notifications straight into Teams." },
-  { name: "OmniConnect SA", cat: "Communication", icon: "MessagesSquare", color: "#7C3AED", desc: "Send Apex alerts over SMS, WhatsApp & email — all SA networks, POPIA-compliant.", connected: true },
-  { name: "Jira", cat: "Productivity", icon: "SquareKanban", slug: "jira", color: "#0052CC", desc: "Two-way issue sync to keep boards and tasks aligned." },
-  { name: "Linear", cat: "Productivity", icon: "Activity", slug: "linear", color: "#5E6AD2", desc: "Sync issues and cycles with your engineering workflow." },
-  { name: "Figma", cat: "Productivity", icon: "Figma", slug: "figma", color: "#F24E1E", desc: "Embed design files and frames directly inside tasks." },
-  { name: "Notion", cat: "Productivity", icon: "FileText", slug: "notion", color: "#111827", desc: "Link docs, specs and wikis to projects and milestones." },
-  { name: "Google Calendar", cat: "Productivity", icon: "Calendar", slug: "googlecalendar", color: "#4285F4", desc: "Push sprints, milestones and deadlines to your calendar.", connected: true },
-  { name: "Sentry", cat: "Monitoring", icon: "TriangleAlert", slug: "sentry", color: "#362D59", desc: "Surface production errors as AI risk alerts." },
-  { name: "Datadog", cat: "Monitoring", icon: "ChartNoAxesColumn", slug: "datadog", color: "#632CA6", desc: "Pull deploy and performance metrics into reports." },
-  { name: "PagerDuty", cat: "Monitoring", icon: "Siren", slug: "pagerduty", color: "#06AC38", desc: "Escalate incidents and link them to affected projects." },
-  { name: "CircleCI", cat: "Developer", icon: "CircleDot", slug: "circleci", color: "#343434", desc: "Show build and test status on tasks and PRs." },
-  { name: "Webhooks", cat: "Developer", icon: "Webhook", slug: "webhooks", color: "#6366F1", desc: "Send any Apex event to an external URL in real time." },
-];
-
-// Real brand marks via the Simple Icons CDN (monochrome white on the brand-coloured
-// tile). Falls back to the lucide icon if a logo is missing (e.g. brands Simple Icons
-// no longer ships) or the CDN is unreachable.
-function BrandLogo({ slug, icon }) {
-  const [failed, setFailed] = useState(false);
-  if (slug && !failed) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={`https://cdn.simpleicons.org/${slug}/white`}
-        alt=""
-        width={22}
-        height={22}
-        loading="lazy"
-        onError={() => setFailed(true)}
-        className="w-[22px] h-[22px]"
-      />
-    );
-  }
-  return <Icon name={icon} size={22} className="text-white" />;
-}
+const FREQS = ["Real-time", "Every 15 min", "Hourly", "Daily"];
 
 export default function IntegrationsPage() {
   const [cat, setCat] = useState("All");
   const [query, setQuery] = useState("");
   const [connected, setConnected] = useState(() => new Set(INTEGRATIONS.filter((i) => i.connected).map((i) => i.name)));
+  const [config, setConfig] = useState(null); // integration being configured
+  const [prefs, setPrefs] = useState({}); // { [name]: { freq, alerts } }
+  const [reqOpen, setReqOpen] = useState(false);
+  const [reqForm, setReqForm] = useState({ name: "", cat: "Source Control", use: "" });
+  const [toast, setToast] = useState("");
+  const [connecting, setConnecting] = useState(() => new Set()); // simulated OAuth in flight
 
   const toggle = (name) => setConnected((c) => { const n = new Set(c); n.has(name) ? n.delete(name) : n.add(name); return n; });
+  // Card button: real-feeling connect flow (authorize → connected), instant disconnect.
+  const connect = (name) => {
+    if (connected.has(name)) { toggle(name); flash(`${name} disconnected`); return; }
+    if (connecting.has(name)) return;
+    setConnecting((s) => new Set(s).add(name));
+    setTimeout(() => {
+      setConnecting((s) => { const n = new Set(s); n.delete(name); return n; });
+      setConnected((c) => new Set(c).add(name));
+      flash(`${name} connected`);
+    }, 900);
+  };
+  const pref = (name) => prefs[name] || { freq: "Real-time", alerts: true };
+  const setPref = (name, k, v) => setPrefs((p) => ({ ...p, [name]: { ...pref(name), [k]: v } }));
+  const flash = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2600); };
+  const submitRequest = () => {
+    if (!reqForm.name.trim()) return;
+    setReqOpen(false);
+    flash(`Request sent for “${reqForm.name.trim()}” — we’ll review it.`);
+    setReqForm({ name: "", cat: "Source Control", use: "" });
+  };
 
   const filtered = INTEGRATIONS.filter((i) =>
     (cat === "All" || i.cat === cat) && i.name.toLowerCase().includes(query.trim().toLowerCase())
@@ -67,8 +56,14 @@ export default function IntegrationsPage() {
             <div className="text-[13px] text-ink-2 mt-0.5">Connect Apex to the tools your team already uses.</div>
           </div>
         </div>
-        <button className="flex items-center gap-2 h-10 px-4 rounded-field text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}><Icon name="Plus" size={15} />Request integration</button>
+        <button onClick={() => setReqOpen(true)} className="flex items-center gap-2 h-10 px-4 rounded-field text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}><Icon name="Plus" size={15} />Request integration</button>
       </div>
+
+      {toast && (
+        <div className="flex items-center gap-2.5 mb-4 px-4 py-3 rounded-field bg-emerald-50 border border-emerald-200 text-emerald-700 text-[13px] font-medium">
+          <Icon name="CircleCheckBig" size={16} className="text-emerald-600 flex-none" />{toast}
+        </div>
+      )}
 
       {/* summary */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 mb-4">
@@ -102,6 +97,7 @@ export default function IntegrationsPage() {
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3.5">
         {filtered.map((it) => {
           const on = connected.has(it.name);
+          const busy = connecting.has(it.name);
           return (
             <div key={it.name} className="card p-[18px] flex flex-col gap-3">
               <div className="flex items-start gap-3">
@@ -117,13 +113,16 @@ export default function IntegrationsPage() {
               <p className="m-0 text-[12.5px] text-ink-2 leading-relaxed flex-1">{it.desc}</p>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => toggle(it.name)}
+                  onClick={() => connect(it.name)}
+                  disabled={busy}
                   className={cn("flex-1 h-9 rounded-field text-[13px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors",
-                    on ? "bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100" : "bg-brand text-white hover:bg-brand-600")}
+                    busy ? "bg-brand/70 text-white cursor-wait" : on ? "bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 group/btn" : "bg-brand text-white hover:bg-brand-600")}
                 >
-                  {on ? <><Icon name="Check" size={15} />Connected</> : "Connect"}
+                  {busy ? <><Icon name="Loader" size={15} className="animate-spin" />Connecting…</>
+                    : on ? <><Icon name="Check" size={15} className="group-hover/btn:hidden" /><Icon name="Unplug" size={15} className="hidden group-hover/btn:inline" /><span className="group-hover/btn:hidden">Connected</span><span className="hidden group-hover/btn:inline">Disconnect</span></>
+                    : "Connect"}
                 </button>
-                <button className="grid place-items-center w-9 h-9 rounded-field border border-line bg-card text-ink-2 hover:border-[#C7D2FE]"><Icon name="Settings" size={15} /></button>
+                <button onClick={() => setConfig(it)} title="Configure" className="grid place-items-center w-9 h-9 rounded-field border border-line bg-card text-ink-2 hover:border-[#C7D2FE]"><Icon name="Settings" size={15} /></button>
               </div>
             </div>
           );
@@ -135,6 +134,61 @@ export default function IntegrationsPage() {
           <div className="flex flex-col items-center gap-2"><Icon name="SearchX" size={28} className="text-ink-3" /><div className="text-[13.5px] text-ink-2">No integrations match your search.</div></div>
         </div>
       )}
+
+      {/* configure */}
+      <Modal open={!!config} onClose={() => setConfig(null)} title={config ? `${config.name} settings` : ""}
+        footer={<Button variant="primary" onClick={() => setConfig(null)}>Done</Button>}>
+        {config && (() => {
+          const on = connected.has(config.name);
+          const p = pref(config.name);
+          const isDev = config.cat === "Developer";
+          const isComms = config.cat === "Communication";
+          return (
+            <>
+              <div className="flex items-center gap-3">
+                <span className="grid place-items-center w-11 h-11 rounded-[12px] flex-none" style={{ background: config.color }}><BrandLogo slug={config.slug} icon={config.icon} /></span>
+                <div className="flex-1 min-w-0"><b className="text-[14.5px] font-semibold">{config.name}</b><div className="text-[11.5px] text-ink-3">{config.cat}</div></div>
+                <span className={cn("inline-flex items-center gap-1 text-[10.5px] font-semibold rounded-full px-2 py-0.5", on ? "text-emerald-600 bg-emerald-50" : "text-ink-3 bg-bg")}><span className={cn("w-1.5 h-1.5 rounded-full", on ? "bg-emerald-500" : "bg-slate-300")} />{on ? "Active" : "Not connected"}</span>
+              </div>
+
+              <div className="flex items-center justify-between py-2 border-t border-line">
+                <span className="text-[13px] font-medium">Connection</span>
+                <Switch checked={on} onChange={() => toggle(config.name)} />
+              </div>
+
+              {isDev ? (
+                <Field label="Endpoint URL"><TextInput value={p.url || ""} onChange={(e) => setPref(config.name, "url", e.target.value)} placeholder="https://example.com/apex-hook" /></Field>
+              ) : (
+                <Field label="Sync frequency">
+                  <Select value={p.freq} onChange={(e) => setPref(config.name, "freq", e.target.value)}>{FREQS.map((f) => <option key={f} value={f}>{f}</option>)}</Select>
+                </Field>
+              )}
+
+              {isComms && (
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-[13px] font-medium">Send Apex alerts here<span className="block text-[11.5px] text-ink-3 font-normal">Risk warnings, mentions & digests</span></span>
+                  <Switch checked={p.alerts !== false} onChange={(v) => setPref(config.name, "alerts", v)} />
+                </div>
+              )}
+
+              <p className="m-0 text-[11.5px] text-ink-3 leading-relaxed">Demo settings — saved for this session. Real connections will run an OAuth flow.</p>
+            </>
+          );
+        })()}
+      </Modal>
+
+      {/* request integration */}
+      <Modal open={reqOpen} onClose={() => setReqOpen(false)} title="Request an integration"
+        footer={<>
+          <Button onClick={() => setReqOpen(false)}>Cancel</Button>
+          <Button variant="primary" onClick={submitRequest} disabled={!reqForm.name.trim()}>Send request</Button>
+        </>}>
+        <Field label="Tool name"><TextInput value={reqForm.name} onChange={(e) => setReqForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Asana" autoFocus /></Field>
+        <Field label="Category">
+          <Select value={reqForm.cat} onChange={(e) => setReqForm((f) => ({ ...f, cat: e.target.value }))}>{CATEGORIES.slice(1).map((c) => <option key={c} value={c}>{c}</option>)}</Select>
+        </Field>
+        <Field label="What would you use it for?"><Textarea rows={3} value={reqForm.use} onChange={(e) => setReqForm((f) => ({ ...f, use: e.target.value }))} placeholder="Tell us how this would fit your workflow…" /></Field>
+      </Modal>
     </>
   );
 }
