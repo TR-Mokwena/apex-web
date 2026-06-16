@@ -67,6 +67,202 @@ const RD = {
 };
 const REPORT_RANGES = RANGE_OPTIONS.filter((o) => RD[o.key]);
 
+const TEAMS = [
+  { nm: "Platform", lead: "TR Mokwena", members: 8, velocity: 128, delivery: 93, onTrack: 88, color: "#6366F1" },
+  { nm: "Web", lead: "Priya Singh", members: 6, velocity: 104, delivery: 90, onTrack: 82, color: "#22C55E" },
+  { nm: "Mobile", lead: "Sipho Dlamini", members: 5, velocity: 86, delivery: 84, onTrack: 74, color: "#F59E0B" },
+  { nm: "Data", lead: "Naledi Kgasana", members: 4, velocity: 72, delivery: 88, onTrack: 80, color: "#8B5CF6" },
+];
+const INDIVIDUALS = [
+  { nm: "TR Mokwena", in: "TM", pi: 0, commits: 342, prs: 42, reviews: 96, thru: 34, trend: [12, 16, 14, 22, 20, 29, 34] },
+  { nm: "Thabo Nkosi", in: "TN", pi: 3, commits: 298, prs: 37, reviews: 88, thru: 31, trend: [14, 15, 18, 20, 22, 26, 30] },
+  { nm: "Priya Singh", in: "PS", pi: 4, commits: 271, prs: 38, reviews: 91, thru: 33, trend: [10, 18, 16, 24, 28, 30, 33] },
+  { nm: "Sipho Dlamini", in: "SD", pi: 1, commits: 233, prs: 31, reviews: 74, thru: 27, trend: [16, 14, 18, 17, 22, 24, 27] },
+  { nm: "Naledi Kgasana", in: "NK", pi: 2, commits: 204, prs: 28, reviews: 69, thru: 24, trend: [12, 14, 15, 18, 20, 22, 24] },
+];
+const FORECAST = [
+  { nm: "Apex v2.1", risk: 72, eta: "Jul 04", conf: 64, onTime: 38 },
+  { nm: "Mobile App", risk: 58, eta: "Jul 18", conf: 71, onTime: 55 },
+  { nm: "Analytics Module", risk: 43, eta: "Jun 30", conf: 78, onTime: 66 },
+  { nm: "DevOps Pipeline", risk: 32, eta: "Jun 26", conf: 84, onTime: 74 },
+  { nm: "Platform Core", risk: 21, eta: "Jun 24", conf: 90, onTime: 85 },
+];
+const CAP = [
+  { nm: "Priya S.", av: "PS", pi: 4, used: 20, total: 20, proj: "Web" },
+  { nm: "Sipho D.", av: "SD", pi: 1, used: 18, total: 21, proj: "Mobile App" },
+  { nm: "Naledi K.", av: "NK", pi: 2, used: 16, total: 18, proj: "Analytics" },
+  { nm: "TR Mokwena", av: "TM", pi: 0, used: 13, total: 18, proj: "Platform" },
+  { nm: "Thabo N.", av: "TN", pi: 3, used: 9, total: 16, proj: "Platform" },
+];
+const ALLOC = [
+  { value: 38, color: "#6366F1", label: "Apex v2.1" },
+  { value: 27, color: "#22C55E", label: "Platform" },
+  { value: 20, color: "#F59E0B", label: "Web" },
+  { value: 15, color: "#A5B4FC", label: "Analytics" },
+];
+const capColor = (p) => (p >= 100 ? "#EF4444" : p >= 85 ? "#F59E0B" : "#6366F1");
+
+function Avatar({ av, pi, size = 32 }) {
+  return <span className="grid place-items-center rounded-full text-white font-semibold flex-none" style={{ width: size, height: size, fontSize: size * 0.34, background: PAL[pi % PAL.length] }}>{av}</span>;
+}
+function Bar({ pct, color, w = "flex-1" }) {
+  return <span className={cn("h-[9px] bg-bg rounded-full overflow-hidden", w)}><span className="block h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: color }} /></span>;
+}
+
+function TeamView() {
+  const maxV = Math.max(...TEAMS.map((t) => t.velocity));
+  return (
+    <>
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3.5 mb-[18px]">
+        {TEAMS.map((t) => (
+          <div key={t.nm} className="card !rounded-[14px] !shadow-card p-[16px_18px]">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: t.color }} />
+              <b className="text-[14px] font-semibold">{t.nm}</b>
+              <span className="ml-auto text-[11.5px] text-ink-3">{t.members} people</span>
+            </div>
+            <div className="text-[30px] font-bold tracking-[-0.02em] mt-2.5 leading-none">{t.velocity}<small className="text-[13px] text-ink-3 font-semibold"> pts</small></div>
+            <div className="text-[11.5px] text-ink-3 mt-1">avg velocity · led by {t.lead}</div>
+            <div className="mt-3 flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-[11.5px]"><span className="w-[64px] text-ink-2 flex-none">Delivery</span><Bar pct={t.delivery} color="#22C55E" /><span className="w-8 text-right font-semibold tabular-nums">{t.delivery}%</span></div>
+              <div className="flex items-center gap-2 text-[11.5px]"><span className="w-[64px] text-ink-2 flex-none">On track</span><Bar pct={t.onTrack} color={t.color} /><span className="w-8 text-right font-semibold tabular-nums">{t.onTrack}%</span></div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <Card title="Velocity by Team">
+        <div className="flex items-end gap-6 h-[180px] px-2 pt-2">
+          {TEAMS.map((t) => (
+            <div key={t.nm} className="flex-1 flex flex-col items-center gap-2">
+              <div className="flex-1 flex items-end w-full justify-center">
+                <div className="group relative w-9 rounded-t-[6px] transition-[filter] hover:brightness-110" style={{ height: `${(t.velocity / maxV) * 140}px`, background: t.color }}>
+                  <span className="pointer-events-none absolute left-1/2 -top-2 -translate-x-1/2 -translate-y-full px-2 py-1 rounded-lg bg-[#1e293b] text-white text-[11px] font-semibold whitespace-nowrap shadow-pop opacity-0 group-hover:opacity-100 transition-opacity">{t.velocity} pts</span>
+                </div>
+              </div>
+              <div className="text-[12px] font-medium text-ink-2">{t.nm}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </>
+  );
+}
+
+function IndividualView({ f }) {
+  return (
+    <Card title="Individual Performance" action={<CardLink>Export CSV</CardLink>}>
+      <div className="-mx-[18px] -mb-[18px] overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[560px]">
+          <thead>
+            <tr className="text-[11px] uppercase tracking-wide text-ink-3 border-b border-line">
+              <th className="font-semibold px-[18px] py-2.5">Contributor</th>
+              <th className="font-semibold px-3 py-2.5 text-right">Commits</th>
+              <th className="font-semibold px-3 py-2.5 text-right">PRs</th>
+              <th className="font-semibold px-3 py-2.5 text-right">Reviews</th>
+              <th className="font-semibold px-3 py-2.5 text-right">Throughput</th>
+              <th className="font-semibold px-[18px] py-2.5 text-right">Trend</th>
+            </tr>
+          </thead>
+          <tbody>
+            {INDIVIDUALS.map((p) => (
+              <tr key={p.nm} className="border-b border-line last:border-b-0 hover:bg-bg-soft transition-colors">
+                <td className="px-[18px] py-2.5"><span className="flex items-center gap-2.5"><Avatar av={p.in} pi={p.pi} size={30} /><b className="text-[13px] font-semibold">{p.nm}</b></span></td>
+                <td className="px-3 py-2.5 text-right text-[13px] font-medium tabular-nums">{fmt(p.commits * f)}</td>
+                <td className="px-3 py-2.5 text-right text-[13px] font-medium tabular-nums">{fmt(p.prs * f)}</td>
+                <td className="px-3 py-2.5 text-right text-[13px] font-medium tabular-nums">{fmt(p.reviews * f)}</td>
+                <td className="px-3 py-2.5 text-right text-[13px] font-semibold tabular-nums">{p.thru}</td>
+                <td className="px-[18px] py-2.5"><span className="flex justify-end"><Sparkline values={p.trend} width={84} height={28} className="!w-[84px]" /></span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+}
+
+function PredictiveView({ score }) {
+  return (
+    <div className="grid lg:grid-cols-[1fr_1.7fr] gap-4">
+      <Card title="Overall Risk" action={<CardLink>How it works</CardLink>}>
+        <div className="flex flex-col items-center justify-center gap-1.5 py-1.5">
+          <Gauge value={score} color={riskColor(score)} label="Risk Score" width={190} height={130} />
+          <div className="text-xs text-ink-2 text-center mt-1.5 max-w-[230px]">Forecast from velocity, scope churn and open dependencies for the selected window.</div>
+        </div>
+      </Card>
+      <Card title="Milestone Forecast">
+        <div className="-mx-[18px] -mb-[18px] overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[480px]">
+            <thead>
+              <tr className="text-[11px] uppercase tracking-wide text-ink-3 border-b border-line">
+                <th className="font-semibold px-[18px] py-2.5">Milestone</th>
+                <th className="font-semibold px-3 py-2.5">Risk</th>
+                <th className="font-semibold px-3 py-2.5 text-right">Predicted</th>
+                <th className="font-semibold px-3 py-2.5 text-right">On-time</th>
+                <th className="font-semibold px-[18px] py-2.5 text-right">Confidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              {FORECAST.map((m) => (
+                <tr key={m.nm} className="border-b border-line last:border-b-0 hover:bg-bg-soft transition-colors">
+                  <td className="px-[18px] py-2.5 text-[13px] font-semibold">{m.nm}</td>
+                  <td className="px-3 py-2.5"><span className="flex items-center gap-2 w-[120px]"><Bar pct={m.risk} color={riskColor(m.risk)} /><span className="text-[12px] font-semibold tabular-nums w-7">{m.risk}%</span></span></td>
+                  <td className="px-3 py-2.5 text-right text-[13px] tabular-nums">{m.eta}</td>
+                  <td className={cn("px-3 py-2.5 text-right text-[13px] font-semibold tabular-nums", m.onTime >= 60 ? "text-emerald-600" : m.onTime >= 45 ? "text-amber-500" : "text-red-500")}>{m.onTime}%</td>
+                  <td className="px-[18px] py-2.5 text-right text-[13px] text-ink-2 tabular-nums">{m.conf}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function CapacityView() {
+  const totalUsed = CAP.reduce((s, c) => s + c.used, 0);
+  const totalCap = CAP.reduce((s, c) => s + c.total, 0);
+  const util = Math.round((totalUsed / totalCap) * 100);
+  return (
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-[18px]">
+        {[["Allocated", `${totalUsed} pts`], ["Capacity", `${totalCap} pts`], ["Utilization", `${util}%`], ["Available", `${totalCap - totalUsed} pts`]].map(([l, v]) => (
+          <div key={l} className="card !rounded-[14px] !shadow-card p-[15px_16px]">
+            <div className="text-xs text-ink-2 font-medium">{l}</div>
+            <div className="text-[26px] font-bold tracking-[-0.02em] mt-1.5 leading-none">{v}</div>
+          </div>
+        ))}
+      </div>
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card title="Capacity by Member" action={<span className="text-xs text-ink-3">pts used / total</span>}>
+          <div className="flex flex-col">
+            {CAP.map((c) => {
+              const pct = Math.round((c.used / c.total) * 100);
+              return (
+                <div key={c.av} className="flex items-center gap-3 py-2.5">
+                  <Avatar av={c.av} pi={c.pi} size={32} />
+                  <div className="w-[110px] flex-none min-w-0"><b className="block text-[13px] font-medium truncate">{c.nm}</b><span className="text-[11px] text-ink-3">{c.proj}</span></div>
+                  <Bar pct={pct} color={capColor(pct)} />
+                  <span className="text-xs font-semibold text-ink-2 w-14 text-right tabular-nums">{c.used}/{c.total}</span>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+        <Card title="Allocation by Project">
+          <div className="flex items-center gap-[22px] flex-wrap">
+            <Donut size={148} thickness={5.5} center={`${totalUsed}`} centerSub="pts allocated" segments={ALLOC} />
+            <div className="flex-1 min-w-[180px] flex flex-col gap-1">
+              {ALLOC.map((a) => <LegendRow key={a.label} color={a.color} label={a.label} value={`${a.value}%`} />)}
+            </div>
+          </div>
+        </Card>
+      </div>
+    </>
+  );
+}
+
 function MiniDelta({ d, dir, good }) {
   const color = dir === "flat" ? "text-ink-3" : good || dir === "up" ? "text-emerald-600" : "text-red-500";
   const icon = dir === "up" ? "ArrowUp" : dir === "down" ? "ArrowDown" : "Minus";
@@ -75,7 +271,9 @@ function MiniDelta({ d, dir, good }) {
 
 export default function ReportsPage() {
   const [range, setRange] = useState("This Week");
+  const [tab, setTab] = useState("Overview");
   const d = RD[range];
+  const f = RF[range] ?? 1;
   const healthScore = Math.round(d.health.reduce((s, x) => s + x, 0) / d.health.length);
   const healthLabel = healthScore >= 80 ? "Good" : healthScore >= 60 ? "Fair" : "Low";
   return (
@@ -97,8 +295,14 @@ export default function ReportsPage() {
 
       <Tabs className="mb-[18px]" items={[
         { label: "Overview" }, { label: "Team" }, { label: "Individual" }, { label: "Predictive" }, { label: "Capacity" },
-      ]} value="Overview" />
+      ]} value={tab} onChange={setTab} />
 
+      {tab === "Team" && <TeamView />}
+      {tab === "Individual" && <IndividualView f={f} />}
+      {tab === "Predictive" && <PredictiveView score={d.score} />}
+      {tab === "Capacity" && <CapacityView />}
+
+      {tab === "Overview" && <>
       {/* operational strip */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5 mb-3.5">
         {OPS_META.map((o, i) => (
@@ -180,6 +384,7 @@ export default function ReportsPage() {
           </div>
         </Card>
       </div>
+      </>}
     </>
   );
 }
