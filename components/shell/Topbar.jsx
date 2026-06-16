@@ -118,7 +118,7 @@ export default function Topbar({ onOpenMenu }) {
         ))}
         <MenuSep />
         <MenuItem icon="Settings" href="/settings">Organization settings</MenuItem>
-        <MenuItem icon="Plus" onClick={() => {}}>Create organization</MenuItem>
+        <MenuItem icon="Plus" href="/onboarding">Create organization</MenuItem>
       </Dropdown>
     </header>
   );

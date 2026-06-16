@@ -41,7 +41,13 @@ const ACTIVITY = [
 
 export default function NotificationsPage() {
   const [tab, setTab] = useState("all");
-  const data = tab === "all" ? NOTES : tab === "unread" ? NOTES.filter((n) => n.unread) : NOTES.filter((n) => n.cat === tab);
+  const [notes, setNotes] = useState(NOTES);
+  const data = tab === "all" ? notes : tab === "unread" ? notes.filter((n) => n.unread) : notes.filter((n) => n.cat === tab);
+
+  const unread = notes.filter((n) => n.unread).length;
+  const count = (id) => id === "all" ? notes.length : id === "unread" ? unread : notes.filter((n) => n.cat === id).length;
+  const markAll = () => setNotes((ns) => ns.map((n) => ({ ...n, unread: false })));
+  const markOne = (note) => setNotes((ns) => ns.map((n) => (n === note ? { ...n, unread: false } : n)));
 
   return (
     <>
@@ -49,7 +55,7 @@ export default function NotificationsPage() {
         <div className="flex items-center gap-2.5">
           <span className="relative grid place-items-center w-[34px] h-[34px] rounded-[10px] bg-brand-soft">
             <Icon name="Bell" size={19} className="text-brand" />
-            <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 grid place-items-center rounded-lg bg-red-500 text-white text-[9.5px] font-bold border-2 border-bg">6</span>
+            {unread > 0 && <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 grid place-items-center rounded-lg bg-red-500 text-white text-[9.5px] font-bold border-2 border-bg">{unread}</span>}
           </span>
           <div>
             <h1 className="m-0 text-[23px] font-bold tracking-[-0.02em]">Notifications</h1>
@@ -57,7 +63,7 @@ export default function NotificationsPage() {
           </div>
         </div>
         <div className="flex items-center gap-2.5">
-          <Button icon={<Icon name="CheckCheck" size={15} />}>Mark all read</Button>
+          <Button icon={<Icon name="CheckCheck" size={15} />} onClick={markAll} disabled={unread === 0}>Mark all read</Button>
           <Button className="!px-0 w-[38px]"><Icon name="Settings" size={15} /></Button>
         </div>
       </div>
@@ -66,15 +72,16 @@ export default function NotificationsPage() {
         {/* list */}
         <div className="flex-1 min-w-0 w-full card">
           <div className="flex items-center gap-1 p-2 border-b border-line overflow-x-auto">
-            {TABS.map(([id, label, ct]) => (
+            {TABS.map(([id, label]) => (
               <button key={id} onClick={() => setTab(id)} className={cn("flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] text-[13px] font-medium transition-colors whitespace-nowrap", tab === id ? "bg-brand-soft text-brand-600 font-semibold" : "text-ink-2 hover:bg-bg")}>
-                {label}<span className={cn("text-[11px] font-semibold rounded-full px-1.5", tab === id ? "bg-brand text-white" : "bg-card border border-line text-ink-3")}>{ct}</span>
+                {label}<span className={cn("text-[11px] font-semibold rounded-full px-1.5", tab === id ? "bg-brand text-white" : "bg-card border border-line text-ink-3")}>{count(id)}</span>
               </button>
             ))}
           </div>
           <div>
+            {data.length === 0 && <div className="px-[18px] py-14 text-center text-[13px] text-ink-3">You're all caught up.</div>}
             {data.map((n, i) => (
-              <div key={i} className={cn("relative flex items-start gap-3 px-[18px] py-[15px] border-b border-line last:border-b-0 cursor-pointer transition-colors hover:bg-bg-soft", n.unread && "bg-bg-soft before:content-[''] before:absolute before:left-[7px] before:top-1/2 before:-translate-y-1/2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand")}>
+              <div key={i} onClick={() => markOne(n)} className={cn("relative flex items-start gap-3 px-[18px] py-[15px] border-b border-line last:border-b-0 cursor-pointer transition-colors hover:bg-bg-soft", n.unread && "bg-bg-soft before:content-[''] before:absolute before:left-[7px] before:top-1/2 before:-translate-y-1/2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-brand")}>
                 <span className="grid place-items-center w-[38px] h-[38px] rounded-[11px] flex-none" style={{ background: n.ib }}><Icon name={n.ic} size={18} style={{ color: n.icol }} /></span>
                 <div className="flex-1 min-w-0">
                   <div className="text-[13.5px] font-semibold text-ink leading-[1.4]" dangerouslySetInnerHTML={{ __html: n.tt }} />

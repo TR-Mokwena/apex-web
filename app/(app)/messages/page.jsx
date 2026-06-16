@@ -58,6 +58,7 @@ export default function MessagesPage() {
   const [active, setActive] = useState("c1");
   const [draft, setDraft] = useState("");
   const [tab, setTab] = useState("All");
+  const [query, setQuery] = useState("");
   const msgsRef = useRef(null);
   const c = convos.find((x) => x.id === active);
 
@@ -78,8 +79,11 @@ export default function MessagesPage() {
     setDraft("");
   };
 
-  const channels = convos.filter((x) => x.type === "channel");
-  const dms = convos.filter((x) => x.type === "dm");
+  const match = (cv) => (cv.type === "channel" ? "# " + cv.name : cv.name).toLowerCase().includes(query.trim().toLowerCase());
+  const f = (x) => match(x) && (tab !== "Unread" || x.unread > 0);
+  const channels = (tab === "All" || tab === "Channels" || tab === "Unread") ? convos.filter((x) => x.type === "channel" && f(x)) : [];
+  const dms = (tab === "All" || tab === "DMs" || tab === "Unread") ? convos.filter((x) => x.type === "dm" && f(x)) : [];
+  const empty = channels.length === 0 && dms.length === 0;
 
   return (
     <div className="flex flex-col h-[calc(100vh-114px)]">
@@ -100,14 +104,15 @@ export default function MessagesPage() {
       <div className="flex-1 min-h-0 flex bg-card border border-line rounded-card shadow-card overflow-hidden">
         {/* conversation list */}
         <div className="w-[288px] flex-none border-r border-line flex-col min-h-0 hidden sm:flex">
-          <div className="p-[14px_14px_10px]"><div className="flex items-center gap-2 bg-bg border border-line rounded-[10px] px-[11px] py-2"><Icon name="Search" size={15} className="text-ink-3" /><input placeholder="Search messages..." className="bg-transparent outline-none text-[13px] flex-1 min-w-0" /></div></div>
+          <div className="p-[14px_14px_10px]"><div className="flex items-center gap-2 bg-bg border border-line rounded-[10px] px-[11px] py-2"><Icon name="Search" size={15} className="text-ink-3" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search messages..." className="bg-transparent outline-none text-[13px] flex-1 min-w-0" />{query && <button onClick={() => setQuery("")} className="text-ink-3 hover:text-ink"><Icon name="X" size={14} /></button>}</div></div>
           <div className="flex gap-1 px-3.5 pb-2">
             {["All", "Unread", "Channels", "DMs"].map((t) => (
               <button key={t} onClick={() => setTab(t)} className={cn("text-xs font-medium px-3 py-1.5 rounded-lg", tab === t ? "bg-brand-soft text-brand-600 font-semibold" : "text-ink-2")}>{t}</button>
             ))}
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto px-2 pb-2.5">
-            {[["Channels", channels], ["Direct messages", dms]].map(([label, list]) => (
+            {empty && <div className="text-[12.5px] text-ink-3 text-center py-10">No conversations{query ? ` for “${query}”` : ""}.</div>}
+            {[["Channels", channels], ["Direct messages", dms]].filter(([, list]) => list.length > 0).map(([label, list]) => (
               <div key={label}>
                 <div className="text-[10.5px] font-bold uppercase tracking-wide text-ink-3 p-[12px_8px_6px]">{label}</div>
                 {list.map((cv) => (
