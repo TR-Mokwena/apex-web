@@ -183,7 +183,7 @@ export default function CalendarPage() {
               {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => <div key={i} className="text-[10px] font-semibold text-ink-3 text-center py-1">{d}</div>)}
               {cells.map((c, i) => {
                 const id = isoOf(c.y, c.m, c.d);
-                const has = (EVENTS[id] || []).length > 0;
+                const has = (events[id] || []).length > 0;
                 return (
                   <button key={i} onClick={() => setSel(id)} className={cn("relative text-xs text-center py-1.5 rounded-[7px]", c.out && "text-ink-3 opacity-50", id === TODAY ? "bg-brand text-white font-semibold" : id === sel ? "shadow-[inset_0_0_0_1.5px_var(--color-brand)] text-brand-600 font-semibold" : "text-ink-2 hover:bg-bg")}>
                     {c.d}
