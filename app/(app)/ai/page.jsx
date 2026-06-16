@@ -3,6 +3,14 @@
 import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/Icon";
 import { cn } from "@/lib/cn";
+import { generateReportPdf } from "@/lib/report";
+
+const MODES = [
+  { k: "Deep Research", ic: "Telescope", d: "Thorough multi-step analysis" },
+  { k: "Quick Answer", ic: "Zap", d: "Fast, concise reply" },
+  { k: "Web Search", ic: "Globe", d: "Pull in external context" },
+  { k: "Codebase", ic: "Code", d: "Search your repositories" },
+];
 
 const GRAD = "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))";
 const RISK = [
@@ -93,8 +101,11 @@ export default function AIPage() {
   const [thinking, setThinking] = useState(false);
   const [ctx, setCtx] = useState(true);
   const [gh, setGh] = useState(true);
+  const [mode, setMode] = useState("Deep Research");
+  const [modeOpen, setModeOpen] = useState(false);
   const [reports, setReports] = useState(REPORTS_SEED);
   const scrollRef = useRef(null);
+  const modeMeta = MODES.find((m) => m.k === mode) || MODES[0];
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -112,7 +123,7 @@ export default function AIPage() {
       setMessages((m) => [...m, res]);
       if (res.kind === "report") setReports((r) => [{ icon: "FileText", ib: "rgba(99,102,241,.16)", icol: "#818CF8", b: res.title, s: "Generated just now" }, ...r]);
       setThinking(false);
-    }, 950);
+    }, mode === "Quick Answer" ? 500 : 950);
   };
   const reset = () => { setMessages(INITIAL); setThinking(false); };
 
@@ -166,7 +177,7 @@ export default function AIPage() {
                       <div className="flex items-center gap-3 rounded-[13px] border border-[#1E2742] p-[13px_15px]" style={{ background: "#141A30" }}>
                         <span className="grid place-items-center w-9 h-9 rounded-[10px] flex-none" style={{ background: "rgba(99,102,241,.16)" }}><Icon name="FileText" size={18} className="text-[#818CF8]" /></span>
                         <div className="flex-1 min-w-0"><b className="block text-[13px] font-semibold">{m.title}</b><span className="text-[11.5px] text-[#6B7593]">PDF · ready to share</span></div>
-                        <button className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[#818CF8]"><Icon name="ArrowRight" size={13} />View</button>
+                        <button onClick={() => generateReportPdf(m.title)} className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[#818CF8]"><Icon name="Download" size={13} />Download</button>
                       </div>
                     )}
                   </div>
@@ -196,7 +207,23 @@ export default function AIPage() {
                 <button onClick={() => send()} disabled={!input.trim() || thinking} className="grid place-items-center w-10 h-10 rounded-[11px] cursor-pointer shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_90%,transparent)] disabled:opacity-50" style={{ background: GRAD }}><Icon name="Send" size={18} className="text-white" /></button>
               </div>
               <div className="flex items-center gap-[18px] mt-3.5 pt-[13px] border-t border-[#1E2742] flex-wrap">
-                <div className="flex items-center gap-2 border border-[#28324F] rounded-[9px] p-[7px_11px] text-[12.5px] font-medium cursor-pointer" style={{ background: "#11162A" }}><Icon name="Telescope" size={14} className="text-[#97A1BB]" />Deep Research<Icon name="ChevronDown" size={13} className="text-[#6B7593]" /></div>
+                <div className="relative">
+                  <button onClick={() => setModeOpen((v) => !v)} className="flex items-center gap-2 border border-[#28324F] rounded-[9px] p-[7px_11px] text-[12.5px] font-medium cursor-pointer hover:border-[#3A4564]" style={{ background: "#11162A" }}><Icon name={modeMeta.ic} size={14} className="text-[#818CF8]" />{mode}<Icon name="ChevronDown" size={13} className={cn("text-[#6B7593] transition-transform", modeOpen && "rotate-180")} /></button>
+                  {modeOpen && (
+                    <>
+                      <div className="fixed inset-0 z-[60]" onClick={() => setModeOpen(false)} />
+                      <div className="absolute z-[61] bottom-full mb-2 left-0 w-[240px] rounded-[12px] border border-[#28324F] p-1.5 shadow-pop" style={{ background: "#141A30" }}>
+                        {MODES.map((o) => (
+                          <button key={o.k} onClick={() => { setMode(o.k); setModeOpen(false); }} className="flex items-center gap-2.5 w-full text-left px-2.5 py-2 rounded-[9px] hover:bg-[#1E2742] transition-colors">
+                            <Icon name={o.ic} size={16} className="text-[#818CF8] flex-none" />
+                            <span className="flex-1 min-w-0"><b className="block text-[12.5px] font-semibold">{o.k}</b><span className="text-[11px] text-[#6B7593]">{o.d}</span></span>
+                            {o.k === mode && <Icon name="Check" size={14} className="text-[#818CF8] flex-none" />}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
                 <div className="flex items-center gap-2.5 text-[12.5px] text-[#97A1BB]">Use project context<DarkToggle on={ctx} onClick={() => setCtx((v) => !v)} /></div>
                 <div className="flex items-center gap-2.5 text-[12.5px] text-[#97A1BB]">Include GitHub data<DarkToggle on={gh} onClick={() => setGh((v) => !v)} /></div>
               </div>
@@ -258,10 +285,11 @@ export default function AIPage() {
           <div className="rounded-[18px] border border-[#1E2742] p-[18px]" style={{ background: "#11162A" }}>
             <h3 className="m-0 mb-4 text-[15px] font-semibold">Recent AI Reports</h3>
             {reports.map((r, i) => (
-              <div key={r.b + i} className={`flex gap-2.5 py-2.5 ${i > 0 ? "border-t border-[#1E2742]" : "pt-0.5"}`}>
+              <button key={r.b + i} onClick={() => generateReportPdf(r.b)} title="Download PDF" className={`w-full text-left flex items-center gap-2.5 py-2.5 group/rep ${i > 0 ? "border-t border-[#1E2742]" : "pt-0.5"}`}>
                 <div className="grid place-items-center w-8 h-8 rounded-lg flex-none" style={{ background: r.ib }}><Icon name={r.icon} size={16} style={{ color: r.icol }} /></div>
-                <div><b className="block text-[13px] font-semibold">{r.b}</b><span className="text-[11.5px] text-[#6B7593]">{r.s}</span></div>
-              </div>
+                <div className="flex-1 min-w-0"><b className="block text-[13px] font-semibold">{r.b}</b><span className="text-[11.5px] text-[#6B7593]">{r.s}</span></div>
+                <Icon name="Download" size={15} className="text-[#6B7593] opacity-0 group-hover/rep:opacity-100 transition-opacity flex-none" />
+              </button>
             ))}
             <button onClick={() => send("Generate sprint report")} className="block mt-3 text-[12.5px] font-medium text-[#818CF8] cursor-pointer">Generate a new report</button>
           </div>
