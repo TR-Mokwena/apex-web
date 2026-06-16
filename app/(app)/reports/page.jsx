@@ -2,8 +2,19 @@
 
 import { useState } from "react";
 import Icon from "@/components/Icon";
-import { Card, CardLink, Tabs, Sparkline, Gauge, Donut, RangePicker, RANGE_OPTIONS } from "@/components/ui";
+import { Card, CardLink, Tabs, Sparkline, Gauge, Donut, BarPairs, LegendRow, RangePicker, RANGE_OPTIONS } from "@/components/ui";
 import { cn } from "@/lib/cn";
+
+const PAL = [
+  "linear-gradient(135deg,#6366F1,#8B5CF6)",
+  "linear-gradient(135deg,#0EA5E9,#6366F1)",
+  "linear-gradient(135deg,#10B981,#22C55E)",
+  "linear-gradient(135deg,#F59E0B,#EF4444)",
+  "linear-gradient(135deg,#8B5CF6,#EC4899)",
+];
+const fmt = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+// cumulative counts (commits/PRs/reviews) scale with the window; rates do not.
+const RF = { "This Week": 1, "Last Week": 0.9, "This Month": 4.0, "Last 30 Days": 3.7, "This Quarter": 12 };
 
 // Static presentation (labels/icons/colours/shape); numbers come from RD per range.
 const OPS_META = [
