@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon from "@/components/Icon";
+import { ApexMark } from "@/components/ApexLogo";
 import { cn } from "@/lib/cn";
 import { NAV, QUICK_CREATE } from "@/lib/nav";
 import { Dropdown, MenuItem, MenuLabel, MenuSep } from "@/components/ui";
@@ -38,9 +39,7 @@ export default function Sidebar({ open, collapsed, onClose, onToggleCollapse }) 
 
       {/* brand */}
       <div className={cn("flex items-center gap-[11px] px-2 pb-1.5", collapsed && "md:justify-center md:px-0")}>
-        <span className="grid place-items-center w-[34px] h-[34px] rounded-[10px] bg-brand text-white flex-none">
-          <Icon name="MountainSnow" size={20} />
-        </span>
+        <ApexMark size={34} className="flex-none" />
         <div className={cn(collapsed && "md:hidden")}>
           <div className="font-bold text-xl leading-none text-white">Apex</div>
           <div className="text-[10.5px] text-[#8590A8] mt-[3px]">by Eclipse Softworks</div>

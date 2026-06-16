@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
+import { ApexMark } from "@/components/ApexLogo";
 import { Switch } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
@@ -55,7 +56,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen flex flex-col" style={{ background: "radial-gradient(1100px 500px at 110% -10%, #E6E9FF 0%, transparent 55%), radial-gradient(900px 460px at -10% 110%, #EDE7FF 0%, transparent 55%), #F1F3F9" }}>
       <div className="flex items-center justify-between p-[22px_30px]">
         <div className="flex items-center gap-2.5">
-          <span className="grid place-items-center w-[34px] h-[34px] rounded-[10px] bg-brand text-white"><Icon name="MountainSnow" size={20} /></span>
+          <ApexMark size={34} />
           <div><div className="text-xl font-bold leading-none">Apex</div><div className="text-[10.5px] text-ink-3 mt-0.5">by Eclipse Softworks</div></div>
         </div>
         <Link href="/" className="text-[13px] font-medium text-ink-2 flex items-center gap-1.5">Skip setup<Icon name="ChevronRight" size={15} /></Link>

@@ -5,23 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
+import { ApexMark } from "@/components/ApexLogo";
 import { cn } from "@/lib/cn";
 import { DEFAULT_ACCENT } from "@/lib/theme";
-
-function ApexMark({ size = 40 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <defs>
-        <linearGradient id="apexg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="var(--color-brand)" />
-          <stop offset="1" stopColor="var(--color-brand-600)" />
-        </linearGradient>
-      </defs>
-      <path d="M24 4 44 42H30L24 28 18 42H4L24 4Z" fill="url(#apexg)" />
-      <path d="M24 22 31 36H17L24 22Z" fill="var(--color-card)" opacity="0.9" />
-    </svg>
-  );
-}
 
 function GoogleIcon() {
   return (

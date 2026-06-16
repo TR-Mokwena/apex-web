@@ -1,0 +1,132 @@
+\documentclass[11pt]{article}
+
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{brand}{HTML}{6366F1}
+\definecolor{ink}{HTML}{1E293B}
+\definecolor{muted}{HTML}{64748B}
+
+\titleformat{\section}{\Large\bfseries\color{brand}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries\color{ink}}{\thesubsection}{0.6em}{}
+\setlist[itemize]{leftmargin=1.4em,itemsep=2pt,topsep=2pt}
+\renewcommand{\arraystretch}{1.3}
+
+\newcommand{\hook}[1]{\textbf{Apex hook:}~#1}
+\newcommand{\fit}[1]{\textbf{Why it fits:}~#1}
+\newcommand{\sa}[1]{\textbf{SA angle:}~#1}
+\newcommand{\effort}[1]{\textbf{Build effort:}~#1}
+
+\title{\vspace{-1.5cm}\textbf{Apex Integration Ecosystem}\\[0.3em]
+\large\color{muted}Candidate products to build alongside Apex}
+\author{Eclipse Softworks}
+\date{\today}
+
+\begin{document}
+\maketitle
+\vspace{-0.8cm}
+
+\section{Overview}
+Apex is the engineering, sprint and contribution tracker at the centre of the
+Eclipse Softworks suite. The most valuable integrations are not bolted on beside
+Apex; they \emph{plug into an Apex surface that already exists} --- Tasks,
+Contribution Intelligence, the Knowledge Hub, Notifications, Billing or the
+Calendar --- so each new product deepens Apex while standing on its own.
+
+Two design principles guide the candidates below:
+\begin{itemize}
+  \item \textbf{Plug into a surface.} Every integration reads from or writes to an existing Apex object (a task, a contribution event, an invoice, an incident).
+  \item \textbf{Lean South African.} Currency, VAT, POPIA compliance, local payment rails and SA mobile networks are differentiators a generic competitor cannot easily match.
+\end{itemize}
+
+\paragraph{The suite picture.}
+\begin{center}
+\textbf{Apex} (do the work) $\rightarrow$ \textbf{Eclipse Bill} (get paid for it)
+$\rightarrow$ \textbf{OmniConnect SA} (talk to customers) $\rightarrow$
+\textbf{Eclipse Status} (handle incidents).
+\end{center}
+Each piece feeds the next, and each appears as a natural integration card in Apex.
+
+\section{Live integration}
+\subsection{OmniConnect SA \hfill\small\color{muted}(shipped)}
+Unified SA customer-communication hub --- SMS, WhatsApp and email with POPIA
+compliance and coverage of all four networks.
+\begin{itemize}
+  \item \hook{Notifications.} Positioned as a \emph{delivery channel}: Apex alerts (risk warnings, milestone updates, mentions) are sent over WhatsApp/SMS via OmniConnect. Surfaced in Integrations (Communication) and as a channel in Notification preferences.
+  \item \fit{Apex already models email / push / SMS / in-app channels; OmniConnect is the SA-aware backend for them.}
+\end{itemize}
+
+\section{Tier 1 --- highest synergy}
+
+\subsection{Eclipse Bill --- time tracking \& client invoicing}
+Track billable time against Apex tasks and projects, then generate client
+invoices automatically.
+\begin{itemize}
+  \item \hook{Tasks/Projects $\rightarrow$ Billing.} Reuses the existing ZAR/VAT invoice + PDF generation already in Apex's billing module.
+  \item \fit{Apex already records the work; this is the obvious step that turns tracked effort into revenue.}
+  \item \sa{ZAR pricing, 15\% VAT tax invoices, local banking references.}
+  \item \effort{Medium. Timer + reporting layer on top of existing task and invoice infrastructure.}
+\end{itemize}
+
+\subsection{Eclipse Status --- status page \& incident management}
+Public status page plus internal incident tracking and post-mortems.
+\begin{itemize}
+  \item \hook{Tasks + Knowledge Hub + OmniConnect.} Incidents spawn Apex tasks; post-mortems land in the Knowledge Hub; customers receive SMS/WhatsApp updates through OmniConnect.
+  \item \fit{Uses three Apex/Eclipse surfaces at once --- the strongest demonstration of the suite working together.}
+  \item \sa{Customer incident comms over local networks, POPIA-safe.}
+  \item \effort{Medium--High. Status page is light; the incident workflow and integrations are the work.}
+\end{itemize}
+
+\subsection{Eclipse Voice --- customer feedback portal}
+Collect feature requests and bug reports, triage them into Apex.
+\begin{itemize}
+  \item \hook{$\rightarrow$ Tasks/Projects.} Feedback becomes Apex tasks; status flows back to the requester automatically.
+  \item \fit{Closes the classic product loop (request $\rightarrow$ build $\rightarrow$ notify) that PM tools are expected to support.}
+  \item \effort{Medium. A public portal/widget plus a triage-to-task bridge.}
+\end{itemize}
+
+\subsection{Git/CI insights agent}
+A lightweight agent that feeds real commit, PR and review data into Apex.
+\begin{itemize}
+  \item \hook{$\rightarrow$ Contribution Intelligence.} Powers the heatmap, leaderboard and velocity charts with real activity instead of relying on third-party API limits.
+  \item \fit{Makes Apex's headline analytics genuinely data-driven.}
+  \item \effort{Medium. Webhook/poller + ingestion and aggregation pipeline.}
+\end{itemize}
+
+\section{Tier 2 --- complementary}
+\begin{itemize}
+  \item \textbf{Pulse --- async standups.} Collects daily updates, posts them to the Apex activity feed and nudges teammates over WhatsApp via OmniConnect. \emph{Apex hook:} Tasks + Notifications.
+  \item \textbf{AI assistant over WhatsApp.} Extends the AI Command Center so people can ask ``what's at risk?'' from chat, with OmniConnect as the transport. \emph{Apex hook:} AI Command Center.
+  \item \textbf{Eclipse Pay --- contributor payments.} Pay contributors per milestone via Yoco / Paystack / Ozow, driven by Apex contributions. \emph{Apex hook:} Contributions + Milestones. \emph{SA angle:} local payment rails.
+\end{itemize}
+
+\section{Summary}
+\begin{center}
+\begin{tabular}{>{\raggedright\arraybackslash}p{4.2cm} >{\raggedright\arraybackslash}p{4.6cm} l l}
+\toprule
+\textbf{Product} & \textbf{Apex surface} & \textbf{Effort} & \textbf{Priority} \\
+\midrule
+OmniConnect SA      & Notifications              & ---     & Shipped \\
+Eclipse Bill        & Tasks $\rightarrow$ Billing & Medium  & 1 \\
+Eclipse Status      & Tasks / Knowledge / Comms  & Med--Hi & 2 \\
+Eclipse Voice       & Tasks                      & Medium  & 3 \\
+Git/CI insights     & Contribution Intelligence  & Medium  & 3 \\
+Pulse (standups)    & Tasks / Notifications      & Low     & 4 \\
+AI over WhatsApp    & AI Command Center          & Medium  & 4 \\
+Eclipse Pay         & Contributions / Milestones & High    & 5 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Recommended next build.}
+\textbf{Eclipse Bill (time tracking + invoicing).} It reuses the ZAR/VAT invoice
+and PDF work already in Apex, has the clearest revenue logic, and its
+integration point --- tasks $\rightarrow$ billable hours $\rightarrow$ invoice
+--- is unambiguous.
+
+\end{document}
