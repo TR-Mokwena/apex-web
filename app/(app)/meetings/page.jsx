@@ -44,6 +44,16 @@ const SEED = [
   },
 ];
 
+// Leave-of-absence notes, keyed by meeting id. For the live meeting each note
+// carries a `delayMs` (compressed demo stand-in for the real 2–5 min mark at
+// which it pops up) and `minuteMark` for the human-readable caption.
+const SEED_ABSENCES = {
+  m1: [
+    { id: "a-seed1", personId: "naledi", note: "Down with the flu — I'll catch the recording. Doctor's note attached.", doc: "sick-note.pdf", minuteMark: 3, delayMs: 3500 },
+    { id: "a-seed2", personId: "thabo", note: "Pulled into a prod incident, can't make the sync today.", doc: null, minuteMark: 4, delayMs: 6500 },
+  ],
+};
+
 const fmtDay = (iso) => new Date(iso + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 const fmt12 = (t) => {
   if (!t) return "";
@@ -53,19 +63,35 @@ const fmt12 = (t) => {
 };
 
 const BLANK = { title: "", date: TODAY, time: "10:00", duration: "30 min", participants: [], agenda: "" };
+const ABS_BLANK = { meetingId: "", personId: "", note: "", doc: null };
 
 export default function MeetingsPage() {
   const [meetings, setMeetings] = useState(SEED);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(BLANK);
-  const [toast, setToast] = useState(null); // { count, names }
+  const [toast, setToast] = useState(null); // { kind, ... }
   const [lastInvite, setLastInvite] = useState(null); // email-preview payload
+  const [absences, setAbsences] = useState(SEED_ABSENCES); // { [meetingId]: [note] }
+  const [absOpen, setAbsOpen] = useState(false);
+  const [absForm, setAbsForm] = useState(ABS_BLANK);
+  const [liveNotices, setLiveNotices] = useState([]); // absence notes popped during the live meeting
 
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 4200);
     return () => clearTimeout(t);
   }, [toast]);
+
+  // Seeded absences for the live meeting surface a few seconds in — a compressed
+  // stand-in for the real "2–5 minutes into the meeting" popup.
+  useEffect(() => {
+    const liveMeeting = SEED.find((m) => m.live);
+    if (!liveMeeting) return;
+    const timers = (SEED_ABSENCES[liveMeeting.id] || []).map((a) =>
+      setTimeout(() => setLiveNotices((n) => (n.some((x) => x.id === a.id) ? n : [...n, { ...a, person: byId(a.personId) }])), a.delayMs),
+    );
+    return () => timers.forEach(clearTimeout);
+  }, []);
 
   const setF = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const toggleP = (id) =>
@@ -86,10 +112,35 @@ export default function MeetingsPage() {
     setMeetings((m) => [...m, meeting].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)));
     // Simulated email dispatch — no real mail leaves the app (UI demo).
     setLastInvite({ meeting, recipients, sentAt: new Date() });
-    setToast({ count: recipients.length, names: recipients.map((r) => r.name.split(" ")[0]) });
+    setToast({ kind: "invite", count: recipients.length, names: recipients.map((r) => r.name.split(" ")[0]) });
     setOpen(false);
     setForm(BLANK);
   };
+
+  const setAbsF = (k) => (e) => setAbsForm((f) => ({ ...f, [k]: e.target.value }));
+  const openAbsence = (meetingId = "") => { setAbsForm({ ...ABS_BLANK, meetingId }); setAbsOpen(true); };
+  const absValid = absForm.meetingId && absForm.personId && absForm.note.trim();
+  const dismissNotice = (id) => setLiveNotices((n) => n.filter((x) => x.id !== id));
+
+  const submitAbsence = () => {
+    if (!absValid) return;
+    const entry = { id: `a${Date.now()}`, personId: absForm.personId, note: absForm.note.trim(), doc: absForm.doc, minuteMark: 3 };
+    setAbsences((prev) => ({ ...prev, [absForm.meetingId]: [...(prev[absForm.meetingId] || []), entry] }));
+    const liveMeeting = meetings.find((m) => m.live);
+    const person = byId(absForm.personId);
+    if (liveMeeting && absForm.meetingId === liveMeeting.id) {
+      // Surface 2–5 min in (compressed to a few seconds for the demo).
+      const delay = 4000 + Math.random() * 2000;
+      setTimeout(() => setLiveNotices((n) => [...n, { ...entry, person }]), delay);
+      setToast({ kind: "absence", title: "Absence note saved", text: "Participants are notified 2–5 min into the meeting." });
+    } else {
+      setToast({ kind: "absence", title: `${person.name.split(" ")[0]} marked absent`, text: "All participants have been notified." });
+    }
+    setAbsOpen(false);
+    setAbsForm(ABS_BLANK);
+  };
+
+  const absOf = (meetingId) => (absences[meetingId] || []);
 
   const live = meetings.find((m) => m.live);
   const upcoming = meetings.filter((m) => !m.live).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
@@ -105,9 +156,14 @@ export default function MeetingsPage() {
             <div className="text-[13px] text-ink-2 mt-0.5">Host meetings and auto-invite participants by email when you set a time.</div>
           </div>
         </div>
-        <button onClick={openNew} className="flex items-center gap-1.5 h-[38px] px-3.5 rounded-[10px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}>
-          <Icon name="CalendarPlus" size={15} />Schedule meeting
-        </button>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button onClick={() => openAbsence()} className="flex items-center gap-1.5 h-[38px] px-3.5 rounded-[10px] border border-line bg-card text-[13px] font-semibold text-ink-2 shadow-card hover:text-amber-600 hover:border-amber-200">
+            <Icon name="UserMinus" size={15} />Notify absence
+          </button>
+          <button onClick={openNew} className="flex items-center gap-1.5 h-[38px] px-3.5 rounded-[10px] text-white text-[13px] font-semibold shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}>
+            <Icon name="CalendarPlus" size={15} />Schedule meeting
+          </button>
+        </div>
       </div>
 
       {/* live room banner */}
