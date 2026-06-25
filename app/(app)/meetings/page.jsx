@@ -343,14 +343,92 @@ export default function MeetingsPage() {
         </div>
       </Modal>
 
+      {/* notify-absence modal */}
+      <Modal open={absOpen} onClose={() => setAbsOpen(false)} title="Notify absence" width={480}
+        footer={<>
+          <Button onClick={() => setAbsOpen(false)}>Cancel</Button>
+          <Button variant="primary" icon={<Icon name="Send" size={14} />} onClick={submitAbsence} disabled={!absValid}>Send note</Button>
+        </>}>
+        <Field label="Meeting">
+          <Select value={absForm.meetingId} onChange={setAbsF("meetingId")}>
+            <option value="">Select a meeting…</option>
+            {meetings.map((m) => <option key={m.id} value={m.id}>{m.title} — {fmtDay(m.date)}{m.live ? " (live now)" : ""}</option>)}
+          </Select>
+        </Field>
+        <Field label="Who won't make it?">
+          <Select value={absForm.personId} onChange={setAbsF("personId")}>
+            <option value="">Select a person…</option>
+            {PEOPLE.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </Select>
+        </Field>
+        <Field label="Reason / note"><Textarea value={absForm.note} onChange={setAbsF("note")} rows={3} placeholder="Let everyone know why you can't attend" autoFocus /></Field>
+        <Field label="Supporting document (optional)">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <label className="inline-flex items-center gap-2 h-10 px-3.5 rounded-[10px] border border-dashed border-line bg-bg-soft text-[12.5px] font-medium text-ink-2 cursor-pointer hover:border-brand hover:text-brand-600">
+              <Icon name="Paperclip" size={15} />{absForm.doc ? "Replace file" : "Attach file"}
+              <input type="file" className="hidden" onChange={(e) => setAbsForm((f) => ({ ...f, doc: e.target.files?.[0]?.name || null }))} />
+            </label>
+            {absForm.doc && (
+              <span className="inline-flex items-center gap-1.5 text-[12px] text-ink bg-bg-soft border border-line rounded-[8px] px-2.5 py-1.5">
+                <Icon name="FileText" size={14} className="text-brand" />{absForm.doc}
+                <button type="button" onClick={() => setAbsForm((f) => ({ ...f, doc: null }))} className="text-ink-3 hover:text-ink"><Icon name="X" size={13} /></button>
+              </span>
+            )}
+          </div>
+        </Field>
+        <div className="flex items-start gap-2 text-[12px] text-ink-2 bg-amber-50 border border-amber-200 rounded-[10px] px-3 py-2.5">
+          <Icon name="BellRing" size={15} className="text-amber-600 mt-0.5 flex-none" />
+          <span>This note pops up <b>2–5 minutes into the meeting</b> so everyone in the room is notified of the absence.</span>
+        </div>
+      </Modal>
+
+      {/* live-meeting absence popups — surface "during" the meeting */}
+      {liveNotices.length > 0 && (
+        <div className="fixed bottom-6 left-6 z-[90] flex flex-col gap-2.5 w-[330px] max-w-[calc(100vw-3rem)]">
+          {liveNotices.map((a) => (
+            <div key={a.id} className="bg-card border border-line rounded-[12px] shadow-pop p-3.5 animate-[fadeIn_.2s_ease]">
+              <div className="flex items-start gap-3">
+                <Avatar name={a.person.name} color={a.person.color} size={34} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <b className="text-[13px] font-semibold truncate">{a.person.name}</b>
+                    <Pill tone="amber">Absent</Pill>
+                  </div>
+                  <div className="text-[10.5px] text-ink-3 mt-0.5 inline-flex items-center gap-1"><Icon name="Clock" size={11} />Shown {a.minuteMark} min into the meeting</div>
+                  <p className="text-[12.5px] text-ink-2 mt-1.5 mb-0">{a.note}</p>
+                  {a.doc && (
+                    <button className="inline-flex items-center gap-1.5 mt-2 text-[11.5px] font-semibold text-brand-600 hover:underline">
+                      <Icon name="Paperclip" size={12} />{a.doc}
+                    </button>
+                  )}
+                </div>
+                <button onClick={() => dismissNotice(a.id)} className="text-ink-3 hover:text-ink flex-none"><Icon name="X" size={15} /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* toast */}
       {toast && (
         <div className="fixed bottom-6 right-6 z-[90] flex items-center gap-3 bg-card border border-line rounded-[12px] shadow-pop px-4 py-3 max-w-[340px] animate-[fadeIn_.18s_ease]">
-          <span className="grid place-items-center w-9 h-9 rounded-[10px] bg-emerald-50 flex-none"><Icon name="MailCheck" size={18} className="text-emerald-600" /></span>
-          <div>
-            <div className="text-[13px] font-semibold">Invites sent to {toast.count} participant{toast.count !== 1 ? "s" : ""}</div>
-            <div className="text-[11.5px] text-ink-3 truncate">{toast.names.join(", ")}</div>
-          </div>
+          {toast.kind === "absence" ? (
+            <>
+              <span className="grid place-items-center w-9 h-9 rounded-[10px] bg-amber-50 flex-none"><Icon name="BellRing" size={18} className="text-amber-600" /></span>
+              <div>
+                <div className="text-[13px] font-semibold">{toast.title}</div>
+                <div className="text-[11.5px] text-ink-3">{toast.text}</div>
+              </div>
+            </>
+          ) : (
+            <>
+              <span className="grid place-items-center w-9 h-9 rounded-[10px] bg-emerald-50 flex-none"><Icon name="MailCheck" size={18} className="text-emerald-600" /></span>
+              <div>
+                <div className="text-[13px] font-semibold">Invites sent to {toast.count} participant{toast.count !== 1 ? "s" : ""}</div>
+                <div className="text-[11.5px] text-ink-3 truncate">{toast.names.join(", ")}</div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </>
