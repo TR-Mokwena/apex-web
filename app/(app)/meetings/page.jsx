@@ -181,11 +181,15 @@ export default function MeetingsPage() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex -space-x-2.5">
-                {live.participants.slice(0, 5).map((id) => {
-                  const p = byId(id);
-                  return <Avatar key={id} name={p.name} color={p.color} size={34} className="ring-2 ring-[#0F172A]" />;
-                })}
+              <div className="text-right">
+                <div className="flex -space-x-2.5 justify-end">
+                  {live.participants.slice(0, 5).map((id) => {
+                    const p = byId(id);
+                    const absent = absOf(live.id).some((a) => a.personId === id);
+                    return <Avatar key={id} name={p.name} color={p.color} size={34} className={cn("ring-2 ring-[#0F172A]", absent && "opacity-40 grayscale")} />;
+                  })}
+                </div>
+                {absOf(live.id).length > 0 && <div className="text-[11px] text-amber-300 mt-1 inline-flex items-center gap-1"><Icon name="UserMinus" size={12} />{absOf(live.id).length} away</div>}
               </div>
               <button className="flex items-center gap-2 h-[40px] px-5 rounded-[11px] bg-white text-[13px] font-bold text-slate-900 hover:bg-slate-100">
                 <Icon name="Video" size={16} />Join now
@@ -208,6 +212,7 @@ export default function MeetingsPage() {
           ) : (
             upcoming.map((m) => {
               const ppl = m.participants.map(byId);
+              const away = absOf(m.id);
               return (
                 <div key={m.id} className="card !shadow-card p-[16px_18px] flex items-start gap-4 flex-wrap">
                   <div className="w-[52px] flex-none text-center">
@@ -227,11 +232,16 @@ export default function MeetingsPage() {
                       <span className="inline-flex items-center gap-1.5"><Icon name="Link2" size={13} />{roomLink(m.slug)}</span>
                     </div>
                     {m.agenda && <div className="text-[12.5px] text-ink-2 mt-2 line-clamp-1">{m.agenda}</div>}
-                    <div className="flex items-center gap-2 mt-2.5">
+                    <div className="flex items-center gap-2 mt-2.5 flex-wrap">
                       <div className="flex -space-x-2">
-                        {ppl.slice(0, 5).map((p) => <Avatar key={p.id} name={p.name} color={p.color} size={26} className="ring-2 ring-card" />)}
+                        {ppl.slice(0, 5).map((p) => {
+                          const absent = away.some((a) => a.personId === p.id);
+                          return <Avatar key={p.id} name={p.name} color={p.color} size={26} className={cn("ring-2 ring-card", absent && "opacity-40 grayscale")} />;
+                        })}
                       </div>
                       <span className="text-[11.5px] text-ink-3">{ppl.length} participant{ppl.length !== 1 ? "s" : ""}</span>
+                      {away.length > 0 && <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-amber-600"><Icon name="UserMinus" size={12} />{away.length} away</span>}
+                      <button onClick={() => openAbsence(m.id)} className="text-[11.5px] font-semibold text-ink-3 hover:text-amber-600">Can&apos;t make it?</button>
                     </div>
                   </div>
                   <button className="flex-none flex items-center gap-1.5 h-9 px-4 rounded-[10px] border border-line bg-card text-[12.5px] font-semibold text-brand-600 shadow-card hover:border-[#C7D2FE]">
