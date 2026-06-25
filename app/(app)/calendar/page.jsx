@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import Icon from "@/components/Icon";
 import { Modal, Field, TextInput, Select, Button } from "@/components/ui";
 import { cn } from "@/lib/cn";
@@ -177,6 +178,14 @@ export default function CalendarPage() {
 
         {/* rail */}
         <div className="w-full xl:w-[300px] flex-none flex flex-col gap-4">
+          <Link href="/meetings" className="card !shadow-card p-[14px_16px] flex items-center gap-3 hover:border-[#C7D2FE] transition-colors">
+            <span className="grid place-items-center w-[34px] h-[34px] rounded-[10px] bg-brand-soft flex-none"><Icon name="Video" size={18} className="text-brand" /></span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[13px] font-semibold">Conference Room</div>
+              <div className="text-[11.5px] text-ink-3">Host or join a meeting</div>
+            </div>
+            <Icon name="ChevronRight" size={16} className="text-ink-3 flex-none" />
+          </Link>
           <div className="card !shadow-card p-[16px_18px]">
             <h3 className="m-0 mb-3 text-sm font-semibold">{MONTHS[cur.m]} {cur.y}</h3>
             <div className="grid grid-cols-7 gap-0.5">
