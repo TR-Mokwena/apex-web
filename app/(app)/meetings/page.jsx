@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Icon from "@/components/Icon";
 import { Modal, Field, TextInput, Select, Textarea, Button, Avatar, Pill } from "@/components/ui";
 import { cn } from "@/lib/cn";
@@ -191,9 +192,9 @@ export default function MeetingsPage() {
                 </div>
                 {absOf(live.id).length > 0 && <div className="text-[11px] text-amber-300 mt-1 inline-flex items-center gap-1"><Icon name="UserMinus" size={12} />{absOf(live.id).length} away</div>}
               </div>
-              <button className="flex items-center gap-2 h-[40px] px-5 rounded-[11px] bg-white text-[13px] font-bold text-slate-900 hover:bg-slate-100">
+              <Link href={`/room/${live.slug}`} className="flex items-center gap-2 h-[40px] px-5 rounded-[11px] bg-white text-[13px] font-bold text-slate-900 hover:bg-slate-100">
                 <Icon name="Video" size={16} />Join now
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -244,9 +245,9 @@ export default function MeetingsPage() {
                       <button onClick={() => openAbsence(m.id)} className="text-[11.5px] font-semibold text-ink-3 hover:text-amber-600">Can&apos;t make it?</button>
                     </div>
                   </div>
-                  <button className="flex-none flex items-center gap-1.5 h-9 px-4 rounded-[10px] border border-line bg-card text-[12.5px] font-semibold text-brand-600 shadow-card hover:border-[#C7D2FE]">
+                  <Link href={`/room/${m.slug}`} className="flex-none flex items-center gap-1.5 h-9 px-4 rounded-[10px] border border-line bg-card text-[12.5px] font-semibold text-brand-600 shadow-card hover:border-[#C7D2FE]">
                     <Icon name="Video" size={15} />Join
-                  </button>
+                  </Link>
                 </div>
               );
             })

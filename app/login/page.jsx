@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
-import { ApexMark } from "@/components/ApexLogo";
+import { ApexMark } from "@/components/Apex.svg";
 import { cn } from "@/lib/cn";
 import { DEFAULT_ACCENT } from "@/lib/theme";
 
