@@ -24,6 +24,7 @@
     "@remotion/google-fonts": "^4.0.481",
     "@remotion/tailwind-v4": "^4.0.481",
     "@remotion/transitions": "^4.0.481",
+    "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4.1.13",
     "@types/node": "^26.0.0",
     "@types/react": "^19.2.17",

@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
-import { ApexMark } from "@/components/Apex.svg";
+import ApexMark from "@/components/Apex.svg";
 import { cn } from "@/lib/cn";
 import { DEFAULT_ACCENT } from "@/lib/theme";
 
@@ -61,7 +61,7 @@ export default function LoginPage() {
           {/* logo */}
           <div className="flex flex-col items-center text-center mb-7">
             <div className="flex items-center gap-2.5">
-              <ApexMark size={40} />
+              <ApexMark className="w-[40px] h-[40px]" />
               <span className="text-[30px] font-bold tracking-[-0.02em] text-heading">Apex</span>
             </div>
             <span className="text-[12.5px] text-ink-3 mt-1.5">by Eclipse Softworks</span>
