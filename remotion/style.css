@@ -1,0 +1,4 @@
+/* Pull in the app's Tailwind v4 setup + design tokens verbatim, so the video
+   uses the exact same `@theme` palette/radii/shadows as the real Apex UI.
+   globals.css already starts with `@import "tailwindcss";`. */
+@import "../app/globals.css";
