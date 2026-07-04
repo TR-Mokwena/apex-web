@@ -25,6 +25,8 @@ export default function CallModal({ mode, title, subtitle, avatar, bg, isChannel
   const videoRef = useRef(null);
   const rafRef = useRef(null);
   const ctxRef = useRef(null);
+  const secRef = useRef(0);
+  const end = () => onEnd(secRef.current);
 
   // Acquire media + set up the level analyser once.
   useEffect(() => {
@@ -70,7 +72,7 @@ export default function CallModal({ mode, title, subtitle, avatar, bg, isChannel
   // Call timer.
   useEffect(() => {
     if (status !== "active") return;
-    const iv = setInterval(() => setSeconds((s) => s + 1), 1000);
+    const iv = setInterval(() => setSeconds((s) => { secRef.current = s + 1; return s + 1; }), 1000);
     return () => clearInterval(iv);
   }, [status]);
 
@@ -79,7 +81,7 @@ export default function CallModal({ mode, title, subtitle, avatar, bg, isChannel
   useEffect(() => { streamRef.current?.getVideoTracks().forEach((t) => (t.enabled = !camOff)); }, [camOff]);
 
   useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onEnd();
+    const onKey = (e) => e.key === "Escape" && onEnd(secRef.current);
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onEnd]);
@@ -139,7 +141,7 @@ export default function CallModal({ mode, title, subtitle, avatar, bg, isChannel
         <CallBtn active={!speaker} onClick={() => setSpeaker((s) => !s)} icon={speaker ? "Volume2" : "VolumeX"} label="Speaker" />
         <button
           type="button"
-          onClick={onEnd}
+          onClick={end}
           aria-label="End call"
           className="grid place-items-center w-[68px] h-[52px] rounded-[26px] bg-red-500 hover:bg-red-600 text-white shadow-[0_10px_30px_-8px_rgba(239,68,68,0.8)] transition-colors"
         >

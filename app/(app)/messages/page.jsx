@@ -119,8 +119,13 @@ export default function MessagesPage() {
       bg: PAL[c.pi ?? 0],
       isChannel: c.type === "channel",
     });
-    const label = mode === "video" ? "📹 Video call" : "📞 Voice call";
-    pushMsg({ t: `${label} ended`, call: true }, "You: " + label);
+  };
+
+  const endCall = (seconds = 0) => {
+    const label = call?.mode === "video" ? "Video call" : "Voice call";
+    const dur = seconds > 0 ? ` · ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}` : "";
+    pushMsg({ t: `${label}${dur}`, call: label }, "You: " + label);
+    setCall(null);
   };
 
   const markAllRead = () => setConvos((cs) => cs.map((x) => ({ ...x, unread: 0 })));
@@ -211,7 +216,9 @@ export default function MessagesPage() {
             <ConvAvatar c={c} />
             <div className="flex-1 min-w-0"><b className="block text-[14.5px] font-semibold">{c.type === "channel" ? "# " + c.name : c.name}</b><span className="text-[11.5px] text-ink-3">{c.meta}</span></div>
             <div className="flex gap-2">
-              {["Phone", "Video", "Info"].map((i) => <button key={i} className="grid place-items-center w-[34px] h-[34px] rounded-[9px] text-ink-2 hover:bg-bg"><Icon name={i} size={17} /></button>)}
+              <button onClick={() => startCall("voice")} title="Voice call" aria-label="Voice call" className="grid place-items-center w-[34px] h-[34px] rounded-[9px] text-ink-2 hover:bg-bg hover:text-brand transition-colors"><Icon name="Phone" size={17} /></button>
+              <button onClick={() => startCall("video")} title="Video call" aria-label="Video call" className="grid place-items-center w-[34px] h-[34px] rounded-[9px] text-ink-2 hover:bg-bg hover:text-brand transition-colors"><Icon name="Video" size={17} /></button>
+              <button onClick={() => setShowInfo((v) => !v)} title="Conversation info" aria-label="Conversation info" className={cn("grid place-items-center w-[34px] h-[34px] rounded-[9px] transition-colors", showInfo ? "bg-brand-soft text-brand" : "text-ink-2 hover:bg-bg")}><Icon name="Info" size={17} /></button>
             </div>
           </div>
 
@@ -219,6 +226,7 @@ export default function MessagesPage() {
             {c.msgs.map((m, i) => {
               if (m.day) return <div key={i} className="flex items-center gap-3 my-3.5 before:content-[''] before:flex-1 before:h-px before:bg-line after:content-[''] after:flex-1 after:h-px after:bg-line"><span className="text-[11px] font-semibold text-ink-3">{m.day}</span></div>;
               if (m.typing) return <div key={i} className="flex items-center gap-2 pt-1.5 px-1 text-ink-3 text-xs"><span className="inline-flex gap-[3px]">{[0, 1, 2].map((d) => <i key={d} className="w-1.5 h-1.5 rounded-full bg-ink-3 animate-bounce" style={{ animationDelay: `${d * 0.15}s` }} />)}</span>{m.typing}…</div>;
+              if (m.call) return <div key={i} className="flex justify-center my-2"><span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg border border-line text-[11.5px] text-ink-2"><Icon name={m.call === "Video call" ? "Video" : "Phone"} size={13} className="text-brand" />{m.t}<span className="text-ink-3">· {m.tm}</span></span></div>;
               const me = !!m.me;
               return (
                 <div key={i} className={cn("flex gap-2.5 mt-2.5 items-end", me && "flex-row-reverse")}>
@@ -238,15 +246,89 @@ export default function MessagesPage() {
           </div>
 
           <div className="flex-none border-t border-line p-[12px_16px_14px]">
+            <input ref={fileRef} type="file" onChange={onAttach} className="hidden" />
             <div className="flex items-end gap-2.5 bg-bg border border-line rounded-[14px] p-[8px_10px_8px_14px] focus-within:border-brand focus-within:bg-card focus-within:shadow-[0_0_0_3px_var(--color-brand-soft)]">
-              <button className="grid place-items-center w-[34px] h-[34px] rounded-[9px] text-ink-3 hover:bg-card"><Icon name="Paperclip" size={18} /></button>
-              <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder={`Message ${c.type === "channel" ? "# " + c.name : c.name}`} className="flex-1 bg-transparent outline-none text-[13.5px] py-1.5 min-w-0" />
-              <button className="grid place-items-center w-[34px] h-[34px] rounded-[9px] text-ink-3 hover:bg-card"><Icon name="Smile" size={18} /></button>
-              <button onClick={send} className="grid place-items-center w-[38px] h-[38px] rounded-[11px] flex-none shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}><Icon name="SendHorizontal" size={18} className="text-white" /></button>
+              <button onClick={() => fileRef.current?.click()} title="Attach file" className="grid place-items-center w-[34px] h-[34px] rounded-[9px] text-ink-3 hover:bg-card hover:text-ink-2 transition-colors"><Icon name="Paperclip" size={18} /></button>
+              <input ref={inputRef} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder={`Message ${c.type === "channel" ? "# " + c.name : c.name}`} className="flex-1 bg-transparent outline-none text-[13.5px] py-1.5 min-w-0" />
+              <div className="relative">
+                <button onClick={() => setShowEmoji((v) => !v)} title="Emoji" className={cn("grid place-items-center w-[34px] h-[34px] rounded-[9px] transition-colors", showEmoji ? "bg-brand-soft text-brand" : "text-ink-3 hover:bg-card hover:text-ink-2")}><Icon name="Smile" size={18} /></button>
+                {showEmoji && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowEmoji(false)} />
+                    <div className="absolute z-20 bottom-full right-0 mb-2 grid grid-cols-8 gap-0.5 p-2 bg-card border border-line rounded-[12px] shadow-pop w-[264px]">
+                      {EMOJI.map((e) => (
+                        <button key={e} onClick={() => addEmoji(e)} className="grid place-items-center h-8 rounded-lg text-lg hover:bg-bg transition-colors">{e}</button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+              <button onClick={send} title="Send" className="grid place-items-center w-[38px] h-[38px] rounded-[11px] flex-none shadow-[0_8px_18px_-8px_color-mix(in_srgb,var(--color-brand)_80%,transparent)]" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}><Icon name="SendHorizontal" size={18} className="text-white" /></button>
             </div>
           </div>
         </div>
+
+        {/* info panel */}
+        {showInfo && (
+          <div className="hidden lg:flex w-[264px] flex-none flex-col border-l border-line min-h-0">
+            <div className="flex items-center justify-between p-[13px_16px] border-b border-line flex-none">
+              <b className="text-[13.5px] font-semibold">Details</b>
+              <button onClick={() => setShowInfo(false)} aria-label="Close details" className="grid place-items-center w-8 h-8 rounded-lg text-ink-3 hover:bg-bg"><Icon name="X" size={16} /></button>
+            </div>
+            <div className="flex-1 min-h-0 overflow-y-auto p-5 flex flex-col items-center gap-4">
+              <ConvAvatar c={c} size={72} />
+              <div className="text-center">
+                <div className="text-[15px] font-semibold">{c.type === "channel" ? "# " + c.name : c.name}</div>
+                <div className="text-[12px] text-ink-3 mt-0.5">{c.meta}</div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 w-full">
+                {[["Phone", "Call", () => startCall("voice")], ["Video", "Video", () => startCall("video")], ["BellOff", "Mute", markAllRead]].map(([icon, label, fn]) => (
+                  <button key={label} onClick={fn} className="flex flex-col items-center gap-1.5 py-2.5 rounded-[11px] bg-bg hover:bg-brand-soft text-ink-2 hover:text-brand transition-colors">
+                    <Icon name={icon} size={17} /><span className="text-[11px] font-medium">{label}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="w-full">
+                <div className="text-[10.5px] font-bold uppercase tracking-wide text-ink-3 mb-2">
+                  {c.type === "channel" ? "Members" : "About"}
+                </div>
+                <div className="text-[12.5px] text-ink-2 leading-relaxed">
+                  {c.type === "channel"
+                    ? "Shared channel for the team. Files and pinned messages appear here."
+                    : `${c.name} — ${c.meta}. Direct message thread.`}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      <Modal open={compose} onClose={() => setCompose(false)} title="New message" width={420}
+        footer={<>
+          <button onClick={() => setCompose(false)} className="h-9 px-4 rounded-[10px] text-[13px] font-medium text-ink-2 hover:bg-bg">Cancel</button>
+          <button onClick={createConversation} disabled={!composeName.trim()} className="h-9 px-4 rounded-[10px] text-[13px] font-semibold text-white bg-brand disabled:opacity-40">Start chat</button>
+        </>}>
+        <Field label="To">
+          <TextInput autoFocus value={composeName} onChange={(e) => setComposeName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && createConversation()} placeholder="Name or email…" />
+        </Field>
+        <div className="flex flex-wrap gap-1.5">
+          {["Lerato Modise", "James Okoro", "Amara Chen"].map((n) => (
+            <button key={n} onClick={() => setComposeName(n)} className="text-[12px] px-2.5 py-1.5 rounded-full bg-bg border border-line text-ink-2 hover:border-brand hover:text-brand transition-colors">{n}</button>
+          ))}
+        </div>
+      </Modal>
+
+      {call && (
+        <CallModal
+          mode={call.mode}
+          title={call.title}
+          subtitle={call.subtitle}
+          avatar={call.avatar}
+          bg={call.bg}
+          isChannel={call.isChannel}
+          onEnd={endCall}
+        />
+      )}
     </div>
   );
 }
