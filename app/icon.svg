@@ -1,13 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
   <rect width="48" height="48" rx="11" fill="#0E1326"/>
   <defs>
-    <linearGradient id="g" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
+    <linearGradient id="g" x1="8933.522" y1="511.051" x2="10237.678" y2="1507.301" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#7C6CFF"/>
       <stop offset="1" stop-color="#4F46E5"/>
     </linearGradient>
   </defs>
-  <path d="M24 6.5 Q37 19 43 42 L34.5 42 L24 16 Z" fill="url(#g)" stroke="url(#g)" stroke-width="1.6" stroke-linejoin="round"/>
-  <path d="M5 42 L24 6.5 L24 16 L13.5 42 Z" fill="url(#g)" stroke="url(#g)" stroke-width="1.6" stroke-linejoin="round"/>
-  <path d="M5 42 L24 6.5 L24 16 L13.5 42 Z" fill="#fff" opacity="0.14"/>
-  <path d="M18 28 Q24 35.8 30 28 Q24 31.4 18 28 Z" fill="url(#g)" stroke="url(#g)" stroke-width="1.3" stroke-linejoin="round"/>
+  <g transform="translate(8 11.77) scale(0.02452) translate(-8933.522143 -511.0509)" fill="url(#g)">
+    <path d="M9301.66,1495.969C9367.021,1411.898 9470.822,1357.514 9587.611,1357.514C9706.235,1357.514 9811.46,1413.621 9876.614,1499.955C9802.795,1483.853 9696.906,1473.756 9579.352,1473.756C9471.821,1473.756 9374.052,1482.204 9301.66,1495.969Z"/>
+    <path d="M8933.522,1507.301L9396.987,625.24L9567,917.85L9318.61,1355.898C9256.284,1444.243 9153.007,1503.284 9035.413,1507.179L8933.522,1507.301Z"/>
+    <path d="M9436.065,593.644C9434.397,587.549 9433.495,581.054 9433.495,574.313C9433.495,539.398 9457.678,511.051 9487.464,511.051L9682.406,511.051C9702.041,511.051 9719.3,521.307 9729.112,536.749L10237.678,1503.696L10144.411,1503.696C10014.887,1503.696 9901.337,1436.804 9838.482,1336.71L9436.065,593.644Z"/>
+  </g>
 </svg>
