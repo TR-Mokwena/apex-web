@@ -104,7 +104,7 @@ export default function CallModal({ mode, title, subtitle, avatar, bg, isChannel
       {mode === "video" && <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70" />}
 
       {/* callee */}
-      <div className="relative flex flex-col items-center gap-4 mt-6">
+      <div className={cn("relative flex flex-col gap-4 mt-6", showVideo ? "w-full items-start px-5" : "items-center")}>
         {!showVideo && (
           <div className="relative grid place-items-center">
             {status === "active" && !muted && [0, 1].map((r) => (
@@ -122,9 +122,9 @@ export default function CallModal({ mode, title, subtitle, avatar, bg, isChannel
             </span>
           </div>
         )}
-        <div className={cn("text-center", showVideo && "absolute top-2 left-0 right-0")}>
+        <div className={cn(showVideo ? "text-left drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]" : "text-center")}>
           <div className="text-[22px] font-semibold tracking-[-0.01em]">{title}</div>
-          <div className="mt-1 text-[13px] text-white/60 flex items-center justify-center gap-1.5">
+          <div className={cn("mt-1 text-[13px] text-white/70 flex items-center gap-1.5", !showVideo && "justify-center")}>
             <Icon name={mode === "video" ? "Video" : "Phone"} size={13} />
             {status === "connecting" ? "Calling…" : fmt(seconds)}
             {noDevice && status === "active" && <span className="text-white/40">· no mic</span>}

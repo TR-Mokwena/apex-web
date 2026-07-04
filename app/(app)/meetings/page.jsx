@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Icon from "@/components/Icon";
 import { Modal, Field, TextInput, Select, Textarea, Button, Avatar, Pill } from "@/components/ui";
+import CallModal from "@/components/messages/CallModal";
 import { cn } from "@/lib/cn";
 
 // Demo roster — mirrors the contributors directory. Each carries an email so the
@@ -18,6 +19,7 @@ const PEOPLE = [
   { id: "lerato", name: "Lerato Mthembu", email: "lerato.mthembu@eclipsesoftworks.dev", role: "QA", color: PAL[5] },
 ];
 const byId = (id) => PEOPLE.find((p) => p.id === id);
+const initials = (name) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 
 const DURATIONS = ["15 min", "30 min", "45 min", "1 hour", "1.5 hours"];
 const TODAY = "2026-06-25";
@@ -76,6 +78,9 @@ export default function MeetingsPage() {
   const [absOpen, setAbsOpen] = useState(false);
   const [absForm, setAbsForm] = useState(ABS_BLANK);
   const [liveNotices, setLiveNotices] = useState([]); // absence notes popped during the live meeting
+  const [call, setCall] = useState(null); // { mode, person } — a personal 1:1 call
+
+  const startPersonalCall = (person, mode) => setCall({ mode, person });
 
   useEffect(() => {
     if (!toast) return;
@@ -293,14 +298,19 @@ export default function MeetingsPage() {
 
           {/* roster */}
           <div className="card !shadow-card p-[16px_18px]">
-            <h3 className="m-0 mb-3 text-sm font-semibold">Team</h3>
-            <div className="flex flex-col gap-2.5">
+            <h3 className="m-0 text-sm font-semibold">Team</h3>
+            <p className="m-0 mb-2.5 text-[11.5px] text-ink-3">Call a teammate directly.</p>
+            <div className="flex flex-col gap-0.5">
               {PEOPLE.map((p) => (
-                <div key={p.id} className="flex items-center gap-2.5">
+                <div key={p.id} className="group flex items-center gap-2.5 -mx-1.5 px-1.5 py-1.5 rounded-[10px] hover:bg-bg transition-colors">
                   <Avatar name={p.name} color={p.color} size={30} />
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="text-[12.5px] font-semibold truncate">{p.name}</div>
                     <div className="text-[11px] text-ink-3 truncate">{p.role}</div>
+                  </div>
+                  <div className="flex items-center gap-1 flex-none">
+                    <button onClick={() => startPersonalCall(p, "voice")} title={`Call ${p.name.split(" ")[0]}`} aria-label={`Voice call ${p.name}`} className="grid place-items-center w-8 h-8 rounded-[9px] text-ink-3 hover:bg-brand-soft hover:text-brand transition-colors"><Icon name="Phone" size={15} /></button>
+                    <button onClick={() => startPersonalCall(p, "video")} title={`Video call ${p.name.split(" ")[0]}`} aria-label={`Video call ${p.name}`} className="grid place-items-center w-8 h-8 rounded-[9px] text-ink-3 hover:bg-brand-soft hover:text-brand transition-colors"><Icon name="Video" size={15} /></button>
                   </div>
                 </div>
               ))}
@@ -408,6 +418,18 @@ export default function MeetingsPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* personal 1:1 call */}
+      {call && (
+        <CallModal
+          mode={call.mode}
+          title={call.person.name}
+          subtitle={call.person.role}
+          avatar={initials(call.person.name)}
+          bg={call.person.color}
+          onEnd={() => setCall(null)}
+        />
       )}
 
       {/* toast */}
