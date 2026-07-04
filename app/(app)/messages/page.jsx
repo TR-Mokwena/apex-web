@@ -59,6 +59,8 @@ export default function MessagesPage() {
   const [draft, setDraft] = useState("");
   const [tab, setTab] = useState("All");
   const [query, setQuery] = useState("");
+  // On phones the list and thread can't both fit — swap between them.
+  const [mobileView, setMobileView] = useState("list");
   const msgsRef = useRef(null);
   const c = convos.find((x) => x.id === active);
 
@@ -66,6 +68,7 @@ export default function MessagesPage() {
 
   const select = (id) => {
     setActive(id);
+    setMobileView("thread");
     setConvos((cs) => cs.map((x) => (x.id === id ? { ...x, unread: 0 } : x)));
   };
   const send = () => {
@@ -103,7 +106,7 @@ export default function MessagesPage() {
 
       <div className="flex-1 min-h-0 flex bg-card border border-line rounded-card shadow-card overflow-hidden">
         {/* conversation list */}
-        <div className="w-[288px] flex-none border-r border-line flex-col min-h-0 hidden sm:flex">
+        <div className={cn("w-full sm:w-[288px] flex-none border-r border-line flex-col min-h-0 sm:flex", mobileView === "list" ? "flex" : "hidden")}>
           <div className="p-[14px_14px_10px]"><div className="flex items-center gap-2 bg-bg border border-line rounded-[10px] px-[11px] py-2"><Icon name="Search" size={15} className="text-ink-3" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search messages..." className="bg-transparent outline-none text-[13px] flex-1 min-w-0" />{query && <button onClick={() => setQuery("")} className="text-ink-3 hover:text-ink"><Icon name="X" size={14} /></button>}</div></div>
           <div className="flex gap-1 px-3.5 pb-2">
             {["All", "Unread", "Channels", "DMs"].map((t) => (
@@ -131,8 +134,16 @@ export default function MessagesPage() {
         </div>
 
         {/* thread */}
-        <div className="flex-1 min-w-0 flex flex-col min-h-0">
+        <div className={cn("flex-1 min-w-0 flex-col min-h-0 sm:flex", mobileView === "thread" ? "flex" : "hidden")}>
           <div className="flex items-center gap-3 p-[13px_18px] border-b border-line flex-none">
+            <button
+              type="button"
+              onClick={() => setMobileView("list")}
+              aria-label="Back to conversations"
+              className="sm:hidden grid place-items-center w-9 h-9 -ml-1.5 rounded-[9px] text-ink-2 hover:bg-bg flex-none"
+            >
+              <Icon name="ArrowLeft" size={18} />
+            </button>
             <ConvAvatar c={c} />
             <div className="flex-1 min-w-0"><b className="block text-[14.5px] font-semibold">{c.type === "channel" ? "# " + c.name : c.name}</b><span className="text-[11.5px] text-ink-3">{c.meta}</span></div>
             <div className="flex gap-2">
