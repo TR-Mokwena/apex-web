@@ -3,6 +3,10 @@
 import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/Icon";
 import { cn } from "@/lib/cn";
+import CallModal from "@/components/messages/CallModal";
+import { Modal, Field, TextInput, Dropdown, MenuItem, MenuLabel, MenuSep } from "@/components/ui";
+
+const EMOJI = ["👍", "🎉", "🙌", "🔥", "😄", "🚀", "👀", "✅", "❤️", "😅", "🙏", "💡", "⚡", "🐛", "☕", "🎯"];
 
 const PAL = [
   "linear-gradient(135deg,#6366F1,#8B5CF6)",
@@ -61,7 +65,14 @@ export default function MessagesPage() {
   const [query, setQuery] = useState("");
   // On phones the list and thread can't both fit — swap between them.
   const [mobileView, setMobileView] = useState("list");
+  const [call, setCall] = useState(null);       // { mode, title, subtitle, avatar, bg, isChannel }
+  const [showInfo, setShowInfo] = useState(false);
+  const [compose, setCompose] = useState(false);
+  const [composeName, setComposeName] = useState("");
+  const [showEmoji, setShowEmoji] = useState(false);
   const msgsRef = useRef(null);
+  const fileRef = useRef(null);
+  const inputRef = useRef(null);
   const c = convos.find((x) => x.id === active);
 
   useEffect(() => { if (msgsRef.current) msgsRef.current.scrollTop = msgsRef.current.scrollHeight; }, [active, convos]);
@@ -69,17 +80,61 @@ export default function MessagesPage() {
   const select = (id) => {
     setActive(id);
     setMobileView("thread");
+    setShowInfo(false);
     setConvos((cs) => cs.map((x) => (x.id === id ? { ...x, unread: 0 } : x)));
   };
+
+  const pushMsg = (msg, preview) => setConvos((cs) => cs.map((x) => {
+    if (x.id !== active) return x;
+    const msgs = x.msgs.filter((m) => !m.typing).concat({ me: true, tm: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }), ...msg });
+    return { ...x, msgs, pv: preview, tm: "now" };
+  }));
+
   const send = () => {
     const v = draft.trim();
     if (!v) return;
-    setConvos((cs) => cs.map((x) => {
-      if (x.id !== active) return x;
-      const msgs = x.msgs.filter((m) => !m.typing).concat({ me: true, t: v, tm: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) });
-      return { ...x, msgs, pv: "You: " + v.slice(0, 28) };
-    }));
+    pushMsg({ t: v }, "You: " + v.slice(0, 28));
     setDraft("");
+    setShowEmoji(false);
+  };
+
+  const addEmoji = (e) => { setDraft((d) => d + e); inputRef.current?.focus(); };
+
+  const onAttach = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const kb = file.size < 1024 * 1024 ? `${Math.max(1, Math.round(file.size / 1024))} KB` : `${(file.size / 1048576).toFixed(1)} MB`;
+    const ext = (file.name.split(".").pop() || "FILE").toUpperCase();
+    pushMsg({ attach: { name: file.name, meta: `${ext} · ${kb}` } }, "You: 📎 " + file.name.slice(0, 24));
+    e.target.value = "";
+  };
+
+  const startCall = (mode) => {
+    if (!c) return;
+    setCall({
+      mode,
+      title: c.type === "channel" ? "# " + c.name : c.name,
+      subtitle: c.meta,
+      avatar: c.av,
+      bg: PAL[c.pi ?? 0],
+      isChannel: c.type === "channel",
+    });
+    const label = mode === "video" ? "📹 Video call" : "📞 Voice call";
+    pushMsg({ t: `${label} ended`, call: true }, "You: " + label);
+  };
+
+  const markAllRead = () => setConvos((cs) => cs.map((x) => ({ ...x, unread: 0 })));
+
+  const createConversation = () => {
+    const name = composeName.trim();
+    if (!name) return;
+    const id = "d" + Date.now();
+    const conv = { id, type: "dm", name, av: name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase(), pi: convos.length % PAL.length, pres: "on", pv: "New conversation", tm: "now", unread: 0, meta: "Direct message", msgs: [{ day: "Today" }] };
+    setConvos((cs) => [conv, ...cs]);
+    setActive(id);
+    setMobileView("thread");
+    setCompose(false);
+    setComposeName("");
   };
 
   const match = (cv) => (cv.type === "channel" ? "# " + cv.name : cv.name).toLowerCase().includes(query.trim().toLowerCase());
@@ -99,8 +154,17 @@ export default function MessagesPage() {
           </div>
         </div>
         <div className="flex items-center gap-2.5">
-          <button className="grid place-items-center w-[38px] h-[38px] rounded-[10px] bg-card border border-line shadow-card"><Icon name="PenLine" size={17} className="text-ink-2" /></button>
-          <button className="grid place-items-center w-[38px] h-[38px] rounded-[10px] bg-card border border-line shadow-card"><Icon name="SlidersHorizontal" size={17} className="text-ink-2" /></button>
+          <button onClick={() => setCompose(true)} title="New message" className="grid place-items-center w-[38px] h-[38px] rounded-[10px] bg-card border border-line shadow-card hover:bg-bg transition-colors"><Icon name="PenLine" size={17} className="text-ink-2" /></button>
+          <Dropdown align="right" width={200} trigger={({ toggle }) => (
+            <button onClick={toggle} title="Filter & options" className="grid place-items-center w-[38px] h-[38px] rounded-[10px] bg-card border border-line shadow-card hover:bg-bg transition-colors"><Icon name="SlidersHorizontal" size={17} className="text-ink-2" /></button>
+          )}>
+            <MenuLabel>Show</MenuLabel>
+            {["All", "Unread", "Channels", "DMs"].map((t) => (
+              <MenuItem key={t} icon={tab === t ? "Check" : "Dot"} onClick={() => setTab(t)}>{t}</MenuItem>
+            ))}
+            <MenuSep />
+            <MenuItem icon="CheckCheck" onClick={markAllRead}>Mark all as read</MenuItem>
+          </Dropdown>
         </div>
       </div>
 

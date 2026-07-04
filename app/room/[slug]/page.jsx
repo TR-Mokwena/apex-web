@@ -583,7 +583,7 @@ export default function RoomPage() {
         <div className="flex items-center justify-end gap-2 sm:gap-3 flex-none lg:flex-1">
           <div className="hidden sm:flex items-center gap-2 sm:gap-3">{panelToggles}</div>
           <button onClick={() => router.push("/meetings")} className="flex items-center gap-2 h-11 sm:h-[52px] px-4 sm:px-5 rounded-[14px] sm:rounded-[16px] bg-red-500 hover:bg-red-600 text-white text-[13px] font-bold flex-none">
-            <Icon name="PhoneOff" size={18} /><span className="hidden xs:inline sm:inline">Leave</span>
+            <Icon name="PhoneOff" size={18} /><span className="hidden sm:inline">Leave</span>
           </button>
         </div>
       </div>
