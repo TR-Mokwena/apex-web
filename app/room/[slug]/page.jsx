@@ -90,21 +90,20 @@ function AudioBars({ className }) {
   );
 }
 
-function Ctrl({ icon, label, onClick, active, danger, glow, badge, size = 52 }) {
+function Ctrl({ icon, label, onClick, active, danger, glow, badge }) {
   return (
-    <button type="button" onClick={onClick} className="group flex flex-col items-center gap-1.5">
+    <button type="button" onClick={onClick} className="group flex flex-col items-center gap-1.5 flex-none">
       <span
         className={cn(
-          "relative grid place-items-center rounded-[16px] transition-all duration-150 group-hover:-translate-y-0.5",
+          "relative grid place-items-center w-11 h-11 sm:w-[52px] sm:h-[52px] rounded-[14px] sm:rounded-[16px] transition-all duration-150 group-hover:-translate-y-0.5",
           danger ? "bg-red-500 text-white hover:bg-red-600" : active ? "bg-brand text-white" : "bg-white/[0.08] text-slate-200 hover:bg-white/[0.16]",
           glow && "shadow-[0_0_0_1px_rgba(99,102,241,.55),0_10px_34px_-8px_rgba(99,102,241,.8)]",
         )}
-        style={{ width: size, height: size }}
       >
         <Icon name={icon} size={20} />
         {badge != null && <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-brand text-white text-[10px] font-bold ring-2 ring-[#0a0e1a]">{badge}</span>}
       </span>
-      <span className={cn("text-[10.5px] transition-colors", active ? "text-brand" : "text-slate-400 group-hover:text-slate-200")}>{label}</span>
+      <span className={cn("text-[10px] sm:text-[10.5px] transition-colors", active ? "text-brand" : "text-slate-400 group-hover:text-slate-200")}>{label}</span>
     </button>
   );
 }
@@ -258,6 +257,15 @@ export default function RoomPage() {
 
   const others = PEOPLE.filter((p) => p.id !== activeId);
 
+  // Panel toggles — reused in the control bar's mobile scroll strip and its sm+ right cluster.
+  const panelToggles = (
+    <>
+      <Ctrl icon="Sparkles" label="Apex AI" glow active={panel === "ai"} onClick={() => setPanel((p) => (p === "ai" ? null : "ai"))} />
+      <Ctrl icon="Users" label="People" badge={PEOPLE.length} active={panel === "people"} onClick={() => setPanel((p) => (p === "people" ? null : "people"))} />
+      <Ctrl icon="MessageSquare" label="Chat" active={panel === "chat"} onClick={() => setPanel((p) => (p === "chat" ? null : "chat"))} />
+    </>
+  );
+
   return (
     <div className="fixed inset-0 flex flex-col bg-[#0a0e1a] text-slate-100 font-sans">
       {/* ---------- top bar ---------- */}
@@ -396,7 +404,7 @@ export default function RoomPage() {
 
         {/* ---------- side panel ---------- */}
         {panel && (
-          <aside className="w-[340px] max-w-[88vw] flex-none border-l border-white/[0.06] bg-[#0c121f] flex flex-col">
+          <aside className="z-40 bg-[#0c121f] flex flex-col max-sm:fixed max-sm:inset-x-0 max-sm:top-14 max-sm:bottom-20 max-sm:border-t max-sm:border-white/[0.06] sm:w-[340px] sm:max-w-[88vw] sm:flex-none sm:border-l sm:border-white/[0.06]">
             <div className="flex items-center gap-1 px-2 pt-2 flex-none">
               {[
                 { k: "ai", icon: "Sparkles", label: "Apex AI" },
@@ -541,42 +549,41 @@ export default function RoomPage() {
       </div>
 
       {/* ---------- control bar ---------- */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 items-center gap-3 px-4 h-20 border-t border-white/[0.06] flex-none">
+      <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 h-20 border-t border-white/[0.06] flex-none">
         {/* left: live AI status (lg) */}
-        <div className="hidden lg:flex items-center gap-2 text-[11.5px] text-slate-400">
+        <div className="hidden lg:flex flex-1 items-center gap-2 text-[11.5px] text-slate-400">
           <Icon name="Captions" size={14} className={captions ? "text-brand" : ""} />{captions ? "Captions on" : "Captions off"}
           <span className="w-1 h-1 rounded-full bg-slate-600" />
           <Icon name="Waves" size={14} className={noise ? "text-brand" : ""} />Noise {noise ? "suppressed" : "off"}
         </div>
 
-        {/* center: primary controls */}
-        <div className="flex items-center justify-center gap-2 sm:gap-3 col-span-2 lg:col-span-1">
+        {/* center: primary controls — scroll horizontally on small screens so nothing is clipped */}
+        <div className="flex-1 lg:flex-none min-w-0 flex items-center justify-start sm:justify-center gap-1.5 sm:gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <Ctrl icon={mic ? "Mic" : "MicOff"} label={mic ? "Mute" : "Unmute"} danger={!mic} onClick={() => setMic((v) => !v)} />
           <Ctrl icon={cam ? "Video" : "VideoOff"} label={cam ? "Stop" : "Start"} danger={!cam} onClick={() => setCam((v) => !v)} />
           <Ctrl icon="MonitorUp" label="Share" active={sharing} onClick={() => setSharing((v) => !v)} />
           <Ctrl icon="Disc" label={recording ? "Stop rec" : "Record"} danger={recording} onClick={toggleRec} />
-          <div className="relative">
-            <Ctrl icon="Smile" label="React" active={reactOpen} onClick={() => setReactOpen((v) => !v)} />
-            {reactOpen && (
-              <div className="absolute bottom-[64px] left-1/2 -translate-x-1/2 flex items-center gap-1 bg-[#121a2c] border border-white/10 rounded-full px-2 py-1.5 shadow-pop">
-                {REACTIONS.map((e) => <button key={e} onClick={() => react(e)} className="text-xl hover:scale-125 transition-transform px-0.5">{e}</button>)}
-              </div>
-            )}
-          </div>
+          <Ctrl icon="Smile" label="React" active={reactOpen} onClick={() => setReactOpen((v) => !v)} />
           <Ctrl icon="Captions" label="Captions" active={captions} onClick={() => setCaptions((v) => !v)} />
           <Ctrl icon="Hand" label="Raise" active={hand} onClick={() => setHand((v) => !v)} />
           <Ctrl icon={layout === "speaker" ? "LayoutGrid" : "SquareUser"} label="Layout" onClick={() => setLayout((l) => (l === "gallery" ? "speaker" : "gallery"))} />
+          {/* panel toggles — reachable on mobile; on sm+ they live in the right cluster */}
+          <span className="sm:hidden w-px h-9 bg-white/10 flex-none mx-0.5" />
+          <div className="sm:hidden flex items-center gap-1.5">{panelToggles}</div>
         </div>
 
-        {/* right: panels + leave */}
-        <div className="flex items-center justify-end gap-2 sm:gap-3">
-          <div className="hidden sm:flex items-center gap-2 sm:gap-3">
-            <Ctrl icon="Sparkles" label="Apex AI" glow active={panel === "ai"} onClick={() => setPanel((p) => (p === "ai" ? null : "ai"))} />
-            <Ctrl icon="Users" label="People" badge={PEOPLE.length} active={panel === "people"} onClick={() => setPanel((p) => (p === "people" ? null : "people"))} />
-            <Ctrl icon="MessageSquare" label="Chat" active={panel === "chat"} onClick={() => setPanel((p) => (p === "chat" ? null : "chat"))} />
+        {/* reactions popover — fixed so the scroll strip can't clip it */}
+        {reactOpen && (
+          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-[#121a2c] border border-white/10 rounded-full px-2 py-1.5 shadow-pop">
+            {REACTIONS.map((e) => <button key={e} onClick={() => react(e)} className="text-xl hover:scale-125 transition-transform px-0.5">{e}</button>)}
           </div>
-          <button onClick={() => router.push("/meetings")} className="flex items-center gap-2 h-[52px] px-5 rounded-[16px] bg-red-500 hover:bg-red-600 text-white text-[13px] font-bold">
-            <Icon name="PhoneOff" size={18} />Leave
+        )}
+
+        {/* right: panels (sm+) + leave */}
+        <div className="flex items-center justify-end gap-2 sm:gap-3 flex-none lg:flex-1">
+          <div className="hidden sm:flex items-center gap-2 sm:gap-3">{panelToggles}</div>
+          <button onClick={() => router.push("/meetings")} className="flex items-center gap-2 h-11 sm:h-[52px] px-4 sm:px-5 rounded-[14px] sm:rounded-[16px] bg-red-500 hover:bg-red-600 text-white text-[13px] font-bold flex-none">
+            <Icon name="PhoneOff" size={18} /><span className="hidden xs:inline sm:inline">Leave</span>
           </button>
         </div>
       </div>
