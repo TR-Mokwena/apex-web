@@ -7,6 +7,7 @@ import Icon from "@/components/Icon";
 import ApexMark from "@/components/Apex.svg";
 import { Switch } from "@/components/ui";
 import { cn } from "@/lib/cn";
+import { signIn } from "@/lib/auth";
 
 const PAL = [
   "linear-gradient(135deg,#6366F1,#8B5CF6)",
@@ -49,7 +50,7 @@ export default function OnboardingPage() {
 
   const addTeam = (name) => { const n = name.trim(); if (n) setTeams((t) => [...t, { n, c: TEAM_COLORS[t.length % TEAM_COLORS.length] }]); };
   const addInvite = () => { const e = inviteEmail.trim(); if (!e) return; const av = (e[0] + e.split("@")[0].slice(-1)).toUpperCase(); setInvites((v) => [...v, { e, r: inviteRole, av, pi: v.length % 5 }]); setInviteEmail(""); };
-  const next = () => { if (step === 4) { router.push("/"); return; } setStep((s) => s + 1); };
+  const next = () => { if (step === 4) { signIn({ remember: true }); router.push("/"); return; } setStep((s) => s + 1); };
   const il = ILLUS[step];
 
   return (

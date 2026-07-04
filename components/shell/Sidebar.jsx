@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
 import ApexMark from "@/components/Apex White.svg";
 import { cn } from "@/lib/cn";
 import { NAV, QUICK_CREATE } from "@/lib/nav";
+import { signOut } from "@/lib/auth";
 import { Dropdown, MenuItem, MenuLabel, MenuSep } from "@/components/ui";
 
 function isActive(pathname, href) {
@@ -14,6 +15,13 @@ function isActive(pathname, href) {
 
 export default function Sidebar({ open, collapsed, onClose, onToggleCollapse }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleSignOut = () => {
+    onClose?.();
+    signOut();
+    router.replace("/login");
+  };
 
   return (
     <aside
@@ -114,7 +122,7 @@ export default function Sidebar({ open, collapsed, onClose, onToggleCollapse }) 
           <MenuItem icon="Settings" href="/settings" onClick={onClose}>Account settings</MenuItem>
           <MenuItem icon="Bell" href="/notifications" onClick={onClose}>Notifications</MenuItem>
           <MenuSep />
-          <MenuItem icon="LogOut" href="/login" onClick={onClose} danger>Sign out</MenuItem>
+          <MenuItem icon="LogOut" onClick={handleSignOut} danger>Sign out</MenuItem>
         </Dropdown>
         <button
           type="button"

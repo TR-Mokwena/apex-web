@@ -8,6 +8,7 @@ import Icon from "@/components/Icon";
 import ApexMark from "@/components/Apex.svg";
 import { cn } from "@/lib/cn";
 import { DEFAULT_ACCENT } from "@/lib/theme";
+import { signIn } from "@/lib/auth";
 
 function GoogleIcon() {
   return (
@@ -43,7 +44,7 @@ export default function LoginPage() {
   const [show, setShow] = useState(false);
   const [remember, setRemember] = useState(true);
 
-  const signIn = (e) => { e.preventDefault(); router.push("/"); };
+  const submit = (e) => { e.preventDefault(); signIn({ remember }); router.push("/"); };
 
   const fieldWrap = "flex items-center gap-2.5 h-12 px-3.5 rounded-xl border border-line bg-card focus-within:border-brand focus-within:shadow-[0_0_0_3px_var(--color-brand-soft)] transition-[border-color,box-shadow]";
 
@@ -57,7 +58,7 @@ export default function LoginPage() {
 
       {/* form */}
       <div className="flex-1 grid place-items-center p-5 sm:p-8">
-        <form onSubmit={signIn} className="w-full max-w-[400px] flex flex-col">
+        <form onSubmit={submit} className="w-full max-w-[400px] flex flex-col">
           {/* logo */}
           <div className="flex flex-col items-center text-center mb-7">
             <div className="flex items-center gap-2.5">

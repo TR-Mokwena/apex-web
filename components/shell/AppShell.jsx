@@ -1,20 +1,31 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import { cn } from "@/lib/cn";
+import { isAuthed } from "@/lib/auth";
+import Icon from "@/components/Icon";
 
 const COLLAPSE_KEY = "apex-sidebar-collapsed";
 
 export default function AppShell({ children }) {
+  const router = useRouter();
+  const [ready, setReady] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
-  // restore persisted collapse state
+  // Auth gate: unauthenticated visitors are bounced to the login page before any
+  // app chrome renders. Also restores persisted collapse state once we're in.
   useEffect(() => {
+    if (!isAuthed()) {
+      router.replace("/login");
+      return;
+    }
     if (localStorage.getItem(COLLAPSE_KEY) === "1") setCollapsed(true);
-  }, []);
+    setReady(true);
+  }, [router]);
 
   const toggleCollapse = () =>
     setCollapsed((c) => {
@@ -22,6 +33,16 @@ export default function AppShell({ children }) {
       localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
       return next;
     });
+
+  // Hold rendering until the client-side auth check resolves — avoids a flash of
+  // the dashboard before a redirect, and prevents a hydration mismatch.
+  if (!ready) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-bg">
+        <Icon name="LoaderCircle" size={26} className="text-brand animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen">
