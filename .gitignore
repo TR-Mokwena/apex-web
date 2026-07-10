@@ -25,6 +25,13 @@ yarn-error.log*
 # typescript / next
 next-env.d.ts
 
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/tests/e2e/.auth/
+
 # project-local — not tracked
 /legacy/
 /CLAUDE.md

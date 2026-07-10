@@ -300,7 +300,7 @@ export default function EmployeeProfile({ slug }) {
       </div>
 
       {/* "viewing as" role switcher */}
-      <div className="card !shadow-card p-[13px_16px] flex items-center gap-4 flex-wrap">
+      <div data-testid="viewer-switcher" className="card !shadow-card p-[13px_16px] flex items-center gap-4 flex-wrap">
         <div className="flex items-center gap-2 text-[12.5px] font-medium text-ink-2">
           <Icon name="Eye" size={15} className="text-ink-3" />Viewing as
         </div>
@@ -308,6 +308,8 @@ export default function EmployeeProfile({ slug }) {
           {ROLE_ORDER.map((r) => (
             <button
               key={r}
+              data-testid={`viewer-role-${r}`}
+              aria-pressed={viewerRole === r}
               onClick={() => setViewerRole(r)}
               className={cn(
                 "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-pill text-[12.5px] font-semibold transition-colors",

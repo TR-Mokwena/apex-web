@@ -7,10 +7,24 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "playwright test",
+    "test:e2e": "playwright test",
+    "test:smoke": "playwright test smoke",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report",
     "lint": "next lint",
     "remotion": "remotion studio remotion/index.js",
     "remotion:render": "remotion render remotion/index.js ApexTour out/apex-tour.mp4",
-    "remotion:still": "remotion still remotion/index.js ApexTour out/apex-still.png --frame=400"
+    "remotion:still": "remotion still remotion/index.js ApexTour out/apex-still.png --frame=400",
+    "remotion:render:vertical": "remotion render remotion/index.js ApexShortVertical out/apex-short-vertical.mp4",
+    "remotion:render:square": "remotion render remotion/index.js ApexShortSquare out/apex-short-square.mp4",
+    "remotion:render:ai": "remotion render remotion/index.js ApexAICopilot out/apex-ai.mp4",
+    "remotion:render:command": "remotion render remotion/index.js ApexCommandK out/apex-command.mp4",
+    "remotion:render:command-win": "remotion render remotion/index.js ApexCommandCtrl out/apex-command-win.mp4",
+    "remotion:render:sprint": "remotion render remotion/index.js ApexSprintPlanning out/apex-sprint.mp4",
+    "remotion:render:stats": "remotion render remotion/index.js ApexStats out/apex-stats.mp4",
+    "remotion:render:whatsnew": "remotion render remotion/index.js ApexWhatsNew out/apex-whatsnew.mp4"
   },
   "dependencies": {
     "jspdf": "^4.2.1",
@@ -20,6 +34,7 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@remotion/cli": "^4.0.481",
     "@remotion/google-fonts": "^4.0.481",
     "@remotion/tailwind-v4": "^4.0.481",

@@ -69,7 +69,7 @@ export default function TeamPage() {
           <Icon name="Search" size={16} className="text-ink-3" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search people…" className="flex-1 bg-transparent outline-none text-[13px] text-ink placeholder:text-ink-3" />
         </span>
-        <div className="flex items-center gap-1 bg-bg-soft border border-line rounded-pill p-1 overflow-x-auto">
+        <div data-testid="role-filter" className="flex items-center gap-1 bg-bg-soft border border-line rounded-pill p-1 overflow-x-auto">
           {FILTERS.map((f) => (
             <button
               key={f}
