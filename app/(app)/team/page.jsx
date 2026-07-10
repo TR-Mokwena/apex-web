@@ -9,6 +9,14 @@ import { TEAM, ROLES, ROLE_ORDER, PAL, roleCounts } from "@/lib/team";
 
 const FILTERS = ["All", ...ROLE_ORDER.map((r) => ROLES[r].label)];
 
+// Static tone classes for the role summary tiles (Tailwind can't see interpolated names).
+const ROLE_TILE = {
+  indigo: { box: "bg-brand-soft", icon: "text-brand" },
+  violet: { box: "bg-violet-50", icon: "text-violet-600" },
+  blue: { box: "bg-[#EAF1FF]", icon: "text-[#2563EB]" },
+  slate: { box: "bg-bg-soft", icon: "text-ink-2" },
+};
+
 export default function TeamPage() {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("All");
@@ -33,6 +41,7 @@ export default function TeamPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-[18px]">
         {ROLE_ORDER.map((r) => {
           const role = ROLES[r];
+          const tile = ROLE_TILE[role.tone] || ROLE_TILE.slate;
           return (
             <button
               key={r}
@@ -42,8 +51,8 @@ export default function TeamPage() {
                 filter === role.label && "!border-brand",
               )}
             >
-              <span className={cn("grid place-items-center w-11 h-11 rounded-[13px] flex-none", `bg-${role.tone === "indigo" ? "brand-soft" : role.tone === "violet" ? "violet-50" : role.tone === "blue" ? "[#EAF1FF]" : "bg-soft"}`)}>
-                <Icon name={role.icon} size={20} className={cn(role.tone === "indigo" ? "text-brand" : role.tone === "violet" ? "text-violet-600" : role.tone === "blue" ? "text-[#2563EB]" : "text-ink-2")} />
+              <span className={cn("grid place-items-center w-11 h-11 rounded-[13px] flex-none", tile.box)}>
+                <Icon name={role.icon} size={20} className={tile.icon} />
               </span>
               <div>
                 <div className="text-[24px] font-bold leading-none tracking-[-0.02em]">{counts[r]}</div>
