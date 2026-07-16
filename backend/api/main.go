@@ -5,9 +5,16 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+
+	"github.com/TR-Mokwena/apex-web/backend/internal/config"
 )
 
 func main() {
+	cfg := config.Load()
+	fmt.Println("Application:", cfg.AppName)
+	fmt.Println("Environment:", cfg.AppEnv)
+	fmt.Println("Port:", cfg.AppPort)
+	fmt.Println("Database:", cfg.DBName)
 
 	r := chi.NewRouter()
 
@@ -16,7 +23,10 @@ func main() {
 		fmt.Fprintln(w, "Apex API Healthy")
 	})
 
-	fmt.Println("Server running on :8080")
+	fmt.Printf("Server running on :%s\n", cfg.AppPort)
 
-	http.ListenAndServe(":8080", r)
+	err := http.ListenAndServe(":"+cfg.AppPort, r)
+	if err != nil {
+		panic(err)
+	}
 }
