@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
@@ -8,6 +8,7 @@ import ApexMark from "@/components/Apex.svg";
 import { Switch } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { signIn } from "@/lib/auth";
+import { ACCENTS, DEFAULT_ACCENT, applyAccent, saveAccent, getStoredAccent, applyMode, saveMode, getStoredMode } from "@/lib/theme";
 
 const PAL = [
   "linear-gradient(135deg,#6366F1,#8B5CF6)",
@@ -16,13 +17,18 @@ const PAL = [
   "linear-gradient(135deg,#F59E0B,#EF4444)",
   "linear-gradient(135deg,#8B5CF6,#EC4899)",
 ];
-const STEPS = ["Organization", "Teams", "Repositories", "Invite", "Finish"];
+const STEPS = ["Organization", "Appearance", "Teams", "Repositories", "Invite", "Finish"];
 const ILLUS = [
   { ic: "Rocket", t: "Welcome aboard", x: "Let's get Eclipse Softworks set up in a few quick steps." },
+  { ic: "Palette", t: "Make it yours", x: "Pick a theme and accent — every screen in your workspace adapts instantly." },
   { ic: "UsersRound", t: "Build your teams", x: "Teams keep work organized and contribution insights meaningful." },
   { ic: "GitBranch", t: "Bring your code in", x: "Apex reads commits, PRs and reviews to surface delivery health." },
   { ic: "Mail", t: "Better together", x: "Invite teammates so everyone stays in sync from day one." },
   { ic: "PartyPopper", t: "Ready for liftoff", x: "Your workspace is configured. Time to explore your dashboard." },
+];
+const MODES = [
+  { id: "light", label: "Light", sub: "Bright and clean", icon: "Sun" },
+  { id: "dark", label: "Dark", sub: "Easy on the eyes", icon: "Moon" },
 ];
 const SUGGEST = ["Platform", "Mobile", "DevOps", "QA", "Data", "Marketing"];
 const TEAM_COLORS = ["#6366F1", "#0EA5E9", "#8B5CF6", "#10B981", "#F59E0B", "#EC4899"];
@@ -32,6 +38,17 @@ const FIELD = "flex items-center h-11 border border-line rounded-[11px] bg-card 
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
+  const [accent, setAccent] = useState(DEFAULT_ACCENT);
+  const [mode, setMode] = useState("light");
+  // hydrate from any previously stored preference and apply it to the onboarding chrome
+  useEffect(() => {
+    const a = getStoredAccent(), m = getStoredMode();
+    setAccent(a.toUpperCase()); setMode(m); applyAccent(a); applyMode(m);
+  }, []);
+  const chooseAccent = (hex) => { applyAccent(hex); saveAccent(hex); setAccent(hex.toUpperCase()); };
+  const chooseMode = (id) => { applyMode(id); saveMode(id); setMode(id); };
+  const isPreset = ACCENTS.some((a) => a.hex.toUpperCase() === accent.toUpperCase());
+  const accentName = ACCENTS.find((a) => a.hex.toUpperCase() === accent.toUpperCase())?.name || "Custom";
   const [teams, setTeams] = useState([{ n: "Engineering", c: "#6366F1" }, { n: "Product", c: "#0EA5E9" }, { n: "Design", c: "#8B5CF6" }]);
   const [teamInput, setTeamInput] = useState("");
   const [repos, setRepos] = useState([
@@ -50,11 +67,14 @@ export default function OnboardingPage() {
 
   const addTeam = (name) => { const n = name.trim(); if (n) setTeams((t) => [...t, { n, c: TEAM_COLORS[t.length % TEAM_COLORS.length] }]); };
   const addInvite = () => { const e = inviteEmail.trim(); if (!e) return; const av = (e[0] + e.split("@")[0].slice(-1)).toUpperCase(); setInvites((v) => [...v, { e, r: inviteRole, av, pi: v.length % 5 }]); setInviteEmail(""); };
-  const next = () => { if (step === 4) { signIn({ remember: true }); router.push("/"); return; } setStep((s) => s + 1); };
+  const next = () => { if (step === STEPS.length - 1) { signIn({ remember: true }); router.push("/"); return; } setStep((s) => s + 1); };
   const il = ILLUS[step];
+  const pageBg = mode === "dark"
+    ? "radial-gradient(1100px 500px at 110% -10%, #1b2440 0%, transparent 55%), radial-gradient(900px 460px at -10% 110%, #171f36 0%, transparent 55%), #0b1020"
+    : "radial-gradient(1100px 500px at 110% -10%, #E6E9FF 0%, transparent 55%), radial-gradient(900px 460px at -10% 110%, #EDE7FF 0%, transparent 55%), #F1F3F9";
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "radial-gradient(1100px 500px at 110% -10%, #E6E9FF 0%, transparent 55%), radial-gradient(900px 460px at -10% 110%, #EDE7FF 0%, transparent 55%), #F1F3F9" }}>
+    <div className="min-h-screen flex flex-col" style={{ background: pageBg }}>
       <div className="flex items-center justify-between p-[22px_30px]">
         <div className="flex items-center gap-2.5">
           <ApexMark className="w-[34px] h-[34px]" />
@@ -75,7 +95,7 @@ export default function OnboardingPage() {
                   </span>
                   <span className={cn("text-[13.5px] whitespace-nowrap hidden sm:inline", i === step ? "text-ink font-semibold" : i < step ? "text-ink-2 font-medium" : "text-ink-3 font-medium")}>{label}</span>
                 </button>
-                {i < STEPS.length - 1 && <div className="flex-1 h-0.5 bg-slate-200 mx-3.5 rounded-sm overflow-hidden"><div className="h-full bg-brand transition-[width]" style={{ width: i < step ? "100%" : "0%" }} /></div>}
+                {i < STEPS.length - 1 && <div className="flex-1 h-0.5 bg-line mx-3.5 rounded-sm overflow-hidden"><div className="h-full bg-brand transition-[width]" style={{ width: i < step ? "100%" : "0%" }} /></div>}
               </div>
             ))}
           </div>
@@ -91,6 +111,46 @@ export default function OnboardingPage() {
                 </Pane>
               )}
               {step === 1 && (
+                <Pane title="Choose your appearance" lede="Set the look your whole organization will see. You can change this anytime in Settings.">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[12.5px] font-medium text-ink-2">Theme</span>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {MODES.map((m) => (
+                        <button key={m.id} type="button" onClick={() => chooseMode(m.id)} className={cn("flex items-center gap-3 p-[12px_14px] rounded-[12px] border text-left transition", mode === m.id ? "border-brand bg-brand-soft" : "border-line bg-card hover:border-[#C7D2FE]")}>
+                          <span className={cn("grid place-items-center w-9 h-9 rounded-[10px] flex-none", mode === m.id ? "bg-brand text-white" : "bg-bg text-ink-2")}><Icon name={m.icon} size={17} /></span>
+                          <span className="flex-1 min-w-0"><b className="block text-[13.5px] font-semibold">{m.label}</b><span className="text-[11.5px] text-ink-3">{m.sub}</span></span>
+                          {mode === m.id && <Icon name="Check" size={16} className="text-brand flex-none" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2.5">
+                    <span className="text-[12.5px] font-medium text-ink-2">Accent color</span>
+                    <div className="flex flex-wrap gap-2.5">
+                      {ACCENTS.map((a) => {
+                        const on = a.hex.toUpperCase() === accent.toUpperCase();
+                        return (
+                          <button key={a.hex} type="button" onClick={() => chooseAccent(a.hex)} title={a.name} className={cn("relative grid place-items-center w-9 h-9 rounded-full transition-transform hover:scale-110", on && "ring-2 ring-offset-2 ring-offset-card")} style={{ background: a.hex }}>
+                            {on && <Icon name="Check" size={16} className="text-white" />}
+                          </button>
+                        );
+                      })}
+                      <label className={cn("relative grid place-items-center w-9 h-9 rounded-full cursor-pointer border-2 border-dashed border-ink-3/50 text-ink-3 hover:border-brand hover:text-brand", !isPreset && "border-solid ring-2 ring-offset-2 ring-offset-card")} style={!isPreset ? { background: accent, borderColor: accent, color: "#fff" } : undefined} title="Custom color">
+                        {isPreset ? <Icon name="Plus" size={16} /> : <Icon name="Check" size={16} className="text-white" />}
+                        <input type="color" value={accent} onChange={(e) => chooseAccent(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" />
+                      </label>
+                    </div>
+                  </div>
+                  <div className="rounded-[12px] border border-line bg-bg-soft p-[14px] flex items-center gap-3">
+                    <span className="grid place-items-center w-10 h-10 rounded-[11px] bg-brand text-white flex-none"><Icon name="LayoutDashboard" size={19} /></span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2"><b className="text-[13px] font-semibold">Live preview</b><span className="inline-flex items-center text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-brand-soft text-brand-600">{accentName} · {mode === "dark" ? "Dark" : "Light"}</span></div>
+                      <div className="mt-2 h-2 rounded-full bg-bg overflow-hidden"><div className="h-full w-2/3 rounded-full bg-brand" /></div>
+                    </div>
+                  </div>
+                </Pane>
+              )}
+              {step === 2 && (
                 <Pane title="Set up your teams" lede="Organize people into teams that match how you work.">
                   <div className="flex gap-2.5">
                     <span className={cn(FIELD, "flex-1")}><input value={teamInput} onChange={(e) => setTeamInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (addTeam(teamInput), setTeamInput(""))} placeholder="e.g. Platform" className="flex-1 outline-none text-sm px-[13px] h-full" /></span>
@@ -109,7 +169,7 @@ export default function OnboardingPage() {
                   </div>
                 </Pane>
               )}
-              {step === 2 && (
+              {step === 3 && (
                 <Pane title="Connect repositories" lede="Link the repos Apex should track for contribution insights.">
                   <div className="flex items-center gap-2.5 p-[12px_14px] rounded-xl bg-[#0D1117] text-white"><Icon name="Github" size={18} /><b className="text-[13px] font-semibold">github.com/eclipse-softworks</b><span className="ml-auto text-xs text-[#34D399] font-semibold flex items-center gap-1.5"><Icon name="CircleCheckBig" size={14} />Connected</span></div>
                   <div className="flex flex-col gap-2.5">
@@ -123,7 +183,7 @@ export default function OnboardingPage() {
                   </div>
                 </Pane>
               )}
-              {step === 3 && (
+              {step === 4 && (
                 <Pane title="Invite your team" lede="Bring teammates into Apex. They'll get an email invite.">
                   <div className="flex gap-2.5 flex-wrap">
                     <span className={cn(FIELD, "flex-1 min-w-[160px]")}><input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addInvite()} placeholder="name@eclipsesoftworks.com" className="flex-1 outline-none text-sm px-[13px] h-full" /></span>
@@ -142,7 +202,7 @@ export default function OnboardingPage() {
                   </div>
                 </Pane>
               )}
-              {step === 4 && (
+              {step === 5 && (
                 <div className="flex flex-col items-center text-center pt-2.5 gap-4">
                   <span className="relative grid place-items-center w-[74px] h-[74px] rounded-full bg-[#E7F8F0] before:content-[''] before:absolute before:-inset-2.5 before:rounded-full before:bg-emerald-500/10"><Icon name="Check" size={34} className="text-emerald-600" /></span>
                   <div><h2 className="m-0 text-[22px] font-bold">You're all set!</h2><div className="text-[13.5px] text-ink-2 mt-1">Eclipse Softworks is ready to go on Apex.</div></div>
@@ -158,6 +218,11 @@ export default function OnboardingPage() {
                         <div><b className="text-base font-bold">{s.b}</b><span className="block text-[11.5px] text-ink-3">{s.s}</span></div>
                       </div>
                     ))}
+                    <div className="sm:col-span-2 flex items-center gap-3 p-[12px_14px] border border-line rounded-xl text-left">
+                      <span className="grid place-items-center w-[34px] h-[34px] rounded-[9px] flex-none text-white" style={{ background: accent }}><Icon name="Palette" size={16} /></span>
+                      <div className="flex-1 min-w-0"><b className="text-base font-bold">{accentName} · {mode === "dark" ? "Dark" : "Light"}</b><span className="block text-[11.5px] text-ink-3">appearance</span></div>
+                      <span className="w-5 h-5 rounded-full flex-none border border-black/10" style={{ background: accent }} />
+                    </div>
                   </div>
                 </div>
               )}
@@ -175,11 +240,11 @@ export default function OnboardingPage() {
 
           {/* footer */}
           <div className="flex items-center justify-between p-[18px_34px] border-t border-line">
-            <span className="text-[12.5px] text-ink-3">Step {step + 1} of 5</span>
+            <span className="text-[12.5px] text-ink-3">Step {step + 1} of {STEPS.length}</span>
             <div className="flex gap-2.5">
               <button onClick={() => step > 0 && setStep((s) => s - 1)} disabled={step === 0} className="h-[42px] px-[18px] rounded-[11px] border border-line bg-card text-[13.5px] font-semibold flex items-center gap-2 disabled:opacity-45 disabled:cursor-not-allowed"><Icon name="ArrowLeft" size={16} />Back</button>
               <button onClick={next} className="h-[42px] px-[18px] rounded-[11px] text-white text-[13.5px] font-semibold flex items-center gap-2 shadow-[0_10px_22px_-10px_color-mix(in_srgb,var(--color-brand)_90%,transparent)]" style={{ background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-600))" }}>
-                {step === 4 ? "Go to dashboard" : step === 3 ? "Finish setup" : "Continue"}<Icon name="ArrowRight" size={16} />
+                {step === 5 ? "Go to dashboard" : step === 4 ? "Finish setup" : "Continue"}<Icon name="ArrowRight" size={16} />
               </button>
             </div>
           </div>

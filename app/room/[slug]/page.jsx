@@ -2,39 +2,74 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import {
+  StreamVideo,
+  StreamCall,
+  StreamTheme,
+  ParticipantView,
+  useCallStateHooks,
+  CallingState,
+  hasVideo,
+  hasAudio,
+  hasScreenShare,
+} from "@stream-io/video-react-sdk";
+import "@stream-io/video-react-sdk/dist/css/styles.css";
 import Icon from "@/components/Icon";
 import { cn } from "@/lib/cn";
+import { getDemoUser, getVideoClient, isStreamConfigured } from "@/lib/stream";
 
 /* ============================================================================
    Apex Conference Room — the in-call (video) experience.
    Immersive, full-bleed dark screen rendered OUTSIDE the app shell (like
-   /command and /onboarding). Everything is hardcoded demo data + simulated
-   "live" behaviour (rotating speaker, streaming transcript, AI summary).
-   AI features: Apex AI assistant, live captions/transcription, translation,
-   noise cancellation, auto-framing, recording with AI highlights.
+   /command and /onboarding).
+
+   The video itself is now REAL: it connects to Stream (getstream.io) via a
+   server-minted token, joins the call named after the room slug, and renders
+   live participant tracks. Open the same /room/<slug> in another tab/device to
+   see multi-party video.
+
+   The AI layer (Apex AI assistant, live captions, transcript, action items,
+   the leave-of-absence popup) is still simulated demo data layered on top —
+   those aren't wired to a backend yet.
    ========================================================================= */
 
+// Deterministic gradient per participant id — real users have no preset colour.
+const PALS = [
+  "linear-gradient(135deg,#6366F1,#8B5CF6)",
+  "linear-gradient(135deg,#0EA5E9,#6366F1)",
+  "linear-gradient(135deg,#10B981,#22C55E)",
+  "linear-gradient(135deg,#F59E0B,#EF4444)",
+  "linear-gradient(135deg,#8B5CF6,#EC4899)",
+  "linear-gradient(135deg,#0EA5E9,#14B8A6)",
+];
+const gradFor = (id = "") => {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return PALS[h % PALS.length];
+};
+const initialsOf = (name = "") =>
+  name === "You"
+    ? "You"
+    : name.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
+
+// ---- demo data driving the AI / transcript / absence overlays only ----
 const GRADS = {
   tr: "linear-gradient(135deg,#6366F1,#8B5CF6)",
-  you: "linear-gradient(135deg,#0EA5E9,#6366F1)",
   thabo: "linear-gradient(135deg,#10B981,#22C55E)",
   sipho: "linear-gradient(135deg,#F59E0B,#EF4444)",
   priya: "linear-gradient(135deg,#8B5CF6,#EC4899)",
   naledi: "linear-gradient(135deg,#0EA5E9,#14B8A6)",
 };
-const PEOPLE = [
-  { id: "tr", name: "TR Mokwena", host: true, you: false, muted: false, cam: true },
-  { id: "you", name: "You", host: false, you: true, muted: false, cam: false },
-  { id: "thabo", name: "Thabo Nkosi", host: false, you: false, muted: true, cam: true },
-  { id: "sipho", name: "Sipho Dlamini", host: false, you: false, muted: false, cam: true },
-  { id: "priya", name: "Priya Singh", host: false, you: false, muted: true, cam: false },
+const DEMO_PEOPLE = [
+  { id: "tr", name: "TR Mokwena" },
+  { id: "thabo", name: "Thabo Nkosi" },
+  { id: "sipho", name: "Sipho Dlamini" },
+  { id: "priya", name: "Priya Singh" },
 ];
 const NALEDI = { id: "naledi", name: "Naledi Kgasana" };
-const byId = (id) => PEOPLE.find((p) => p.id === id) || NALEDI;
+const byId = (id) => DEMO_PEOPLE.find((p) => p.id === id) || NALEDI;
 const initials = (name) => (name === "You" ? "You" : name.split(" ").map((w) => w[0]).slice(0, 2).join(""));
 
-// One scripted conversation drives the active speaker, live captions and the
-// transcript panel — they stay in sync as it streams in.
 const SCRIPT = [
   { who: "tr", text: "Alright, thanks everyone for joining the mid-sprint sync." },
   { who: "thabo", text: "Quick update — the event bus is in staging, GA looks good for Friday." },
@@ -90,12 +125,12 @@ function AudioBars({ className }) {
   );
 }
 
-function Ctrl({ icon, label, onClick, active, danger, glow, badge }) {
+function Ctrl({ icon, label, onClick, active, danger, glow, badge, disabled }) {
   return (
-    <button type="button" onClick={onClick} className="group flex flex-col items-center gap-1.5 flex-none">
+    <button type="button" onClick={onClick} disabled={disabled} className="group flex flex-col items-center gap-1.5 flex-none disabled:opacity-40 disabled:cursor-not-allowed">
       <span
         className={cn(
-          "relative grid place-items-center w-11 h-11 sm:w-[52px] sm:h-[52px] rounded-[14px] sm:rounded-[16px] transition-all duration-150 group-hover:-translate-y-0.5",
+          "relative grid place-items-center w-11 h-11 sm:w-[52px] sm:h-[52px] rounded-[14px] sm:rounded-[16px] transition-all duration-150 group-hover:-translate-y-0.5 group-disabled:translate-y-0",
           danger ? "bg-red-500 text-white hover:bg-red-600" : active ? "bg-brand text-white" : "bg-white/[0.08] text-slate-200 hover:bg-white/[0.16]",
           glow && "shadow-[0_0_0_1px_rgba(99,102,241,.55),0_10px_34px_-8px_rgba(99,102,241,.8)]",
         )}
@@ -108,40 +143,55 @@ function Ctrl({ icon, label, onClick, active, danger, glow, badge }) {
   );
 }
 
-function Tile({ p, big, speaking }) {
+// A real participant tile — wraps Stream's <ParticipantView> (live video) with
+// the Apex name/mic/speaking chrome, and an avatar fallback when the camera is off.
+function StreamTile({ p, big, screen }) {
+  const speaking = !!p.isSpeaking;
+  const hasTrack = screen ? hasScreenShare(p) : hasVideo(p);
+  const you = !!p.isLocalParticipant;
+  const label = p.name || p.userId || "Guest";
+  const grad = gradFor(p.userId || label);
   return (
     <div
       className={cn(
-        "relative rounded-2xl overflow-hidden border transition-all duration-200",
-        speaking ? "border-emerald-400 ring-2 ring-emerald-400/40" : "border-white/[0.06]",
+        "relative rounded-2xl overflow-hidden border transition-all duration-200 bg-[#0f1626]",
+        speaking && !screen ? "border-emerald-400 ring-2 ring-emerald-400/40" : "border-white/[0.06]",
         big ? "w-full h-full" : "aspect-video",
       )}
-      style={{ background: p.cam ? GRADS[p.id] : "#0f1626" }}
     >
-      {p.cam ? (
-        <>
-          {/* faux "video" — gradient with a soft, blurred avatar watermark */}
-          <div className="absolute inset-0 grid place-items-center">
-            <span className="font-bold text-white/25 blur-[1px]" style={{ fontSize: big ? 180 : 64 }}>{initials(p.name)}</span>
-          </div>
-          <span className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 text-[10px] font-semibold text-white/90 bg-black/30 backdrop-blur rounded-md px-1.5 py-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />HD
+      <ParticipantView
+        participant={p}
+        trackType={screen ? "screenShareTrack" : "videoTrack"}
+        ParticipantViewUI={null}
+        mirror={you && !screen}
+        className="absolute inset-0 h-full w-full [&_video]:h-full [&_video]:w-full [&_video]:object-cover"
+      />
+      {!hasTrack && (
+        <div className="absolute inset-0 grid place-items-center" style={{ background: grad }}>
+          <span className="grid place-items-center rounded-full text-white font-bold" style={{ width: big ? 132 : 60, height: big ? 132 : 60, fontSize: big ? 44 : 22, background: "rgba(0,0,0,.22)" }}>
+            {initialsOf(label)}
           </span>
-        </>
-      ) : (
-        <div className="absolute inset-0 grid place-items-center">
-          <span className="grid place-items-center rounded-full text-white font-bold" style={{ width: big ? 132 : 60, height: big ? 132 : 60, fontSize: big ? 44 : 22, background: GRADS[p.id] }}>{initials(p.name)}</span>
         </div>
       )}
 
-      {/* name + mic */}
       <div className="absolute left-2.5 bottom-2.5 flex items-center gap-1.5 bg-black/45 backdrop-blur rounded-lg pl-1.5 pr-2.5 py-1">
-        {p.muted ? <Icon name="MicOff" size={13} className="text-red-400" /> : speaking ? <AudioBars /> : <Icon name="Mic" size={13} className="text-slate-200" />}
-        <span className="text-[12px] font-semibold text-white">{p.name}</span>
-        {p.host && <span className="text-[9.5px] font-bold uppercase tracking-wide text-brand bg-white/90 rounded px-1 py-px ml-0.5">Host</span>}
+        {screen ? (
+          <Icon name="MonitorUp" size={13} className="text-emerald-300" />
+        ) : !hasAudio(p) ? (
+          <Icon name="MicOff" size={13} className="text-red-400" />
+        ) : speaking ? (
+          <AudioBars />
+        ) : (
+          <Icon name="Mic" size={13} className="text-slate-200" />
+        )}
+        <span className="text-[12px] font-semibold text-white">
+          {label}
+          {you && !screen && <span className="text-white/60 font-normal"> (you)</span>}
+          {screen && <span className="text-white/60 font-normal"> · screen</span>}
+        </span>
       </div>
 
-      {speaking && <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-300 bg-emerald-500/15 border border-emerald-400/30 rounded-md px-1.5 py-0.5">Speaking</span>}
+      {speaking && !screen && <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-300 bg-emerald-500/15 border border-emerald-400/30 rounded-md px-1.5 py-0.5">Speaking</span>}
     </div>
   );
 }
@@ -156,15 +206,130 @@ function Pill({ icon, label, on, onClick }) {
   );
 }
 
+/* ============================================================================
+   Top-level: set up the Stream client + call, then render the room UI inside
+   the StreamVideo / StreamCall providers.
+   ========================================================================= */
 export default function RoomPage() {
   const { slug } = useParams();
   const router = useRouter();
+  const roomId = String(slug || "apex-room").replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 64) || "apex-room";
   const title = TITLES[slug] || String(slug || "Conference Room").replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-  // device + AI toggles
-  const [mic, setMic] = useState(true);
-  const [cam, setCam] = useState(false);
-  const [sharing, setSharing] = useState(false);
+  const [client, setClient] = useState(null);
+  const [call, setCall] = useState(null);
+  const [status, setStatus] = useState(isStreamConfigured ? "connecting" : "unconfigured"); // connecting | joined | error | unconfigured
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!isStreamConfigured) return;
+    let active = true;
+    const c = getVideoClient(getDemoUser());
+    const theCall = c.call("default", roomId);
+    setClient(c);
+    setCall(theCall);
+    setStatus("connecting");
+    theCall
+      .join({ create: true })
+      .then(() => active && setStatus("joined"))
+      .catch((e) => {
+        if (active) {
+          setError(String(e?.message || e));
+          setStatus("error");
+        }
+      });
+    return () => {
+      active = false;
+      if (theCall.state.callingState !== CallingState.LEFT) theCall.leave().catch(() => {});
+    };
+  }, [roomId]);
+
+  if (!isStreamConfigured) return <SetupScreen title={title} slug={roomId} onExit={() => router.push("/meetings")} />;
+  if (status === "error") return <ErrorScreen title={title} error={error} onExit={() => router.push("/meetings")} />;
+  if (!client || !call) return <ConnectingScreen title={title} />;
+
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <StreamTheme className="contents">
+          <RoomInner slug={slug} title={title} roomId={roomId} joining={status !== "joined"} />
+        </StreamTheme>
+      </StreamCall>
+    </StreamVideo>
+  );
+}
+
+/* ---------- lightweight full-screen states ---------- */
+function Shell({ children }) {
+  return <div className="fixed inset-0 grid place-items-center bg-[#0a0e1a] text-slate-100 font-sans p-6">{children}</div>;
+}
+function ConnectingScreen({ title }) {
+  return (
+    <Shell>
+      <div className="flex flex-col items-center gap-3 text-center">
+        <span className="grid place-items-center w-12 h-12 rounded-2xl bg-brand/15 animate-pulse"><Icon name="Video" size={24} className="text-brand" /></span>
+        <div className="text-[15px] font-semibold">Joining {title}…</div>
+        <div className="text-[12.5px] text-slate-400">Connecting to the room</div>
+      </div>
+    </Shell>
+  );
+}
+function ErrorScreen({ title, error, onExit }) {
+  return (
+    <Shell>
+      <div className="flex flex-col items-center gap-3 text-center max-w-md">
+        <span className="grid place-items-center w-12 h-12 rounded-2xl bg-red-500/15"><Icon name="TriangleAlert" size={24} className="text-red-400" /></span>
+        <div className="text-[15px] font-semibold">Couldn&apos;t join {title}</div>
+        <div className="text-[12.5px] text-slate-400 break-words">{error || "The call failed to connect."}</div>
+        <button onClick={onExit} className="mt-2 h-10 px-4 rounded-xl bg-white/[0.08] hover:bg-white/[0.16] text-[13px] font-semibold">Back to lobby</button>
+      </div>
+    </Shell>
+  );
+}
+function SetupScreen({ title, slug, onExit }) {
+  return (
+    <Shell>
+      <div className="flex flex-col items-center gap-3 text-center max-w-lg">
+        <span className="grid place-items-center w-12 h-12 rounded-2xl bg-amber-500/15"><Icon name="KeyRound" size={24} className="text-amber-400" /></span>
+        <div className="text-[15px] font-semibold">Video isn&apos;t configured yet</div>
+        <div className="text-[12.5px] text-slate-400">
+          Set <code className="text-slate-200">NEXT_PUBLIC_STREAM_API_KEY</code> and <code className="text-slate-200">STREAM_API_SECRET</code> in
+          <code className="text-slate-200"> .env.local</code> (see <code className="text-slate-200">.env.example</code>), then restart the dev server.
+          Room <b className="text-slate-300">{slug}</b> will connect once Stream is set up.
+        </div>
+        <button onClick={onExit} className="mt-2 h-10 px-4 rounded-xl bg-white/[0.08] hover:bg-white/[0.16] text-[13px] font-semibold">Back to lobby</button>
+      </div>
+    </Shell>
+  );
+}
+
+/* ============================================================================
+   The in-call UI. Runs inside StreamCall, so it can read live call state.
+   ========================================================================= */
+function RoomInner({ slug, title, roomId, joining }) {
+  const router = useRouter();
+
+  const {
+    useParticipants,
+    useMicrophoneState,
+    useCameraState,
+    useScreenShareState,
+    useHasOngoingScreenShare,
+    useDominantSpeaker,
+    useParticipantCount,
+  } = useCallStateHooks();
+
+  const participants = useParticipants();
+  const participantCount = useParticipantCount();
+  const { microphone, isMute: micMuted } = useMicrophoneState();
+  const { camera, isMute: camMuted } = useCameraState();
+  const { screenShare, isMute: shareMuted } = useScreenShareState();
+  const someoneSharing = useHasOngoingScreenShare();
+  const dominant = useDominantSpeaker();
+
+  const sharer = someoneSharing ? participants.find((p) => hasScreenShare(p)) : null;
+
+  // device + AI toggles (device ones are real; AI ones are demo)
   const [recording, setRecording] = useState(false);
   const [captions, setCaptions] = useState(true);
   const [noise, setNoise] = useState(true);
@@ -175,13 +340,11 @@ export default function RoomPage() {
   const [langOpen, setLangOpen] = useState(false);
   const [reactOpen, setReactOpen] = useState(false);
 
-  // panel
   const [panel, setPanel] = useState("ai"); // ai | transcript | people | chat | null
 
-  // live state
-  const [elapsed, setElapsed] = useState(192); // already ~3 min into the call
+  // live state (demo AI layer)
+  const [elapsed, setElapsed] = useState(0);
   const [recSec, setRecSec] = useState(0);
-  const [idx, setIdx] = useState(0);
   const [transcript, setTranscript] = useState([]);
   const [caption, setCaption] = useState(null);
   const [aiReady, setAiReady] = useState(false);
@@ -198,33 +361,27 @@ export default function RoomPage() {
 
   // meeting timer
   useEffect(() => { const t = setInterval(() => setElapsed((s) => s + 1), 1000); return () => clearInterval(t); }, []);
-  // recording timer
   useEffect(() => { if (!recording) return; const t = setInterval(() => setRecSec((s) => s + 1), 1000); return () => clearInterval(t); }, [recording]);
-  // AI summary "generates" shortly after joining
   useEffect(() => { const t = setTimeout(() => setAiReady(true), 2600); return () => clearTimeout(t); }, []);
-  // streaming transcript / active speaker / captions
+  // streaming transcript / captions (demo)
   useEffect(() => {
+    let i = 0;
     const tick = () => {
-      setIdx((i) => {
-        const line = SCRIPT[i % SCRIPT.length];
-        const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-        setTranscript((tr) => [...tr, { ...line, time }].slice(-40));
-        setCaption(line);
-        return i + 1;
-      });
+      const line = SCRIPT[i % SCRIPT.length];
+      const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      setTranscript((tr) => [...tr, { ...line, time }].slice(-40));
+      setCaption(line);
+      i += 1;
     };
     tick();
     const t = setInterval(tick, 4200);
     return () => clearInterval(t);
   }, []);
-  // absence note pops up a few seconds in (the 2–5 min leave-of-absence feature)
   useEffect(() => { const t = setTimeout(() => setAbsence({ name: NALEDI.name, note: "Down with the flu — I'll catch the recording. Doctor's note attached.", doc: "sick-note.pdf", minuteMark: 3 }), 5200); return () => clearTimeout(t); }, []);
-  // auto-scroll transcript + ai thread
   useEffect(() => { tRef.current?.scrollTo({ top: tRef.current.scrollHeight, behavior: "smooth" }); }, [transcript, panel]);
   useEffect(() => { aiRef.current?.scrollTo({ top: aiRef.current.scrollHeight, behavior: "smooth" }); }, [aiThread]);
 
-  const activeId = caption?.who;
-  const speaker = byId(activeId);
+  const speaker = dominant || participants[0];
 
   const toggleRec = () => {
     setRecording((r) => {
@@ -255,13 +412,17 @@ export default function RoomPage() {
     setTimeout(() => setFloats((f) => f.filter((x) => x.id !== id)), 2000);
   };
 
-  const others = PEOPLE.filter((p) => p.id !== activeId);
+  const leave = async () => {
+    try { await screenShare?.disable?.(); } catch { /* ignore */ }
+    router.push("/meetings");
+  };
 
-  // Panel toggles — reused in the control bar's mobile scroll strip and its sm+ right cluster.
+  const others = participants.filter((p) => p.sessionId !== speaker?.sessionId);
+
   const panelToggles = (
     <>
       <Ctrl icon="Sparkles" label="Apex AI" glow active={panel === "ai"} onClick={() => setPanel((p) => (p === "ai" ? null : "ai"))} />
-      <Ctrl icon="Users" label="People" badge={PEOPLE.length} active={panel === "people"} onClick={() => setPanel((p) => (p === "people" ? null : "people"))} />
+      <Ctrl icon="Users" label="People" badge={participantCount} active={panel === "people"} onClick={() => setPanel((p) => (p === "people" ? null : "people"))} />
       <Ctrl icon="MessageSquare" label="Chat" active={panel === "chat"} onClick={() => setPanel((p) => (p === "chat" ? null : "chat"))} />
     </>
   );
@@ -274,10 +435,11 @@ export default function RoomPage() {
           <span className="grid place-items-center w-8 h-8 rounded-lg flex-none" style={{ background: GRADS.tr }}><Icon name="Video" size={17} className="text-white" /></span>
           <div className="min-w-0">
             <div className="text-[13.5px] font-semibold leading-tight truncate">{title}</div>
-            <div className="text-[11px] text-slate-400 leading-tight">apex.meet/{slug}</div>
+            <div className="text-[11px] text-slate-400 leading-tight">apex.meet/{roomId}</div>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-none">
+          {joining && <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-amber-300 bg-amber-500/10 rounded-full px-2.5 py-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />Connecting…</span>}
           <span className="hidden sm:inline-flex items-center gap-1.5 text-[12px] font-semibold text-slate-300 bg-white/[0.06] rounded-full px-2.5 py-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />{clock(elapsed)}
           </span>
@@ -286,7 +448,6 @@ export default function RoomPage() {
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />REC {clock(recSec)}
             </span>
           )}
-          {/* live translation */}
           <div className="relative hidden sm:block">
             <button onClick={() => setLangOpen((o) => !o)} className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-slate-300 bg-white/[0.06] hover:bg-white/[0.12] rounded-full px-2.5 py-1">
               <Icon name="Languages" size={14} className="text-brand" />{lang}<Icon name="ChevronDown" size={13} />
@@ -302,7 +463,7 @@ export default function RoomPage() {
           </div>
           <span className="hidden md:inline-flex items-center gap-1.5 text-[11.5px] font-medium text-emerald-300/90 bg-emerald-500/10 rounded-full px-2.5 py-1"><Icon name="ShieldCheck" size={13} />Encrypted</span>
           <span className="inline-flex items-center gap-1 text-emerald-400" title="Excellent connection"><Icon name="SignalHigh" size={16} /></span>
-          <button onClick={() => router.push("/meetings")} className="grid place-items-center w-8 h-8 rounded-lg text-slate-400 hover:bg-white/[0.08] hover:text-white" title="Back to lobby"><Icon name="X" size={18} /></button>
+          <button onClick={leave} className="grid place-items-center w-8 h-8 rounded-lg text-slate-400 hover:bg-white/[0.08] hover:text-white" title="Back to lobby"><Icon name="X" size={18} /></button>
         </div>
       </header>
 
@@ -335,40 +496,42 @@ export default function RoomPage() {
             </div>
           )}
 
-          {/* video grid / speaker */}
-          {sharing ? (
+          {/* video grid / speaker / screenshare */}
+          {sharer ? (
             <div className="h-full flex gap-3 flex-col lg:flex-row">
-              <div className="flex-1 rounded-2xl border border-white/[0.06] bg-[#0d1424] grid place-items-center relative overflow-hidden">
-                <div className="text-center">
-                  <span className="grid place-items-center w-14 h-14 rounded-2xl bg-brand/15 mx-auto mb-3"><Icon name="MonitorUp" size={26} className="text-brand" /></span>
-                  <div className="text-[14px] font-semibold">You're presenting</div>
-                  <div className="text-[12px] text-slate-400 mt-0.5">Apex — Conference Room.fig</div>
-                </div>
-                <span className="absolute top-3 left-3 text-[11px] font-semibold text-emerald-300 bg-emerald-500/15 border border-emerald-400/30 rounded-md px-2 py-0.5">Screen sharing</span>
-              </div>
+              <div className="flex-1 min-h-0"><StreamTile p={sharer} big screen /></div>
               <div className="flex lg:flex-col gap-3 lg:w-[200px] overflow-auto">
-                {PEOPLE.map((p) => <div key={p.id} className="w-[150px] lg:w-full flex-none"><Tile p={p} speaking={p.id === activeId} /></div>)}
+                {participants.map((p) => <div key={p.sessionId} className="w-[150px] lg:w-full flex-none"><StreamTile p={p} /></div>)}
               </div>
             </div>
-          ) : layout === "speaker" ? (
-            <div className="h-full flex flex-col gap-3">
-              <div className="flex-1 min-h-0"><Tile p={speaker} big speaking /></div>
-              <div className="flex gap-3 h-[110px] flex-none overflow-x-auto">
-                {others.map((p) => <div key={p.id} className="aspect-video h-full flex-none"><Tile p={p} speaking={false} /></div>)}
+          ) : participants.length === 0 ? (
+            <div className="h-full grid place-items-center">
+              <div className="flex flex-col items-center gap-2 text-slate-400">
+                <span className="grid place-items-center w-12 h-12 rounded-2xl bg-white/[0.06] animate-pulse"><Icon name="Video" size={24} /></span>
+                <div className="text-[13px] font-medium">{joining ? "Connecting to the room…" : "Waiting for participants…"}</div>
               </div>
+            </div>
+          ) : layout === "speaker" && speaker ? (
+            <div className="h-full flex flex-col gap-3">
+              <div className="flex-1 min-h-0"><StreamTile p={speaker} big /></div>
+              {others.length > 0 && (
+                <div className="flex gap-3 h-[110px] flex-none overflow-x-auto">
+                  {others.map((p) => <div key={p.sessionId} className="aspect-video h-full flex-none"><StreamTile p={p} /></div>)}
+                </div>
+              )}
             </div>
           ) : (
             <div className="h-full grid gap-3 content-center grid-cols-2 lg:grid-cols-3">
-              {PEOPLE.map((p) => <Tile key={p.id} p={p} speaking={p.id === activeId} />)}
+              {participants.map((p) => <StreamTile key={p.sessionId} p={p} />)}
               <div className="aspect-video rounded-2xl border border-dashed border-white/10 grid place-items-center text-slate-500">
-                <button onClick={() => router.push("/meetings")} className="flex flex-col items-center gap-1.5 hover:text-slate-300">
-                  <Icon name="UserPlus" size={22} /><span className="text-[12px] font-medium">Invite</span>
+                <button onClick={() => navigator.clipboard?.writeText(window.location.href).catch(() => {})} className="flex flex-col items-center gap-1.5 hover:text-slate-300" title="Copy room link">
+                  <Icon name="UserPlus" size={22} /><span className="text-[12px] font-medium">Copy invite link</span>
                 </button>
               </div>
             </div>
           )}
 
-          {/* live captions overlay */}
+          {/* live captions overlay (demo) */}
           {captions && caption && (
             <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 max-w-[80%] flex items-center gap-2.5 bg-black/65 backdrop-blur rounded-xl px-4 py-2.5">
               <Icon name="Captions" size={15} className="text-brand flex-none" />
@@ -379,10 +542,10 @@ export default function RoomPage() {
 
           {/* floating reactions */}
           <div className="pointer-events-none absolute bottom-24 left-1/2 -translate-x-1/2 z-20">
-            {floats.map((f) => <span key={f.id} className="absolute text-3xl animate-[fadeIn_.2s_ease]" style={{ left: `${f.x}px`, bottom: 0, animation: "floatUp 2s ease-out forwards" }}>{f.emoji}</span>)}
+            {floats.map((f) => <span key={f.id} className="absolute text-3xl" style={{ left: `${f.x}px`, bottom: 0, animation: "floatUp 2s ease-out forwards" }}>{f.emoji}</span>)}
           </div>
 
-          {/* absence popup (leave-of-absence — surfaces a few min into the call) */}
+          {/* absence popup (demo) */}
           {absence && (
             <div className="absolute bottom-5 left-5 z-30 w-[320px] max-w-[calc(100%-2.5rem)] bg-[#121a2c]/95 backdrop-blur border border-amber-500/30 rounded-xl shadow-pop p-3.5 animate-[fadeIn_.25s_ease]">
               <div className="flex items-start gap-3">
@@ -419,10 +582,9 @@ export default function RoomPage() {
               <button onClick={() => setPanel(null)} className="grid place-items-center w-8 h-8 rounded-lg text-slate-500 hover:bg-white/[0.08] hover:text-white"><Icon name="PanelRightClose" size={16} /></button>
             </div>
 
-            {/* AI ASSISTANT */}
+            {/* AI ASSISTANT (demo) */}
             {panel === "ai" && (
               <div ref={aiRef} className="flex-1 overflow-y-auto px-3.5 py-3 flex flex-col gap-3.5">
-                {/* live summary */}
                 <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5">
                   <div className="flex items-center gap-2 mb-2.5">
                     <Icon name="FileText" size={14} className="text-brand" />
@@ -437,7 +599,6 @@ export default function RoomPage() {
                     </ul>
                   )}
                 </div>
-                {/* action items */}
                 <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5">
                   <div className="flex items-center gap-2 mb-2.5"><Icon name="ListChecks" size={14} className="text-brand" /><span className="text-[12.5px] font-semibold">Action items detected</span><span className="ml-auto text-[11px] text-slate-500">{ACTION_ITEMS.length}</span></div>
                   <div className="flex flex-col gap-2.5">
@@ -452,13 +613,11 @@ export default function RoomPage() {
                     })}
                   </div>
                 </div>
-                {/* highlights */}
                 <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5 flex items-center gap-3">
                   <span className="grid place-items-center w-9 h-9 rounded-lg bg-brand/15 flex-none"><Icon name="Star" size={16} className="text-brand" /></span>
                   <div className="text-[12px] text-slate-300">{recording ? "Capturing AI highlights for the recording…" : "Start recording to auto-capture AI highlights & chapters."}</div>
                 </div>
 
-                {/* Q&A thread */}
                 {aiThread.length > 0 && (
                   <div className="flex flex-col gap-2.5">
                     {aiThread.map((m, i) => (
@@ -469,7 +628,6 @@ export default function RoomPage() {
               </div>
             )}
 
-            {/* AI input — only on ai tab */}
             {panel === "ai" && (
               <div className="flex-none border-t border-white/[0.06] p-3">
                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -483,7 +641,7 @@ export default function RoomPage() {
               </div>
             )}
 
-            {/* TRANSCRIPT */}
+            {/* TRANSCRIPT (demo) */}
             {panel === "transcript" && (
               <div ref={tRef} className="flex-1 overflow-y-auto px-3.5 py-3 flex flex-col gap-3">
                 <div className="text-[11px] text-slate-500 flex items-center gap-1.5"><Icon name="Languages" size={12} />Transcribing in {lang} · auto-punctuation on</div>
@@ -499,21 +657,21 @@ export default function RoomPage() {
               </div>
             )}
 
-            {/* PEOPLE */}
+            {/* PEOPLE (real participants) */}
             {panel === "people" && (
               <div className="flex-1 overflow-y-auto px-3.5 py-3">
-                <div className="flex items-center justify-between mb-2"><span className="text-[12px] font-semibold text-slate-300">In call · {PEOPLE.length}</span><button className="text-[11.5px] font-semibold text-brand-soft text-indigo-300 hover:underline">Mute all</button></div>
+                <div className="flex items-center justify-between mb-2"><span className="text-[12px] font-semibold text-slate-300">In call · {participantCount}</span></div>
                 <div className="flex flex-col">
-                  {PEOPLE.map((p) => (
-                    <div key={p.id} className="flex items-center gap-2.5 py-2 border-b border-white/[0.05] last:border-0">
-                      <span className="grid place-items-center w-8 h-8 rounded-full text-white text-[11px] font-bold flex-none" style={{ background: GRADS[p.id] }}>{initials(p.name)}</span>
-                      <div className="flex-1 min-w-0"><div className="text-[12.5px] font-semibold truncate">{p.name}{p.you && <span className="text-slate-500 font-normal"> (you)</span>}</div>{p.host && <div className="text-[10.5px] text-brand-soft text-indigo-300">Host</div>}</div>
-                      {p.id === activeId && <AudioBars />}
-                      <Icon name={p.muted ? "MicOff" : "Mic"} size={14} className={p.muted ? "text-red-400" : "text-slate-400"} />
-                      <Icon name={p.cam ? "Video" : "VideoOff"} size={14} className={p.cam ? "text-slate-400" : "text-slate-600"} />
+                  {participants.map((p) => (
+                    <div key={p.sessionId} className="flex items-center gap-2.5 py-2 border-b border-white/[0.05] last:border-0">
+                      <span className="grid place-items-center w-8 h-8 rounded-full text-white text-[11px] font-bold flex-none" style={{ background: gradFor(p.userId || p.name) }}>{initialsOf(p.name || p.userId)}</span>
+                      <div className="flex-1 min-w-0"><div className="text-[12.5px] font-semibold truncate">{p.name || p.userId}{p.isLocalParticipant && <span className="text-slate-500 font-normal"> (you)</span>}</div></div>
+                      {p.isSpeaking && <AudioBars />}
+                      <Icon name={hasAudio(p) ? "Mic" : "MicOff"} size={14} className={hasAudio(p) ? "text-slate-400" : "text-red-400"} />
+                      <Icon name={hasVideo(p) ? "Video" : "VideoOff"} size={14} className={hasVideo(p) ? "text-slate-400" : "text-slate-600"} />
                     </div>
                   ))}
-                  {/* absentee */}
+                  {/* absentee (demo) */}
                   <div className="flex items-center gap-2.5 py-2 opacity-60">
                     <span className="grid place-items-center w-8 h-8 rounded-full text-white text-[11px] font-bold flex-none grayscale" style={{ background: GRADS.naledi }}>NK</span>
                     <div className="flex-1 min-w-0"><div className="text-[12.5px] font-semibold truncate">{NALEDI.name}</div><div className="text-[10.5px] text-amber-300/90 inline-flex items-center gap-1"><Icon name="UserMinus" size={11} />Sent a leave note</div></div>
@@ -522,7 +680,7 @@ export default function RoomPage() {
               </div>
             )}
 
-            {/* CHAT */}
+            {/* CHAT (demo) */}
             {panel === "chat" && (
               <>
                 <div className="flex-1 overflow-y-auto px-3.5 py-3 flex flex-col gap-3">
@@ -550,45 +708,39 @@ export default function RoomPage() {
 
       {/* ---------- control bar ---------- */}
       <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 h-20 border-t border-white/[0.06] flex-none">
-        {/* left: live AI status (lg) */}
         <div className="hidden lg:flex flex-1 items-center gap-2 text-[11.5px] text-slate-400">
           <Icon name="Captions" size={14} className={captions ? "text-brand" : ""} />{captions ? "Captions on" : "Captions off"}
           <span className="w-1 h-1 rounded-full bg-slate-600" />
           <Icon name="Waves" size={14} className={noise ? "text-brand" : ""} />Noise {noise ? "suppressed" : "off"}
         </div>
 
-        {/* center: primary controls — scroll horizontally on small screens so nothing is clipped */}
         <div className="flex-1 lg:flex-none min-w-0 flex items-center justify-start sm:justify-center gap-1.5 sm:gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <Ctrl icon={mic ? "Mic" : "MicOff"} label={mic ? "Mute" : "Unmute"} danger={!mic} onClick={() => setMic((v) => !v)} />
-          <Ctrl icon={cam ? "Video" : "VideoOff"} label={cam ? "Stop" : "Start"} danger={!cam} onClick={() => setCam((v) => !v)} />
-          <Ctrl icon="MonitorUp" label="Share" active={sharing} onClick={() => setSharing((v) => !v)} />
+          <Ctrl icon={micMuted ? "MicOff" : "Mic"} label={micMuted ? "Unmute" : "Mute"} danger={micMuted} onClick={() => microphone.toggle()} />
+          <Ctrl icon={camMuted ? "VideoOff" : "Video"} label={camMuted ? "Start" : "Stop"} danger={camMuted} onClick={() => camera.toggle()} />
+          <Ctrl icon="MonitorUp" label="Share" active={!shareMuted} onClick={() => screenShare.toggle()} />
           <Ctrl icon="Disc" label={recording ? "Stop rec" : "Record"} danger={recording} onClick={toggleRec} />
           <Ctrl icon="Smile" label="React" active={reactOpen} onClick={() => setReactOpen((v) => !v)} />
           <Ctrl icon="Captions" label="Captions" active={captions} onClick={() => setCaptions((v) => !v)} />
           <Ctrl icon="Hand" label="Raise" active={hand} onClick={() => setHand((v) => !v)} />
           <Ctrl icon={layout === "speaker" ? "LayoutGrid" : "SquareUser"} label="Layout" onClick={() => setLayout((l) => (l === "gallery" ? "speaker" : "gallery"))} />
-          {/* panel toggles — reachable on mobile; on sm+ they live in the right cluster */}
           <span className="sm:hidden w-px h-9 bg-white/10 flex-none mx-0.5" />
           <div className="sm:hidden flex items-center gap-1.5">{panelToggles}</div>
         </div>
 
-        {/* reactions popover — fixed so the scroll strip can't clip it */}
         {reactOpen && (
           <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-[#121a2c] border border-white/10 rounded-full px-2 py-1.5 shadow-pop">
             {REACTIONS.map((e) => <button key={e} onClick={() => react(e)} className="text-xl hover:scale-125 transition-transform px-0.5">{e}</button>)}
           </div>
         )}
 
-        {/* right: panels (sm+) + leave */}
         <div className="flex items-center justify-end gap-2 sm:gap-3 flex-none lg:flex-1">
           <div className="hidden sm:flex items-center gap-2 sm:gap-3">{panelToggles}</div>
-          <button onClick={() => router.push("/meetings")} className="flex items-center gap-2 h-11 sm:h-[52px] px-4 sm:px-5 rounded-[14px] sm:rounded-[16px] bg-red-500 hover:bg-red-600 text-white text-[13px] font-bold flex-none">
+          <button onClick={leave} className="flex items-center gap-2 h-11 sm:h-[52px] px-4 sm:px-5 rounded-[14px] sm:rounded-[16px] bg-red-500 hover:bg-red-600 text-white text-[13px] font-bold flex-none">
             <Icon name="PhoneOff" size={18} /><span className="hidden sm:inline">Leave</span>
           </button>
         </div>
       </div>
 
-      {/* local keyframes for floating reactions */}
       <style>{`@keyframes floatUp{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(-160px);opacity:0}}`}</style>
     </div>
   );

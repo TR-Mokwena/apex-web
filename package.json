@@ -17,6 +17,7 @@
     "remotion": "remotion studio remotion/index.js",
     "remotion:render": "remotion render remotion/index.js ApexTour out/apex-tour.mp4",
     "remotion:still": "remotion still remotion/index.js ApexTour out/apex-still.png --frame=400",
+    "vo": "node scripts/generate-vo.mjs",
     "remotion:render:vertical": "remotion render remotion/index.js ApexShortVertical out/apex-short-vertical.mp4",
     "remotion:render:square": "remotion render remotion/index.js ApexShortSquare out/apex-short-square.mp4",
     "remotion:render:ai": "remotion render remotion/index.js ApexAICopilot out/apex-ai.mp4",
@@ -27,6 +28,8 @@
     "remotion:render:whatsnew": "remotion render remotion/index.js ApexWhatsNew out/apex-whatsnew.mp4"
   },
   "dependencies": {
+    "@stream-io/node-sdk": "^0.7.62",
+    "@stream-io/video-react-sdk": "^1.39.3",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.525.0",
     "next": "^15.5.4",

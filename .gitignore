@@ -7,6 +7,9 @@
 /.next/
 /out/
 
+# generated voiceover audio (ElevenLabs — see scripts/generate-vo.mjs)
+/public/audio/vo/
+
 # production
 /build
 
