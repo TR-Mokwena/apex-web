@@ -8,13 +8,14 @@ import {
   ParticipantView,
   ParticipantsAudio,
   useCallStateHooks,
+  useCall,
   CallingState,
   hasVideo,
 } from "@stream-io/video-react-sdk";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import Icon from "@/components/Icon";
 import { cn } from "@/lib/cn";
-import { getDemoUser, getVideoClient, isStreamConfigured } from "@/lib/stream";
+import { getVideoClient, getCurrentUser, isStreamConfigured } from "@/lib/stream";
 
 const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
@@ -172,31 +173,47 @@ function useMicLevel(mediaStream, muted) {
    Real Stream-backed call.
    ========================================================================= */
 function RealCall(props) {
-  const { mode, callId } = props;
+  const { mode, callId, members } = props;
   const [client, setClient] = useState(null);
   const [call, setCall] = useState(null);
+  // Stable key so an inline `members` array doesn't re-run the effect each render.
+  const memberKey = JSON.stringify((members || []).map((m) => m.id));
 
   useEffect(() => {
-    const c = getVideoClient(getDemoUser());
-    const theCall = c.call("default", String(callId).replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 64));
+    const c = getVideoClient();
+    const ring = (members || []).length > 0;
+    // Ring calls get a fresh unique id (membership + ring events connect the
+    // parties); non-ring calls use the deterministic id so both sides can join.
+    const id = ring
+      ? `call-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+      : String(callId || "call").replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 64);
+    const theCall = c.call("default", id);
     setClient(c);
     setCall(theCall);
     let active = true;
-    theCall
-      .join({ create: true })
-      .then(async () => {
+    (async () => {
+      try {
+        if (ring) {
+          const me = getCurrentUser();
+          const ids = [...new Set([me.id, ...(members || []).map((m) => m.id)].filter(Boolean))];
+          await theCall.getOrCreate({ ring: true, data: { members: ids.map((uid) => ({ user_id: uid })), custom: { mode } } });
+          await theCall.join();
+        } else {
+          await theCall.join({ create: true });
+        }
         if (!active) return;
         try {
           await theCall.microphone.enable();
           if (mode === "video") await theCall.camera.enable();
         } catch { /* permission denied — call still connects, just no local media */ }
-      })
-      .catch(() => {});
+      } catch { /* connection failed */ }
+    })();
     return () => {
       active = false;
       if (theCall.state.callingState !== CallingState.LEFT) theCall.leave().catch(() => {});
     };
-  }, [callId, mode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [callId, mode, memberKey]);
 
   if (!client || !call) {
     return <CallView {...props} status="connecting" muted={false} camOff={mode !== "video"} speaker level={0} showVideo={false} onToggleMute={() => {}} onToggleCam={() => {}} onToggleSpeaker={() => {}} />;
@@ -206,15 +223,18 @@ function RealCall(props) {
     <StreamVideo client={client}>
       <StreamCall call={call}>
         <StreamTheme className="contents">
-          <RealCallInner {...props} />
+          <InCall {...props} />
         </StreamTheme>
       </StreamCall>
     </StreamVideo>
   );
 }
 
-function RealCallInner(props) {
-  const { mode } = props;
+// The in-call UI. Expects to run inside a <StreamCall> — reused for both
+// outgoing (RealCall) and accepted incoming (IncomingCall) calls.
+export function InCall(props) {
+  const { mode, onEnd } = props;
+  const call = useCall();
   const {
     useMicrophoneState,
     useCameraState,
@@ -233,6 +253,22 @@ function RealCallInner(props) {
   const level = useMicLevel(micStream, micMuted);
 
   const status = callingState === CallingState.JOINED ? "active" : "connecting";
+
+  // Leave the Stream call when the user ends, then notify the parent.
+  const endedRef = useRef(false);
+  const handleEnd = async (seconds) => {
+    if (endedRef.current) return;
+    endedRef.current = true;
+    try { if (call && call.state.callingState !== CallingState.LEFT) await call.leave(); } catch { /* already gone */ }
+    onEnd?.(seconds);
+  };
+  // Auto-close if the call ends remotely (other side hangs up / rejects).
+  useEffect(() => {
+    if (callingState === CallingState.LEFT && !endedRef.current) {
+      endedRef.current = true;
+      onEnd?.(0);
+    }
+  }, [callingState, onEnd]);
 
   // Pick the primary video: a remote camera if present, otherwise our own.
   const remoteVideo = remotes.find((p) => hasVideo(p));
@@ -281,6 +317,7 @@ function RealCallInner(props) {
         onToggleMute={() => microphone.toggle()}
         onToggleCam={() => camera.toggle()}
         onToggleSpeaker={() => setSpeaker((s) => !s)}
+        onEnd={handleEnd}
       />
     </>
   );

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Icon from "@/components/Icon";
 import { Modal, Field, TextInput, Select, Textarea, Button, Avatar, Pill } from "@/components/ui";
 import CallModal from "@/components/messages/CallModal";
+import { idFromEmail } from "@/lib/stream";
 import { cn } from "@/lib/cn";
 
 // Demo roster — mirrors the contributors directory. Each carries an email so the
@@ -425,6 +426,7 @@ export default function MeetingsPage() {
         <CallModal
           mode={call.mode}
           callId={`dm-${call.person.id}`}
+          members={[{ id: idFromEmail(call.person.email), name: call.person.name }]}
           title={call.person.name}
           subtitle={call.person.role}
           avatar={initials(call.person.name)}
