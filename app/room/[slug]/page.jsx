@@ -16,7 +16,7 @@ import {
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import Icon from "@/components/Icon";
 import { cn } from "@/lib/cn";
-import { getDemoUser, getVideoClient, isStreamConfigured } from "@/lib/stream";
+import { getVideoClient, isStreamConfigured } from "@/lib/stream";
 
 /* ============================================================================
    Apex Conference Room — the in-call (video) experience.
@@ -224,14 +224,20 @@ export default function RoomPage() {
   useEffect(() => {
     if (!isStreamConfigured) return;
     let active = true;
-    const c = getVideoClient(getDemoUser());
+    const c = getVideoClient();
     const theCall = c.call("default", roomId);
     setClient(c);
     setCall(theCall);
     setStatus("connecting");
     theCall
       .join({ create: true })
-      .then(() => active && setStatus("joined"))
+      .then(async () => {
+        if (!active) return;
+        setStatus("joined");
+        // Publish mic so audio flows immediately; camera stays off until the
+        // user starts it. Swallow permission errors — the call still connects.
+        try { await theCall.microphone.enable(); } catch { /* no mic / denied */ }
+      })
       .catch((e) => {
         if (active) {
           setError(String(e?.message || e));

@@ -44,7 +44,7 @@ export default function LoginPage() {
   const [show, setShow] = useState(false);
   const [remember, setRemember] = useState(true);
 
-  const submit = (e) => { e.preventDefault(); signIn({ remember }); router.push("/"); };
+  const submit = (e) => { e.preventDefault(); signIn({ email: email.trim(), remember }); router.push("/"); };
 
   const fieldWrap = "flex items-center gap-2.5 h-12 px-3.5 rounded-xl border border-line bg-card focus-within:border-brand focus-within:shadow-[0_0_0_3px_var(--color-brand-soft)] transition-[border-color,box-shadow]";
 

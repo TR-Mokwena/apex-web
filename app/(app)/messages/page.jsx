@@ -113,6 +113,7 @@ export default function MessagesPage() {
     if (!c) return;
     setCall({
       mode,
+      callId: `dm-${c.id}`,
       title: c.type === "channel" ? "# " + c.name : c.name,
       subtitle: c.meta,
       avatar: c.av,

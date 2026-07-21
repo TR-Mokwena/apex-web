@@ -1,84 +1,56 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import {
+  StreamVideo,
+  StreamCall,
+  StreamTheme,
+  ParticipantView,
+  ParticipantsAudio,
+  useCallStateHooks,
+  CallingState,
+  hasVideo,
+} from "@stream-io/video-react-sdk";
+import "@stream-io/video-react-sdk/dist/css/styles.css";
 import Icon from "@/components/Icon";
 import { cn } from "@/lib/cn";
+import { getDemoUser, getVideoClient, isStreamConfigured } from "@/lib/stream";
 
 const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 /**
- * Voice / video call overlay. No signalling backend — but genuinely functional
- * locally: it acquires the mic (and camera for video) via getUserMedia, drives a
- * live level meter off a Web Audio AnalyserNode, and Mute/Camera really toggle the
- * track. Falls back to a simulated call if permission is denied or no device exists.
+ * 1:1 (and small-group) voice / video call overlay.
+ *
+ * When Stream is configured it runs a REAL call: it joins the Stream call named
+ * by `callId`, publishes mic (+ camera for video mode), plays remote audio and
+ * renders remote/self video. Open the same conversation on another device to
+ * connect. Without Stream keys it falls back to the local-only simulated call
+ * (mic level meter off getUserMedia), so the demo still works.
  */
-export default function CallModal({ mode, title, subtitle, avatar, bg, isChannel, onEnd }) {
-  const [status, setStatus] = useState("connecting"); // connecting → active
-  const [seconds, setSeconds] = useState(0);
-  const [muted, setMuted] = useState(false);
-  const [camOff, setCamOff] = useState(false);
-  const [speaker, setSpeaker] = useState(true);
-  const [level, setLevel] = useState(0);
-  const [noDevice, setNoDevice] = useState(false);
+export default function CallModal(props) {
+  if (isStreamConfigured && props.callId) return <RealCall {...props} />;
+  return <SimulatedCall {...props} />;
+}
 
-  const streamRef = useRef(null);
-  const videoRef = useRef(null);
-  const rafRef = useRef(null);
-  const ctxRef = useRef(null);
+/* ============================================================================
+   Shared presentational shell — owns the timer + escape-to-end, renders the
+   frame (video slot or avatar with the audio-reactive ripple) and controls.
+   ========================================================================= */
+function CallView({
+  mode, title, subtitle, isChannel, avatar, bg,
+  status, muted, camOff, speaker, level, noDevice,
+  showVideo, videoNode, pipNode,
+  onToggleMute, onToggleCam, onToggleSpeaker, onEnd,
+}) {
+  const [seconds, setSeconds] = useState(0);
   const secRef = useRef(0);
   const end = () => onEnd(secRef.current);
 
-  // Acquire media + set up the level analyser once.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        if (!navigator.mediaDevices?.getUserMedia) throw new Error("unsupported");
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: mode === "video" });
-        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
-        streamRef.current = stream;
-        if (videoRef.current && mode === "video") videoRef.current.srcObject = stream;
-
-        const Ctx = window.AudioContext || window.webkitAudioContext;
-        const ctx = new Ctx();
-        ctxRef.current = ctx;
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 256;
-        ctx.createMediaStreamSource(stream).connect(analyser);
-        const data = new Uint8Array(analyser.frequencyBinCount);
-        const tick = () => {
-          analyser.getByteTimeDomainData(data);
-          let sum = 0;
-          for (let i = 0; i < data.length; i++) { const v = (data[i] - 128) / 128; sum += v * v; }
-          setLevel(Math.min(1, Math.sqrt(sum / data.length) * 3.2));
-          rafRef.current = requestAnimationFrame(tick);
-        };
-        tick();
-      } catch {
-        if (!cancelled) setNoDevice(true);
-      }
-    })();
-
-    const t = setTimeout(() => setStatus("active"), 1500);
-    return () => {
-      cancelled = true;
-      clearTimeout(t);
-      cancelAnimationFrame(rafRef.current);
-      if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
-      if (ctxRef.current) ctxRef.current.close().catch(() => {});
-    };
-  }, [mode]);
-
-  // Call timer.
   useEffect(() => {
     if (status !== "active") return;
     const iv = setInterval(() => setSeconds((s) => { secRef.current = s + 1; return s + 1; }), 1000);
     return () => clearInterval(iv);
   }, [status]);
-
-  // Mute / camera really gate the tracks.
-  useEffect(() => { streamRef.current?.getAudioTracks().forEach((t) => (t.enabled = !muted)); }, [muted]);
-  useEffect(() => { streamRef.current?.getVideoTracks().forEach((t) => (t.enabled = !camOff)); }, [camOff]);
 
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onEnd(secRef.current);
@@ -86,22 +58,22 @@ export default function CallModal({ mode, title, subtitle, avatar, bg, isChannel
     return () => document.removeEventListener("keydown", onKey);
   }, [onEnd]);
 
-  const showVideo = mode === "video" && !camOff && !noDevice;
   const ring = muted ? 0 : level;
 
   return (
     <div className="fixed inset-0 z-[90] flex flex-col items-center justify-between py-14 text-white bg-gradient-to-b from-[#141A32] to-[#0B0F1E]">
-      {/* self video fills the frame in video mode */}
+      {/* video fills the frame in video mode */}
       {mode === "video" && (
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className={cn("absolute inset-0 w-full h-full object-cover scale-x-[-1] transition-opacity", showVideo ? "opacity-100" : "opacity-0")}
-        />
+        <div className={cn("absolute inset-0 transition-opacity", showVideo ? "opacity-100" : "opacity-0")}>{videoNode}</div>
       )}
-      {mode === "video" && <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70" />}
+      {mode === "video" && <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70 pointer-events-none" />}
+
+      {/* self picture-in-picture (when a remote video is primary) */}
+      {mode === "video" && showVideo && pipNode && (
+        <div className="absolute top-5 right-5 w-[116px] sm:w-[140px] aspect-[3/4] rounded-2xl overflow-hidden border border-white/15 shadow-[0_10px_30px_-8px_rgba(0,0,0,0.7)] bg-black/40 z-10">
+          {pipNode}
+        </div>
+      )}
 
       {/* callee */}
       <div className={cn("relative flex flex-col gap-4 mt-6", showVideo ? "w-full items-start px-5" : "items-center")}>
@@ -127,6 +99,7 @@ export default function CallModal({ mode, title, subtitle, avatar, bg, isChannel
           <div className={cn("mt-1 text-[13px] text-white/70 flex items-center gap-1.5", !showVideo && "justify-center")}>
             <Icon name={mode === "video" ? "Video" : "Phone"} size={13} />
             {status === "connecting" ? "Calling…" : fmt(seconds)}
+            {subtitle && status === "connecting" && <span className="text-white/40">· {subtitle}</span>}
             {noDevice && status === "active" && <span className="text-white/40">· no mic</span>}
           </div>
         </div>
@@ -134,11 +107,11 @@ export default function CallModal({ mode, title, subtitle, avatar, bg, isChannel
 
       {/* controls */}
       <div className="relative flex items-center gap-4">
-        <CallBtn active={muted} onClick={() => setMuted((m) => !m)} icon={muted ? "MicOff" : "Mic"} label={muted ? "Unmute" : "Mute"} />
+        <CallBtn active={muted} onClick={onToggleMute} icon={muted ? "MicOff" : "Mic"} label={muted ? "Unmute" : "Mute"} />
         {mode === "video" && (
-          <CallBtn active={camOff} onClick={() => setCamOff((c) => !c)} icon={camOff ? "VideoOff" : "Video"} label={camOff ? "Start video" : "Stop video"} />
+          <CallBtn active={camOff} onClick={onToggleCam} icon={camOff ? "VideoOff" : "Video"} label={camOff ? "Start video" : "Stop video"} />
         )}
-        <CallBtn active={!speaker} onClick={() => setSpeaker((s) => !s)} icon={speaker ? "Volume2" : "VolumeX"} label="Speaker" />
+        <CallBtn active={!speaker} onClick={onToggleSpeaker} icon={speaker ? "Volume2" : "VolumeX"} label="Speaker" />
         <button
           type="button"
           onClick={end}
@@ -166,5 +139,215 @@ function CallBtn({ active, onClick, icon, label }) {
     >
       <Icon name={icon} size={21} />
     </button>
+  );
+}
+
+/* Drives the ripple level meter from a raw mic MediaStream via Web Audio. */
+function useMicLevel(mediaStream, muted) {
+  const [level, setLevel] = useState(0);
+  useEffect(() => {
+    if (!mediaStream || muted || !mediaStream.getAudioTracks().length) { setLevel(0); return; }
+    let raf;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 256;
+    ctx.createMediaStreamSource(mediaStream).connect(analyser);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    const tick = () => {
+      analyser.getByteTimeDomainData(data);
+      let sum = 0;
+      for (let i = 0; i < data.length; i++) { const v = (data[i] - 128) / 128; sum += v * v; }
+      setLevel(Math.min(1, Math.sqrt(sum / data.length) * 3.2));
+      raf = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => { cancelAnimationFrame(raf); ctx.close().catch(() => {}); };
+  }, [mediaStream, muted]);
+  return level;
+}
+
+/* ============================================================================
+   Real Stream-backed call.
+   ========================================================================= */
+function RealCall(props) {
+  const { mode, callId } = props;
+  const [client, setClient] = useState(null);
+  const [call, setCall] = useState(null);
+
+  useEffect(() => {
+    const c = getVideoClient(getDemoUser());
+    const theCall = c.call("default", String(callId).replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 64));
+    setClient(c);
+    setCall(theCall);
+    let active = true;
+    theCall
+      .join({ create: true })
+      .then(async () => {
+        if (!active) return;
+        try {
+          await theCall.microphone.enable();
+          if (mode === "video") await theCall.camera.enable();
+        } catch { /* permission denied — call still connects, just no local media */ }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+      if (theCall.state.callingState !== CallingState.LEFT) theCall.leave().catch(() => {});
+    };
+  }, [callId, mode]);
+
+  if (!client || !call) {
+    return <CallView {...props} status="connecting" muted={false} camOff={mode !== "video"} speaker level={0} showVideo={false} onToggleMute={() => {}} onToggleCam={() => {}} onToggleSpeaker={() => {}} />;
+  }
+
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <StreamTheme className="contents">
+          <RealCallInner {...props} />
+        </StreamTheme>
+      </StreamCall>
+    </StreamVideo>
+  );
+}
+
+function RealCallInner(props) {
+  const { mode } = props;
+  const {
+    useMicrophoneState,
+    useCameraState,
+    useCallCallingState,
+    useLocalParticipant,
+    useRemoteParticipants,
+  } = useCallStateHooks();
+
+  const { microphone, isMute: micMuted, mediaStream: micStream } = useMicrophoneState();
+  const { camera, isMute: camMuted } = useCameraState();
+  const callingState = useCallCallingState();
+  const localP = useLocalParticipant();
+  const remotes = useRemoteParticipants();
+
+  const [speaker, setSpeaker] = useState(true);
+  const level = useMicLevel(micStream, micMuted);
+
+  const status = callingState === CallingState.JOINED ? "active" : "connecting";
+
+  // Pick the primary video: a remote camera if present, otherwise our own.
+  const remoteVideo = remotes.find((p) => hasVideo(p));
+  const primary = remoteVideo || (localP && hasVideo(localP) ? localP : null);
+  const showVideo = mode === "video" && !!primary;
+  const isSelfPrimary = primary && primary === localP;
+
+  const videoNode = primary ? (
+    <ParticipantView
+      participant={primary}
+      trackType="videoTrack"
+      ParticipantViewUI={null}
+      mirror={isSelfPrimary}
+      muteAudio
+      className="absolute inset-0 h-full w-full [&_video]:h-full [&_video]:w-full [&_video]:object-cover"
+    />
+  ) : null;
+
+  // Self preview shown as PiP only when a remote is the primary video.
+  const pipNode = !isSelfPrimary && localP && hasVideo(localP) ? (
+    <ParticipantView
+      participant={localP}
+      trackType="videoTrack"
+      ParticipantViewUI={null}
+      mirror
+      muteAudio
+      className="absolute inset-0 h-full w-full [&_video]:h-full [&_video]:w-full [&_video]:object-cover"
+    />
+  ) : null;
+
+  return (
+    <>
+      {/* remote audio playback (gated by the speaker toggle) */}
+      <ParticipantsAudio participants={speaker ? remotes : []} />
+      <CallView
+        {...props}
+        status={status}
+        muted={micMuted}
+        camOff={camMuted}
+        speaker={speaker}
+        level={level}
+        noDevice={!micStream}
+        showVideo={showVideo}
+        videoNode={videoNode}
+        pipNode={pipNode}
+        onToggleMute={() => microphone.toggle()}
+        onToggleCam={() => camera.toggle()}
+        onToggleSpeaker={() => setSpeaker((s) => !s)}
+      />
+    </>
+  );
+}
+
+/* ============================================================================
+   Local-only fallback (no Stream keys) — preserves the original demo behaviour:
+   acquires the mic/camera via getUserMedia and drives the meter locally, but
+   there is no peer connection.
+   ========================================================================= */
+function SimulatedCall(props) {
+  const { mode } = props;
+  const [status, setStatus] = useState("connecting");
+  const [muted, setMuted] = useState(false);
+  const [camOff, setCamOff] = useState(false);
+  const [speaker, setSpeaker] = useState(true);
+  const [noDevice, setNoDevice] = useState(false);
+  const [stream, setStream] = useState(null);
+
+  const streamRef = useRef(null);
+  const videoRef = useRef(null);
+  const level = useMicLevel(stream, muted);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        if (!navigator.mediaDevices?.getUserMedia) throw new Error("unsupported");
+        const s = await navigator.mediaDevices.getUserMedia({ audio: true, video: mode === "video" });
+        if (cancelled) { s.getTracks().forEach((t) => t.stop()); return; }
+        streamRef.current = s;
+        setStream(s);
+        if (videoRef.current && mode === "video") videoRef.current.srcObject = s;
+      } catch {
+        if (!cancelled) setNoDevice(true);
+      }
+    })();
+    const t = setTimeout(() => setStatus("active"), 1500);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+    };
+  }, [mode]);
+
+  useEffect(() => { streamRef.current?.getAudioTracks().forEach((t) => (t.enabled = !muted)); }, [muted]);
+  useEffect(() => { streamRef.current?.getVideoTracks().forEach((t) => (t.enabled = !camOff)); }, [camOff]);
+
+  const showVideo = mode === "video" && !camOff && !noDevice;
+  const videoNode = (
+    <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover scale-x-[-1]" />
+  );
+
+  return (
+    <CallView
+      {...props}
+      status={status}
+      muted={muted}
+      camOff={camOff}
+      speaker={speaker}
+      level={level}
+      noDevice={noDevice}
+      showVideo={showVideo}
+      videoNode={videoNode}
+      onToggleMute={() => setMuted((m) => !m)}
+      onToggleCam={() => setCamOff((c) => !c)}
+      onToggleSpeaker={() => setSpeaker((s) => !s)}
+    />
   );
 }

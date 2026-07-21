@@ -424,6 +424,7 @@ export default function MeetingsPage() {
       {call && (
         <CallModal
           mode={call.mode}
+          callId={`dm-${call.person.id}`}
           title={call.person.name}
           subtitle={call.person.role}
           avatar={initials(call.person.name)}
